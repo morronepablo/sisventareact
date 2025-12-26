@@ -1,0 +1,81 @@
+// src/context/AuthContext.jsx
+/* eslint-disable react-refresh/only-export-components */
+/* eslint-disable react-hooks/set-state-in-effect */
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { jwtDecode } from "jwt-decode";
+
+const AuthContext = createContext();
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
+  return context;
+};
+
+// ✅ PERMISOS SIMULADOS (para desarrollo)
+const SIMULATED_PERMISOS = [
+  "ver_usuarios",
+  "ver_permisos",
+  "ver_roles",
+  "ver_calidad",
+  "ver_otros",
+];
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const savedToken = localStorage.getItem("token");
+    if (savedToken) {
+      try {
+        const decoded = jwtDecode(savedToken);
+        if (decoded.exp * 1000 > Date.now()) {
+          // ✅ Añadir permisos simulados al usuario
+          const userWithPermisos = {
+            ...decoded,
+            permisos: SIMULATED_PERMISOS,
+          };
+          setUser(userWithPermisos);
+          setToken(savedToken);
+        } else {
+          localStorage.removeItem("token");
+        }
+      } catch (err) {
+        console.error("Error decodificando token:", err);
+        localStorage.removeItem("token");
+      }
+    }
+    setLoading(false);
+  }, []);
+
+  const login = (newToken) => {
+    localStorage.setItem("token", newToken);
+    const decoded = jwtDecode(newToken);
+    const userWithPermisos = {
+      ...decoded,
+      permisos: SIMULATED_PERMISOS, // ← ¡Simular permisos en el login!
+    };
+    setUser(userWithPermisos);
+    setToken(newToken);
+  };
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    setUser(null);
+    setToken(null);
+  };
+
+  const hasPermission = (permiso) => {
+    return user?.permisos?.includes(permiso) || false;
+  };
+
+  return (
+    <AuthContext.Provider
+      value={{ user, token, login, logout, hasPermission, loading }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};

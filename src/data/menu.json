@@ -1,0 +1,49 @@
+[
+    {
+        "id": "usuarios",
+        "text": "Usuarios",
+        "icon": "fas fa-users",
+        "permiso": "ver_usuarios",
+        "children": [
+            {
+                "id": "listado",
+                "text": "Listado",
+                "icon": "far fa-circle",
+                "path": "/usuarios/listado",
+                "permiso": "ver_usuarios"
+            }
+        ]
+    },
+    {
+        "id": "permisos",
+        "text": "Permisos",
+        "icon": "fas fa-key",
+        "path": "/permisos",
+        "permiso": "ver_permisos",
+        "children": [
+            {
+                "id": "listado",
+                "text": "Listado",
+                "icon": "far fa-circle",
+                "path": "/permisos/listado",
+                "permiso": "ver_permisos"
+            }
+        ]
+    },
+    {
+        "id": "roles",
+        "text": "Roles",
+        "icon": "fas fa-user-tag",
+        "path": "/roles",
+        "permiso": "ver_permisos",
+        "children": [
+            {
+                "id": "roles",
+                "text": "Listado",
+                "icon": "far fa-circle",
+                "path": "/roles/listado",
+                "permiso": "ver_roles"
+            }
+        ]
+    }
+]

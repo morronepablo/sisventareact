@@ -1,0 +1,271 @@
+/* src/index.css */
+@import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback");
+
+/* === ESTILOS GLOBALES Y DE LAYOUT === */
+
+.wrapper {
+  position: relative;
+  min-height: 100vh;
+}
+
+.content-wrapper {
+  background-color: #f4f6f9;
+}
+
+/* En modo oscuro, el fondo del wrapper también cambia */
+body.dark-mode .wrapper {
+  background-color: #454d55;
+}
+
+/* --- Logo Circular --- */
+.brand-image.app-logo {
+  width: 33px;
+  height: 33px;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* === LAYOUT FIJO (Válido para todas las pantallas) === */
+
+body.layout-fixed .main-header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1037;
+}
+
+body.layout-fixed .main-sidebar {
+  position: fixed;
+  top: 0;
+  height: 100vh;
+}
+
+body.layout-fixed .content-wrapper {
+  overflow-y: auto;
+  padding-top: calc(3.5rem + 1rem);
+  padding-bottom: calc(3.1rem + 1rem);
+}
+
+body.layout-fixed .main-footer {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  z-index: 1036;
+}
+
+/* === COMPORTAMIENTO RESPONSIVO === */
+
+/* --- Escritorio (992px y más) --- */
+@media (min-width: 992px) {
+  .content-wrapper,
+  .main-footer,
+  .main-header {
+    transition: margin-left 0.3s ease-in-out;
+    margin-left: 250px;
+  }
+
+  body.sidebar-collapse .content-wrapper,
+  body.sidebar-collapse .main-footer,
+  body.sidebar-collapse .main-header {
+    margin-left: 4.6rem;
+  }
+
+  body.layout-fixed .content-wrapper {
+    height: 100vh;
+  }
+}
+
+/* --- Móvil (menos de 992px) --- */
+@media (max-width: 991.98px) {
+  .main-sidebar {
+    transform: translateX(-250px);
+    transition: transform 0.3s ease-in-out;
+    z-index: 1050;
+  }
+
+  body.sidebar-open .main-sidebar {
+    transform: translateX(0);
+  }
+
+  .content-wrapper,
+  .main-footer,
+  .main-header {
+    margin-left: 0 !important;
+  }
+
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1049;
+  }
+
+  body.sidebar-open .sidebar-overlay {
+    display: block;
+  }
+}
+
+/* === ESTILOS DE COMPONENTES Y TEMAS === */
+
+/* --- Tooltips Personalizados --- */
+#my-tooltip {
+  background-color: #343a40 !important;
+  color: #ffffff !important;
+  border-radius: 4px !important;
+  padding: 6px 10px !important;
+  font-size: 0.875rem !important;
+  opacity: 1 !important;
+  z-index: 9999 !important;
+}
+#my-tooltip::after {
+  border-top-color: #343a40 !important;
+}
+
+/* --- Formularios en Modo Oscuro (general) --- */
+body.dark-mode .card .form-control {
+  background-color: #454d55;
+  color: #fff;
+  border-color: #6c757d;
+}
+body.dark-mode .card .form-control::placeholder {
+  color: #adb5bd;
+}
+body.dark-mode .card .form-control:focus {
+  background-color: #495057;
+  color: #fff;
+  border-color: #007bff;
+}
+body.dark-mode .card .form-group label {
+  color: #dee2e6;
+}
+
+/* --- Página de Login en Modo Oscuro --- */
+body.login-page.dark-mode {
+  background-color: #454d55 !important;
+  color: #fff;
+}
+body.login-page.dark-mode .login-box .card {
+  background-color: #343a40;
+  color: #fff;
+  border: 1px solid #6c757d;
+}
+
+/* --- Autocompletado en Modo Oscuro (general) --- */
+body.dark-mode input:-webkit-autofill,
+body.dark-mode input:-webkit-autofill:hover,
+body.dark-mode input:-webkit-autofill:focus,
+body.dark-mode input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #454d55 inset !important;
+  -webkit-text-fill-color: #fff !important;
+  border-color: #6c757d !important;
+}
+
+/* Estilos para las filas de la tabla de operaciones */
+.rdt_TableRow.row-bloqueada {
+  background-color: var(--danger) !important;
+  color: white !important;
+}
+.rdt_TableRow.row-en_calidad {
+  background-color: var(--warning) !important;
+  color: black !important;
+}
+.rdt_TableRow.row-en_proceso {
+  background-color: var(--secondary) !important;
+  color: white !important;
+}
+.rdt_TableRow.row-suspendida {
+  background-color: #e9ecef !important;
+  color: black !important;
+}
+.rdt_TableRow.row-lista {
+  background-color: var(--success) !important;
+  color: white !important;
+}
+
+/* Asegurar que los botones de selección sean visibles en filas oscuras */
+.rdt_TableRow.row-bloqueada .sc-gJgZMw,
+.rdt_TableRow.row-en_proceso .sc-gJgZMw,
+.rdt_TableRow.row-lista .sc-gJgZMw {
+  color: white !important;
+}
+
+/* Estilos para los botones de acciones */
+.btn-group .btn {
+  margin-right: 5px;
+}
+
+.btn-group .btn:last-child {
+  margin-right: 0;
+}
+
+/* Estilos para los badges */
+.badge {
+  font-size: 0.8rem;
+  padding: 0.25em 0.5em;
+  border-radius: 0.25rem;
+}
+
+.badge-danger {
+  background-color: #dc3545;
+}
+
+.badge-info {
+  background-color: #17a2b8;
+}
+
+/* Estilos para el footer */
+.main-footer {
+  background-color: #343a40;
+  color: #ffffff;
+  border-top: 2px solid #007bff;
+}
+
+.main-footer a {
+  color: #17a2b8;
+}
+
+/* Estilos para los botones de acciones */
+.btn-group .btn {
+  margin-right: 5px;
+}
+
+.btn-group .btn:last-child {
+  margin-right: 0;
+}
+
+/* Estilos para los badges */
+.badge {
+  font-size: 0.8rem;
+  padding: 0.25em 0.5em;
+  border-radius: 0.25rem;
+}
+
+.badge-danger {
+  background-color: #dc3545;
+}
+
+.badge-info {
+  background-color: #17a2b8;
+}
+
+/* Estilos para el footer */
+.main-footer {
+  background-color: #343a40;
+  color: #ffffff;
+  border-top: 2px solid #007bff;
+}
+
+.main-footer a {
+  color: #17a2b8;
+}
+
+.thead-dark th {
+  background-color: #343a40 !important;
+  color: #ffffff !important;
+}
