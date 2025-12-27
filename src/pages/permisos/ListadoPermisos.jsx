@@ -1,38 +1,38 @@
-// src/pages/usuarios/ListadoUsuarios.jsx
+// src/pages/permisos/ListadoPermisos.jsx
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/immutability */
 /* eslint-disable no-undef */
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
 
-const ListadoUsuarios = () => {
-  const [usuarios, setUsuarios] = useState([]);
+const ListadoPermisos = () => {
+  const [permisos, setPermisos] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchUsuarios = async () => {
+  const fetchPermisos = async () => {
     try {
-      const response = await api.get("/users");
-      setUsuarios(response.data);
+      const response = await api.get("/permissions");
+      setPermisos(response.data);
       setLoading(false);
     } catch (error) {
-      console.error("Error al cargar usuarios:", error);
+      console.error("Error al cargar permisos:", error);
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsuarios();
+    fetchPermisos();
   }, []);
 
   useEffect(() => {
     if (!loading) {
       const timer = setTimeout(() => {
-        if (!$.fn.DataTable.isDataTable("#usuarios-table")) {
+        if (!$.fn.DataTable.isDataTable("#permisos-table")) {
           try {
-            const table = $("#usuarios-table").DataTable({
+            const table = $("#permisos-table").DataTable({
               paging: true,
-              lengthChange: false, // Deshabilitamos el control incorporado
-              searching: false, // Deshabilitamos la búsqueda incorporada
+              lengthChange: false,
+              searching: false,
               ordering: true,
               info: true,
               autoWidth: false,
@@ -43,7 +43,6 @@ const ListadoUsuarios = () => {
               },
             });
 
-            // Inicializar tooltips
             $('[data-bs-toggle="tooltip"]').tooltip();
           } catch (err) {
             console.error("Error al inicializar DataTables:", err);
@@ -53,22 +52,22 @@ const ListadoUsuarios = () => {
 
       return () => {
         clearTimeout(timer);
-        if ($.fn.DataTable.isDataTable("#usuarios-table")) {
-          $("#usuarios-table").DataTable().destroy();
+        if ($.fn.DataTable.isDataTable("#permisos-table")) {
+          $("#permisos-table").DataTable().destroy();
         }
       };
     }
   }, [loading]);
 
   const handleVer = (id) => {
-    window.location.href = `/usuarios/ver/${id}`;
+    window.location.href = `/permisos/ver/${id}`;
   };
 
   const handleEditar = (id) => {
-    window.location.href = `/usuarios/editar/${id}`;
+    window.location.href = `/permisos/editar/${id}`;
   };
 
-  const handleEliminar = async (id) => {
+  const handleEliminar = async (id, permissionName) => {
     const result = await Swal.fire({
       title: "¿Estás seguro?",
       text: "¡No podrás revertir esto!",
@@ -81,44 +80,22 @@ const ListadoUsuarios = () => {
 
     if (result.isConfirmed) {
       try {
-        await api.delete(`/users/${id}`);
-        Swal.fire("¡Eliminado!", "El usuario ha sido eliminado.", "success");
-        fetchUsuarios(); // Recargar la lista
+        await api.delete(`/permissions/${id}`);
+        Swal.fire("¡Eliminado!", "El permiso ha sido eliminado.", "success");
+        fetchPermisos(); // Recargar la lista
       } catch (error) {
-        console.error("Error al eliminar usuario:", error);
-        Swal.fire("Error", "No se pudo eliminar el usuario.", "error");
+        console.error("Error al eliminar permiso:", error);
+        if (error.response?.data?.message) {
+          Swal.fire("Error", error.response.data.message, "error");
+        } else {
+          Swal.fire("Error", "No se pudo eliminar el permiso.", "error");
+        }
       }
     }
   };
 
   const handleCrear = () => {
-    window.location.href = "/usuarios/crear";
-  };
-
-  // Funciones para los botones de exportación
-  const handleCopy = () => {
-    const table = $("#usuarios-table").DataTable();
-    table.button(".buttons-copy").trigger();
-  };
-
-  const handlePdf = () => {
-    const table = $("#usuarios-table").DataTable();
-    table.button(".buttons-pdf").trigger();
-  };
-
-  const handleCsv = () => {
-    const table = $("#usuarios-table").DataTable();
-    table.button(".buttons-csv").trigger();
-  };
-
-  const handleExcel = () => {
-    const table = $("#usuarios-table").DataTable();
-    table.button(".buttons-excel").trigger();
-  };
-
-  const handlePrint = () => {
-    const table = $("#usuarios-table").DataTable();
-    table.button(".buttons-print").trigger();
+    window.location.href = "/permisos/crear";
   };
 
   if (loading) {
@@ -134,7 +111,7 @@ const ListadoUsuarios = () => {
       <div className="container-fluid">
         <div className="row mb-2">
           <div className="col-sm-6">
-            <h1 className="m-0">Listado de Usuarios</h1>
+            <h1 className="m-0">Listado de Permisos</h1>
           </div>
         </div>
       </div>
@@ -143,15 +120,8 @@ const ListadoUsuarios = () => {
           <div className="col-lg-12">
             <div className="card card-outline card-primary">
               <div className="card-header">
-                <h3 className="card-title my-1">Usuarios registrados</h3>
+                <h3 className="card-title my-1">Permisos registrados</h3>
                 <div className="card-tools">
-                  <button
-                    className="btn btn-secondary btn-sm"
-                    style={{ marginRight: "8px" }}
-                    onClick={() => window.open("/api/users/reporte", "_blank")}
-                  >
-                    <i className="fa fa-file-pdf"></i> Reporte
-                  </button>
                   <button
                     className="btn btn-primary btn-sm"
                     onClick={handleCrear}
@@ -161,7 +131,7 @@ const ListadoUsuarios = () => {
                 </div>
               </div>
               <div className="card-body">
-                {/* Barra superior con Mostrar, Buscar y Botones de Exportación */}
+                {/* Barra superior con Mostrar, Botones de Exportación y Buscar */}
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <div className="d-flex align-items-center">
                     <label className="mr-2">Mostrar</label>
@@ -176,35 +146,60 @@ const ListadoUsuarios = () => {
                     </select>
                     <span>registros</span>
 
-                    {/* Botones de exportación - ESTILO PERSONALIZADO */}
+                    {/* Botones de exportación */}
                     <div className="dt-buttons btn-group ml-3">
                       <button
                         className="btn btn-secondary btn-sm"
-                        onClick={handleCopy}
+                        onClick={() =>
+                          $("#permisos-table")
+                            .DataTable()
+                            .button(".buttons-copy")
+                            .trigger()
+                        }
                       >
                         <i className="fas fa-copy"></i> Copiar
                       </button>
                       <button
                         className="btn btn-danger btn-sm"
-                        onClick={handlePdf}
+                        onClick={() =>
+                          $("#permisos-table")
+                            .DataTable()
+                            .button(".buttons-pdf")
+                            .trigger()
+                        }
                       >
                         <i className="fas fa-file-pdf"></i> PDF
                       </button>
                       <button
                         className="btn btn-info btn-sm"
-                        onClick={handleCsv}
+                        onClick={() =>
+                          $("#permisos-table")
+                            .DataTable()
+                            .button(".buttons-csv")
+                            .trigger()
+                        }
                       >
                         <i className="fas fa-file-csv"></i> CSV
                       </button>
                       <button
                         className="btn btn-success btn-sm"
-                        onClick={handleExcel}
+                        onClick={() =>
+                          $("#permisos-table")
+                            .DataTable()
+                            .button(".buttons-excel")
+                            .trigger()
+                        }
                       >
                         <i className="fas fa-file-excel"></i> Excel
                       </button>
                       <button
                         className="btn btn-warning btn-sm"
-                        onClick={handlePrint}
+                        onClick={() =>
+                          $("#permisos-table")
+                            .DataTable()
+                            .button(".buttons-print")
+                            .trigger()
+                        }
                       >
                         <i className="fas fa-print"></i> Imprimir
                       </button>
@@ -221,9 +216,8 @@ const ListadoUsuarios = () => {
                   </div>
                 </div>
 
-                {/* Tabla */}
                 <table
-                  id="usuarios-table"
+                  id="permisos-table"
                   className="table table-striped table-bordered table-hover"
                 >
                   <thead className="thead-dark">
@@ -231,62 +225,44 @@ const ListadoUsuarios = () => {
                       <th className="text-center" style={{ width: "70px" }}>
                         Nro.
                       </th>
-                      <th>Rol</th>
                       <th>Nombre</th>
-                      <th>Email</th>
                       <th className="text-center">Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {usuarios.map((usuario, index) => (
-                      <tr key={usuario.id}>
+                    {permisos.map((permiso, index) => (
+                      <tr key={permiso.id}>
                         <td className="text-center">{index + 1}</td>
-                        <td>
-                          {usuario.roles.map((role, idx) => (
-                            <span
-                              key={idx}
-                              className={`badge ${
-                                role.name === "Administrador"
-                                  ? "badge-danger"
-                                  : "badge-info"
-                              }`}
-                              style={{ marginRight: "6px" }}
-                            >
-                              {role.name}
-                            </span>
-                          ))}
-                        </td>
-                        <td>{usuario.name}</td>
-                        <td>{usuario.email}</td>
+                        <td>{permiso.name}</td>
                         <td className="text-center">
                           <div className="btn-group" role="group">
                             <button
                               className="btn btn-info btn-sm"
-                              onClick={() => handleVer(usuario.id)}
+                              onClick={() => handleVer(permiso.id)}
                               data-bs-toggle="tooltip"
-                              title="Ver Usuario"
+                              title="Ver Permiso"
                             >
                               <i className="fas fa-eye"></i>
                             </button>
                             <button
                               className="btn btn-success btn-sm"
-                              onClick={() => handleEditar(usuario.id)}
+                              onClick={() => handleEditar(permiso.id)}
                               data-bs-toggle="tooltip"
-                              title="Editar Usuario"
+                              title="Editar Permiso"
                             >
                               <i className="fas fa-pencil"></i>
                             </button>
-                            {usuario.name !== "Admin" && (
-                              <button
-                                type="button"
-                                className="btn btn-danger btn-sm"
-                                onClick={() => handleEliminar(usuario.id)}
-                                data-bs-toggle="tooltip"
-                                title="Eliminar Usuario"
-                              >
-                                <i className="fas fa-trash"></i>
-                              </button>
-                            )}
+                            <button
+                              type="button"
+                              className="btn btn-danger btn-sm"
+                              onClick={() =>
+                                handleEliminar(permiso.id, permiso.name)
+                              }
+                              data-bs-toggle="tooltip"
+                              title="Eliminar Permiso"
+                            >
+                              <i className="fas fa-trash"></i>
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -302,4 +278,4 @@ const ListadoUsuarios = () => {
   );
 };
 
-export default ListadoUsuarios;
+export default ListadoPermisos;

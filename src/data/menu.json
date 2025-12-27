@@ -1,5 +1,20 @@
 [
     {
+        "id": "configuracion",
+        "text": "Configuración",
+        "icon": "fas fa-cogs",
+        "permiso": "ver_empresa",
+        "children": [
+            {
+                "id": "empresa",
+                "text": "Empresa",
+                "icon": "far fa-circle",
+                "path": "/configuracion/empresa",
+                "permiso": "ver_empresa"
+            }
+        ]
+    },
+    {
         "id": "usuarios",
         "text": "Usuarios",
         "icon": "fas fa-users",
@@ -11,22 +26,6 @@
                 "icon": "far fa-circle",
                 "path": "/usuarios/listado",
                 "permiso": "ver_usuarios"
-            }
-        ]
-    },
-    {
-        "id": "permisos",
-        "text": "Permisos",
-        "icon": "fas fa-key",
-        "path": "/permisos",
-        "permiso": "ver_permisos",
-        "children": [
-            {
-                "id": "listado",
-                "text": "Listado",
-                "icon": "far fa-circle",
-                "path": "/permisos/listado",
-                "permiso": "ver_permisos"
             }
         ]
     },
@@ -43,6 +42,22 @@
                 "icon": "far fa-circle",
                 "path": "/roles/listado",
                 "permiso": "ver_roles"
+            }
+        ]
+    },
+    {
+        "id": "permisos",
+        "text": "Permisos",
+        "icon": "fas fa-key",
+        "path": "/permisos",
+        "permiso": "ver_permisos",
+        "children": [
+            {
+                "id": "listado",
+                "text": "Listado",
+                "icon": "far fa-circle",
+                "path": "/permisos/listado",
+                "permiso": "ver_permisos"
             }
         ]
     }

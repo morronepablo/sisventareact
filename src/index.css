@@ -269,3 +269,326 @@ body.dark-mode input:-webkit-autofill:active {
   background-color: #343a40 !important;
   color: #ffffff !important;
 }
+
+/* Estilos para los botones de DataTables */
+.dt-buttons .btn {
+  margin-right: 0 !important;
+  margin-bottom: 6px !important;
+  border-radius: 0 !important;
+}
+
+/* Primer botón: borde izquierdo redondeado */
+.dt-buttons .btn:first-child {
+  border-top-left-radius: 5px !important;
+  border-bottom-left-radius: 5px !important;
+}
+
+/* Último botón: borde derecho redondeado */
+.dt-buttons .btn:last-child {
+  border-top-right-radius: 5px !important;
+  border-bottom-right-radius: 5px !important;
+}
+
+/* Asegurar que los colores no se pierdan */
+.dt-buttons .btn.btn-secondary {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+}
+
+.dt-buttons .btn.btn-danger {
+  background-color: #dc3545 !important;
+  border-color: #dc3545 !important;
+}
+
+.dt-buttons .btn.btn-info {
+  background-color: #17a2b8 !important;
+  border-color: #17a2b8 !important;
+}
+
+.dt-buttons .btn.btn-success {
+  background-color: #28a745 !important;
+  border-color: #28a745 !important;
+}
+
+.dt-buttons .btn.btn-warning {
+  background-color: #ffc107 !important;
+  border-color: #ffc107 !important;
+}
+
+/* Estilos para los botones de exportación */
+.dt-buttons.btn-group .btn {
+  margin-right: 0 !important;
+  border-radius: 0 !important;
+}
+
+/* Primer botón: borde izquierdo redondeado */
+.dt-buttons.btn-group .btn:first-child {
+  border-top-left-radius: 5px !important;
+  border-bottom-left-radius: 5px !important;
+}
+
+/* Último botón: borde derecho redondeado */
+.dt-buttons.btn-group .btn:last-child {
+  border-top-right-radius: 5px !important;
+  border-bottom-right-radius: 5px !important;
+}
+
+/* Tamaño pequeño */
+.dt-buttons.btn-group .btn.btn-sm {
+  padding: 0.25rem 0.5rem !important;
+  font-size: 0.875rem !important;
+}
+
+/* Colores */
+.dt-buttons.btn-group .btn.btn-secondary {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+}
+
+.dt-buttons.btn-group .btn.btn-danger {
+  background-color: #dc3545 !important;
+  border-color: #dc3545 !important;
+}
+
+.dt-buttons.btn-group .btn.btn-info {
+  background-color: #17a2b8 !important;
+  border-color: #17a2b8 !important;
+}
+
+.dt-buttons.btn-group .btn.btn-success {
+  background-color: #28a745 !important;
+  border-color: #28a745 !important;
+}
+
+.dt-buttons.btn-group .btn.btn-warning {
+  background-color: #ffc107 !important;
+  border-color: #ffc107 !important;
+}
+
+/* Estilos para checkbox icheck-bootstrap */
+.icheck-primary > input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.icheck-primary > input[type="checkbox"] + label {
+  position: relative;
+  padding-left: 25px;
+  cursor: pointer;
+  display: inline-block;
+  user-select: none;
+}
+
+.icheck-primary > input[type="checkbox"] + label:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #007bff;
+  border-radius: 3px;
+  background-color: #fff;
+}
+
+.icheck-primary > input[type="checkbox"]:checked + label:before {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.icheck-primary > input[type="checkbox"]:checked + label:after {
+  content: "✓";
+  position: absolute;
+  left: 4px;
+  top: 0;
+  color: #fff;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+/* Estilos adicionales */
+.login-page {
+  background: #f4f6f9;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-box {
+  width: 400px;
+}
+
+.login-logo {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.login-box-msg {
+  text-align: center;
+  margin: 0;
+  padding: 0 20px 20px;
+  font-weight: bold;
+}
+
+.input-group-text {
+  background: #f4f6f9;
+  border: 1px solid #ced4da;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* Fondo blanco general */
+body.login-page {
+  background-color: #ffffff !important;
+  margin: 0;
+  padding: 0;
+  font-family: "Roboto", sans-serif;
+}
+
+/* Contenedor principal */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Logo */
+.login-logo {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Card de login */
+.login-card {
+  width: 400px;
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Header del card */
+.login-card .card-header {
+  background-color: #ffffff;
+  border-bottom: 3px solid #007bff; /* ← Borde superior azul */
+  padding: 15px 20px;
+  text-align: center;
+}
+
+.login-card .card-header h5 {
+  margin: 0;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Cuerpo del card */
+.login-card .card-body {
+  padding: 20px;
+}
+
+/* Input groups */
+.input-group .form-control {
+  border: 1px solid #ced4da;
+  background-color: #f8f9fa;
+}
+
+.input-group-text {
+  background-color: #f8f9fa;
+  border: 1px solid #ced4da;
+  border-left: none;
+}
+
+/* Botón primario */
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+}
+
+/* Checkbox personalizado */
+.icheck-primary > input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.icheck-primary > input[type="checkbox"] + label {
+  position: relative;
+  padding-left: 25px;
+  cursor: pointer;
+  display: inline-block;
+  user-select: none;
+  color: #333;
+}
+
+.icheck-primary > input[type="checkbox"] + label:before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  border: 2px solid #007bff;
+  border-radius: 3px;
+  background-color: #ffffff;
+}
+
+.icheck-primary > input[type="checkbox"]:checked + label:before {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.icheck-primary > input[type="checkbox"]:checked + label:after {
+  content: "✓";
+  position: absolute;
+  left: 4px;
+  top: 0;
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+/* Enlaces inferiores */
+a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+/* Estilos para los enlaces inferiores */
+.login-card .card-body .mt-3,
+.login-card .card-body .mt-2 {
+  text-align: center;
+  padding: 10px 0;
+  background-color: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+}
+
+.login-card .card-body .mt-3 a,
+.login-card .card-body .mt-2 a {
+  display: block;
+  padding: 5px 0;
+}

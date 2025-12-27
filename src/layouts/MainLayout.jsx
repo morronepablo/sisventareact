@@ -40,7 +40,7 @@ const MainLayout = () => {
         <Navbar />
         <Sidebar />
         <div className="content-wrapper">
-          <Outlet />
+          <Outlet /> {/* ← Aquí se renderiza NotFound.jsx */}
         </div>
         <Footer />
       </div>

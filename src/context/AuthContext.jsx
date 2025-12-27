@@ -12,15 +12,6 @@ export const useAuth = () => {
   return context;
 };
 
-// ✅ PERMISOS SIMULADOS (para desarrollo)
-const SIMULATED_PERMISOS = [
-  "ver_usuarios",
-  "ver_permisos",
-  "ver_roles",
-  "ver_calidad",
-  "ver_otros",
-];
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
@@ -32,12 +23,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const decoded = jwtDecode(savedToken);
         if (decoded.exp * 1000 > Date.now()) {
-          // ✅ Añadir permisos simulados al usuario
-          const userWithPermisos = {
-            ...decoded,
-            permisos: SIMULATED_PERMISOS,
-          };
-          setUser(userWithPermisos);
+          setUser(decoded); // ← Ya incluye permisos reales del backend
           setToken(savedToken);
         } else {
           localStorage.removeItem("token");
@@ -53,11 +39,7 @@ export const AuthProvider = ({ children }) => {
   const login = (newToken) => {
     localStorage.setItem("token", newToken);
     const decoded = jwtDecode(newToken);
-    const userWithPermisos = {
-      ...decoded,
-      permisos: SIMULATED_PERMISOS, // ← ¡Simular permisos en el login!
-    };
-    setUser(userWithPermisos);
+    setUser(decoded); // ← Permisos reales
     setToken(newToken);
   };
 

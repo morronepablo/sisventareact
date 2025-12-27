@@ -1,244 +1,71 @@
-// // // // // // // // src/App.jsx
-// // // // // // // import React from "react";
-// // // // // // // import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-// // // // // // // import { AuthProvider } from "./context/AuthContext";
-// // // // // // // import { ThemeProvider } from "./context/ThemeContext";
-// // // // // // // import { LayoutProvider } from "./context/LayoutContext";
-
-// // // // // // // import MainLayout from "./layouts/MainLayout";
-// // // // // // // import PublicLayout from "./layouts/PublicLayout";
-// // // // // // // import ProtectedRoute from "./utils/ProtectedRoute";
-
-// // // // // // // import Login from "./components/Auth/Login";
-// // // // // // // import Home from "./pages/Home";
-// // // // // // // import Dashboard from "./pages/Dashboard";
-// // // // // // // import NotFoundPage from "./pages/NotFoundPage";
-
-// // // // // // // const App = () => {
-// // // // // // //   return (
-// // // // // // //     <AuthProvider>
-// // // // // // //       <ThemeProvider>
-// // // // // // //         <LayoutProvider>
-// // // // // // //           <BrowserRouter>
-// // // // // // //             <Routes>
-// // // // // // //               <Route element={<PublicLayout />}>
-// // // // // // //                 <Route path="/" element={<Home />} />
-// // // // // // //                 <Route path="/login" element={<Login />} />
-// // // // // // //               </Route>
-
-// // // // // // //               <Route element={<ProtectedRoute />}>
-// // // // // // //                 <Route element={<MainLayout />}>
-// // // // // // //                   <Route path="/dashboard" element={<Dashboard />} />
-// // // // // // //                 </Route>
-// // // // // // //               </Route>
-
-// // // // // // //               <Route path="*" element={<NotFoundPage />} />
-// // // // // // //             </Routes>
-// // // // // // //           </BrowserRouter>
-// // // // // // //         </LayoutProvider>
-// // // // // // //       </ThemeProvider>
-// // // // // // //     </AuthProvider>
-// // // // // // //   );
-// // // // // // // };
-
-// // // // // // // export default App;
-
-// // // // // // // src/App.jsx
-// // // // // // import React from "react";
-// // // // // // import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-// // // // // // import { AuthProvider } from "./context/AuthContext";
-// // // // // // import { LayoutProvider } from "./context/LayoutContext";
-// // // // // // import { ThemeProvider } from "./context/ThemeContext";
-// // // // // // import MainLayout from "./layouts/MainLayout";
-// // // // // // import Home from "./pages/Home";
-// // // // // // import Dashboard from "./pages/Dashboard";
-
-// // // // // // const App = () => {
-// // // // // //   return (
-// // // // // //     <BrowserRouter>
-// // // // // //       <Routes>
-// // // // // //         <Route path="/" element={<Home />} />
-// // // // // //         <Route path="/dashboard" element={<Dashboard />} />
-// // // // // //         <Route path="*" element={<Navigate to="/" replace />} />
-// // // // // //       </Routes>
-// // // // // //     </BrowserRouter>
-// // // // // //   );
-// // // // // // };
-
-// // // // // // export default App;
-
-// // // // // // src/App.jsx
-// // // // // import React from "react";
-// // // // // import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-// // // // // import { AuthProvider } from "./context/AuthContext";
-// // // // // import { LayoutProvider } from "./context/LayoutContext";
-// // // // // import { ThemeProvider } from "./context/ThemeContext";
-// // // // // import MainLayout from "./layouts/MainLayout";
-// // // // // import Home from "./pages/Home";
-// // // // // import Dashboard from "./pages/Dashboard";
-
-// // // // // const App = () => {
-// // // // //   return (
-// // // // //     <BrowserRouter>
-// // // // //       <AuthProvider>
-// // // // //         <LayoutProvider>
-// // // // //           <ThemeProvider>
-// // // // //             <Routes>
-// // // // //               <Route path="/" element={<Home />} />
-// // // // //               <Route
-// // // // //                 path="/dashboard"
-// // // // //                 element={
-// // // // //                   <MainLayout>
-// // // // //                     <Dashboard />
-// // // // //                   </MainLayout>
-// // // // //                 }
-// // // // //               />
-// // // // //               <Route path="*" element={<Navigate to="/" replace />} />
-// // // // //             </Routes>
-// // // // //           </ThemeProvider>
-// // // // //         </LayoutProvider>
-// // // // //       </AuthProvider>
-// // // // //     </BrowserRouter>
-// // // // //   );
-// // // // // };
-
-// // // // // export default App;
-
-// // // // // src/App.jsx
-// // // // import React from "react";
-// // // // import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-// // // // import { AuthProvider } from "./context/AuthContext";
-// // // // import MainLayout from "./layouts/MainLayout";
-// // // // import Home from "./pages/Home";
-// // // // import Dashboard from "./pages/Dashboard";
-// // // // import Login from "./components/Auth/Login";
-// // // // import RootRedirect from "./utils/RootRedirect";
-
-// // // // const App = () => {
-// // // //   return (
-// // // //     <BrowserRouter>
-// // // //       <Routes>
-// // // //         <Route path="/" element={<RootRedirect />} />
-// // // //         <Route path="/login" element={<Login />} />
-// // // //         <Route
-// // // //           path="/dashboard"
-// // // //           element={
-// // // //             <MainLayout>
-// // // //               <Dashboard />
-// // // //             </MainLayout>
-// // // //           }
-// // // //         />
-// // // //         <Route path="*" element={<Navigate to="/" replace />} />
-// // // //       </Routes>
-// // // //     </BrowserRouter>
-// // // //   );
-// // // // };
-
-// // // // export default App;
-
-// // // // src/App.jsx
-// // // import React from "react";
-// // // import { Routes, Route, Navigate } from "react-router-dom";
-// // // import MainLayout from "./layouts/MainLayout";
-// // // import Home from "./pages/Home";
-// // // import Dashboard from "./pages/Dashboard";
-// // // import Login from "./components/Auth/Login"; // ← Corrige la ruta
-// // // import RootRedirect from "./utils/RootRedirect";
-
-// // // const App = () => {
-// // //   return (
-// // //     <Routes>
-// // //       <Route path="/" element={<RootRedirect />} />
-// // //       <Route path="/login" element={<Login />} />
-// // //       <Route
-// // //         path="/dashboard"
-// // //         element={
-// // //           <MainLayout>
-// // //             <Dashboard />
-// // //           </MainLayout>
-// // //         }
-// // //       />
-// // //       <Route path="*" element={<Navigate to="/" replace />} />
-// // //     </Routes>
-// // //   );
-// // // };
-
-// // // export default App;
-
-// // // src/App.jsx
-// // import React from "react";
-// // import { Routes, Route, Navigate } from "react-router-dom";
-// // import MainLayout from "./layouts/MainLayout";
-// // import Home from "./pages/Home";
-// // import Dashboard from "./pages/Dashboard";
-// // import Login from "./components/Auth/Login"; // ← minúscula "auth"
-// // import RootRedirect from "./utils/RootRedirect";
-
-// // const App = () => {
-// //   return (
-// //     <Routes>
-// //       <Route path="/" element={<RootRedirect />} />
-// //       <Route path="/login" element={<Login />} />
-// //       <Route path="/dashboard" element={<MainLayout />}>
-// //         <Route index element={<Dashboard />} />
-// //       </Route>
-// //       <Route path="*" element={<Navigate to="/" replace />} />
-// //     </Routes>
-// //   );
-// // };
-
-// // export default App;
-
-// // src/App.jsx
-// import React from "react";
-// import { Routes, Route, Navigate } from "react-router-dom";
-// import MainLayout from "./layouts/MainLayout";
-// import Home from "./pages/Home";
-// import Dashboard from "./pages/Dashboard";
-// import Login from "./components/auth/Login";
-// import RootRedirect from "./utils/RootRedirect";
-// import ListadoUsuarios from "./pages/usuarios/ListadoUsuarios"; // ← Importa el nuevo componente
-
-// const App = () => {
-//   return (
-//     <Routes>
-//       <Route path="/" element={<RootRedirect />} />
-//       <Route path="/login" element={<Login />} />
-//       <Route path="/dashboard" element={<MainLayout />}>
-//         <Route index element={<Dashboard />} />
-//       </Route>
-//       <Route path="/usuarios/listado" element={<MainLayout />}>
-//         <Route index element={<ListadoUsuarios />} />
-//       </Route>
-//       <Route path="*" element={<Navigate to="/" replace />} />
-//     </Routes>
-//   );
-// };
-
-// export default App;
-
 // src/App.jsx
+
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Login from "./components/Auth/Login";
 import RootRedirect from "./utils/RootRedirect";
+import NotFound from "./pages/NotFound";
+// Usuarios
 import ListadoUsuarios from "./pages/usuarios/ListadoUsuarios";
+import CrearUsuario from "./pages/usuarios/CrearUsuario";
+import VerUsuario from "./pages/usuarios/VerUsuario";
+import EditarUsuario from "./pages/usuarios/EditarUsuario";
+// Roles
+import ListadoRoles from "./pages/roles/ListadoRoles";
+import CrearRol from "./pages/roles/CrearRol";
+import VerRol from "./pages/roles/VerRol";
+import EditarRol from "./pages/roles/EditarRol";
+import AsignarPermisos from "./pages/roles/AsignarPermisos";
+// Permisos
+import ListadoPermisos from "./pages/permisos/ListadoPermisos";
+import CrearPermiso from "./pages/permisos/CrearPermiso";
+import VerPermiso from "./pages/permisos/VerPermiso";
+import EditarPermiso from "./pages/permisos/EditarPermiso";
+// Configuración
+import ConfiguracionEmpresa from "./pages/configuracion/ConfiguracionEmpresa";
 
 const App = () => {
   return (
     <Routes>
+      {/* Rutas fuera del layout (Sin Sidebar/Navbar) */}
       <Route path="/" element={<RootRedirect />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/dashboard" element={<MainLayout />}>
-        <Route index element={<Dashboard />} />
+
+      {/* TODAS las rutas protegidas dentro de MainLayout */}
+      <Route element={<MainLayout />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+
+        {/* Usuarios */}
+        <Route path="/usuarios/listado" element={<ListadoUsuarios />} />
+        <Route path="/usuarios/crear" element={<CrearUsuario />} />
+        <Route path="/usuarios/ver/:id" element={<VerUsuario />} />
+        <Route path="/usuarios/editar/:id" element={<EditarUsuario />} />
+
+        {/* Roles */}
+        <Route path="/roles/listado" element={<ListadoRoles />} />
+        <Route path="/roles/crear" element={<CrearRol />} />
+        <Route path="/roles/ver/:id" element={<VerRol />} />
+        <Route path="/roles/editar/:id" element={<EditarRol />} />
+        <Route path="/roles/:id/permisos" element={<AsignarPermisos />} />
+
+        {/* Permisos */}
+        <Route path="/permisos/listado" element={<ListadoPermisos />} />
+        <Route path="/permisos/crear" element={<CrearPermiso />} />
+        <Route path="/permisos/ver/:id" element={<VerPermiso />} />
+        <Route path="/permisos/editar/:id" element={<EditarPermiso />} />
+
+        {/* Configuración */}
+        <Route
+          path="/configuracion/empresa"
+          element={<ConfiguracionEmpresa />}
+        />
+
+        {/* 404 dentro del layout */}
+        <Route path="*" element={<NotFound />} />
       </Route>
-      <Route path="/usuarios/listado" element={<MainLayout />}>
-        <Route index element={<ListadoUsuarios />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

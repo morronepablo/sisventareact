@@ -1,5 +1,5 @@
 // src/components/layout/Sidebar.jsx
-/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
@@ -18,6 +18,7 @@ const Sidebar = () => {
     );
     if (activeParent) setOpenMenu(activeParent.id);
     console.log("Menú cargado:", menuItems);
+    console.log("Usuario actual:", user); // ← AÑADE ESTO
   }, [location.pathname]);
 
   const handleMenuClick = (id) => {
