@@ -1,7 +1,7 @@
 // src/App.jsx
 
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
@@ -26,16 +26,35 @@ import VerPermiso from "./pages/permisos/VerPermiso";
 import EditarPermiso from "./pages/permisos/EditarPermiso";
 // Configuración
 import ConfiguracionEmpresa from "./pages/configuracion/ConfiguracionEmpresa";
+// Categorías
+import ListadoCategorias from "./pages/categorias/ListadoCategorias";
+import CrearCategoria from "./pages/categorias/CrearCategoria";
+import VerCategoria from "./pages/categorias/VerCategoria";
+import EditarCategoria from "./pages/categorias/EditarCategoria";
+// Unidades
+import ListadoUnidades from "./pages/unidades/ListadoUnidades";
+import CrearUnidad from "./pages/unidades/CrearUnidad";
+import VerUnidad from "./pages/unidades/VerUnidad";
+import EditarUnidad from "./pages/unidades/EditarUnidad";
+
+// 👇 Importa el nuevo componente
+import ProtectedRoute from "./utils/ProtectedRoute";
 
 const App = () => {
   return (
     <Routes>
-      {/* Rutas fuera del layout (Sin Sidebar/Navbar) */}
+      {/* Rutas públicas */}
       <Route path="/" element={<RootRedirect />} />
       <Route path="/login" element={<Login />} />
 
-      {/* TODAS las rutas protegidas dentro de MainLayout */}
-      <Route element={<MainLayout />}>
+      {/* Todas las rutas protegidas dentro de MainLayout */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route path="/dashboard" element={<Dashboard />} />
 
         {/* Usuarios */}
@@ -63,9 +82,24 @@ const App = () => {
           element={<ConfiguracionEmpresa />}
         />
 
+        {/* Categorías */}
+        <Route path="/categorias/listado" element={<ListadoCategorias />} />
+        <Route path="/categorias/crear" element={<CrearCategoria />} />
+        <Route path="/categorias/ver/:id" element={<VerCategoria />} />
+        <Route path="/categorias/editar/:id" element={<EditarCategoria />} />
+
+        {/* Unidades */}
+        <Route path="/unidades/listado" element={<ListadoUnidades />} />
+        <Route path="/unidades/crear" element={<CrearUnidad />} />
+        <Route path="/unidades/ver/:id" element={<VerUnidad />} />
+        <Route path="/unidades/editar/:id" element={<EditarUnidad />} />
+
         {/* 404 dentro del layout */}
         <Route path="*" element={<NotFound />} />
       </Route>
+
+      {/* Redirección global para rutas no protegidas */}
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 };

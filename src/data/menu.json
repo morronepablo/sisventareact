@@ -34,7 +34,7 @@
         "text": "Roles",
         "icon": "fas fa-user-tag",
         "path": "/roles",
-        "permiso": "ver_permisos",
+        "permiso": "ver_roles",
         "children": [
             {
                 "id": "roles",
@@ -58,6 +58,36 @@
                 "icon": "far fa-circle",
                 "path": "/permisos/listado",
                 "permiso": "ver_permisos"
+            }
+        ]
+    },
+    {
+        "id": "categorias",
+        "text": "Categorías",
+        "icon": "fas fa-tags",
+        "permiso": "ver_categorias",
+        "children": [
+            {
+                "id": "listado",
+                "text": "Listado",
+                "icon": "far fa-circle",
+                "path": "/categorias/listado",
+                "permiso": "ver_categorias"
+            }
+        ]
+    },
+    {
+        "id": "unidades",
+        "text": "Unidades",
+        "icon": "fas fa-fw fa-weight-hanging",
+        "permiso": "ver_unidades",
+        "children": [
+            {
+                "id": "listado",
+                "text": "Listado",
+                "icon": "far fa-circle",
+                "path": "/unidades/listado",
+                "permiso": "ver_unidades"
             }
         ]
     }
