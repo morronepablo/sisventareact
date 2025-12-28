@@ -105,5 +105,20 @@
                 "permiso": "ver_productos"
             }
         ]
+    },
+    {
+        "id": "proveedores",
+        "text": "Proveedores",
+        "icon": "fas fa-fw fa-truck",
+        "permiso": "ver_proveedores",
+        "children": [
+            {
+                "id": "listado",
+                "text": "Listado",
+                "icon": "far fa-circle",
+                "path": "/proveedores/listado",
+                "permiso": "ver_proveedores"
+            }
+        ]
     }
 ]
