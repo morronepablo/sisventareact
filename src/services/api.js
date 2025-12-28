@@ -1,14 +1,13 @@
-import axios from 'axios';
+// src/services/api.js
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: 'http://localhost:3001/api',
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: "http://localhost:3001/api",
+  // ❌ Eliminamos el header global de Content-Type
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

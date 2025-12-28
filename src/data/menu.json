@@ -90,5 +90,20 @@
                 "permiso": "ver_unidades"
             }
         ]
+    },
+    {
+        "id": "productos",
+        "text": "Productos",
+        "icon": "fas fa-fw fa-boxes-stacked",
+        "permiso": "ver_productos",
+        "children": [
+            {
+                "id": "listado",
+                "text": "Listado",
+                "icon": "far fa-circle",
+                "path": "/productos/listado",
+                "permiso": "ver_productos"
+            }
+        ]
     }
 ]

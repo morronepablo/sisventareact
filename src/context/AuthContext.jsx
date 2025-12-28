@@ -19,13 +19,17 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
+    console.log("AuthProvider: savedToken =", savedToken);
     if (savedToken) {
       try {
         const decoded = jwtDecode(savedToken);
+        console.log("AuthProvider: decoded =", decoded);
         if (decoded.exp * 1000 > Date.now()) {
           setUser(decoded); // ← Ya incluye permisos reales del backend
           setToken(savedToken);
+          console.log("AuthProvider: Usuario establecido:", decoded);
         } else {
+          console.log("AuthProvider: Token expirado");
           localStorage.removeItem("token");
         }
       } catch (err) {
@@ -34,6 +38,7 @@ export const AuthProvider = ({ children }) => {
       }
     }
     setLoading(false);
+    console.log("AuthProvider: loading =", false);
   }, []);
 
   const login = (newToken) => {
@@ -50,7 +55,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const hasPermission = (permiso) => {
-    return user?.permisos?.includes(permiso) || false;
+    return user?.permisos?.includes(permiso) || false; // ← "permisos", no "permissions"
   };
 
   return (

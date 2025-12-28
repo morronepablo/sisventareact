@@ -4,11 +4,11 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const RootRedirect = () => {
-  const { token, loading } = useAuth();
-  console.log("RootRedirect: token=", token, "loading=", loading); // ← AÑADE ESTO
+  const { user, loading } = useAuth();
 
-  if (loading) return <div>Cargando...</div>;
-  return token ? (
+  if (loading) return null;
+
+  return user ? (
     <Navigate to="/dashboard" replace />
   ) : (
     <Navigate to="/login" replace />

@@ -592,3 +592,54 @@ a:hover {
   display: block;
   padding: 5px 0;
 }
+
+/* --- DASHBOARD STYLE: CLONE LARAVEL ORIGINAL --- */
+
+/* Forzar que el contenedor no tenga márgenes laterales extra */
+.dashboard-container {
+  padding: 15px !important;
+}
+
+/* La tarjeta base */
+.zoomP {
+  transition: all 0.3s ease-in-out !important;
+  cursor: pointer;
+  border: none !important;
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.125), 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+  background: #fff !important;
+  height: 90px !important; /* Altura fija para que todas sean iguales */
+  margin-bottom: 20px !important;
+}
+
+/* EL EFECTO ZOOM: Aquí está la clave */
+.zoomP:hover {
+  transform: scale(1.1) !important; /* Aumento del 10% */
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25) !important; /* Sombra muy pesada */
+  z-index: 1000 !important; /* Se pone por encima de todo */
+}
+
+/* Ajuste de iconos */
+.info-box-icon {
+  width: 70px !important;
+  font-size: 1.8rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Texto del contenido */
+.info-box-content {
+  padding: 5px 15px !important;
+}
+
+.info-box-text {
+  font-size: 0.95rem !important;
+  color: #444 !important;
+  margin-bottom: 2px !important;
+}
+
+.info-box-number {
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
+  color: #000 !important;
+}

@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useLayout } from "../../context/LayoutContext";
+import NotificationsDropdown from "./NotificationsDropdown"; // ← Nuevo
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -43,21 +44,69 @@ const Navbar = () => {
             Home
           </Link>
         </li>
-      </ul>
-      <ul className="navbar-nav ml-auto">
-        <li className="nav-item">
-          <a
-            className="nav-link"
-            onClick={toggleTheme}
-            style={{ cursor: "pointer" }}
+
+        {/* Botones principales */}
+        <li className="nav-item d-none d-sm-inline-block ml-2">
+          <Link
+            to="/ventas/crear"
+            className="nav-link btn btn-primary text-white"
+            style={{ padding: "5px 10px", fontSize: "0.875rem" }}
           >
-            {theme === "light" ? (
-              <i className="fas fa-moon"></i>
-            ) : (
-              <i className="fas fa-sun"></i>
-            )}
-          </a>
+            <i className="fas fa-cash-register"></i> Vender
+          </Link>
         </li>
+        <li className="nav-item d-none d-sm-inline-block ml-2">
+          <Link
+            to="/compras/crear"
+            className="nav-link btn btn-info text-white"
+            style={{ padding: "5px 10px", fontSize: "0.875rem" }}
+          >
+            <i className="fas fa-shopping-cart"></i> Comprar
+          </Link>
+        </li>
+        <li className="nav-item d-none d-sm-inline-block ml-2">
+          <Link
+            to="/devoluciones/crear"
+            className="nav-link btn btn-danger text-white"
+            style={{ padding: "5px 10px", fontSize: "0.875rem" }}
+          >
+            <i className="fas fa-rotate-left"></i> Devolver
+          </Link>
+        </li>
+        <li className="nav-item d-none d-sm-inline-block ml-2">
+          <button
+            type="button"
+            className="nav-link btn btn-warning text-white"
+            style={{ padding: "5px 10px", fontSize: "0.875rem" }}
+            onClick={() => {
+              // Aquí puedes abrir un modal o redirigir
+              alert("Funcionalidad no implementada aún.");
+            }}
+          >
+            <i className="fas fa-sync-alt"></i> Limpiar y Reconstruir
+            Movimientos
+          </button>
+        </li>
+        <li className="nav-item d-none d-sm-inline-block ml-2">
+          <button
+            type="button"
+            className="nav-link btn btn-success text-white"
+            style={{ padding: "5px 10px", fontSize: "0.875rem" }}
+            onClick={() => {
+              // Aquí puedes abrir un modal o redirigir
+              alert("Funcionalidad no implementada aún.");
+            }}
+          >
+            <i className="fas fa-lock"></i> Cierre Arqueo
+          </button>
+        </li>
+      </ul>
+
+      <ul className="navbar-nav ml-auto">
+        {/* Campanita */}
+        <NotificationsDropdown />
+
+        {/* Icono de usuario */}
         {user && (
           <li className="nav-item dropdown user-menu">
             <a
@@ -97,6 +146,21 @@ const Navbar = () => {
             </ul>
           </li>
         )}
+
+        {/* Modo oscuro */}
+        <li className="nav-item">
+          <a
+            className="nav-link"
+            onClick={toggleTheme}
+            style={{ cursor: "pointer" }}
+          >
+            {theme === "light" ? (
+              <i className="fas fa-moon"></i>
+            ) : (
+              <i className="fas fa-sun"></i>
+            )}
+          </a>
+        </li>
       </ul>
     </nav>
   );
