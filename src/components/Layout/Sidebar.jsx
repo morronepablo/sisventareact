@@ -60,7 +60,13 @@ const Sidebar = () => {
       badgeClass = "badge-info"; // azul claro
     } else if (item.permiso === "ver_productos") {
       total = counts.productos || 0;
-      badgeClass = "badge-primary"; // azul claro
+      badgeClass = "badge-primary"; // azul oscuro
+    } else if (item.permiso === "ver_proveedores") {
+      total = counts.proveedores || 0;
+      badgeClass = "badge-success"; // verde
+    } else if (item.permiso === "ver_arqueos") {
+      total = counts.arqueos || 0;
+      badgeClass = "badge-warning"; // amarillo
     } else {
       return null;
     }

@@ -120,5 +120,125 @@
                 "permiso": "ver_proveedores"
             }
         ]
+    },
+    {
+        "id": "compras",
+        "text": "Compras",
+        "icon": "fas fa-fw fa-shopping-cart",
+        "permiso": "ver_compras",
+        "children": [
+            {
+                "id": "listado",
+                "text": "Listado de Compras",
+                "icon": "fas fa-fw fa-list",
+                "path": "/compras/listado",
+                "permiso": "ver_compras"
+            },
+            {
+                "id": "informes",
+                "text": "Informes",
+                "icon": "fas fa-fw fa-chart-bar",
+                "path": "/compras/informes",
+                "permiso": "ver_compras",
+                "children": [
+                    {
+                        "id": "productos",
+                        "text": "Productos",
+                        "icon": "fas fa-fw fa-box",
+                        "path": "/compras/informes/productos",
+                        "permiso": "ver_compras"
+                    },
+                    {
+                        "id": "proveedores",
+                        "text": "Proveedores",
+                        "icon": "fas fa-fw fa-truck",
+                        "path": "/compras/informes/proveedores",
+                        "permiso": "ver_compras"
+                    },
+                    {
+                        "id": "compras_no_pagadas",
+                        "text": "Compras no pagadas",
+                        "icon": "fas fa-fw fa-exclamation-triangle",
+                        "path": "/compras/informes/no-pagadas",
+                        "permiso": "ver_compras"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "clientes",
+        "text": "Clientes",
+        "icon": "fas fa-fw fa-users",
+        "permiso": "ver_clientes",
+        "children": [
+            {
+                "id": "listado",
+                "text": "Listado de Clientes",
+                "icon": "fas fa-fw fa-list",
+                "path": "/clientes/listado",
+                "permiso": "ver_clientes"
+            }
+        ]
+    },
+    {
+        "id": "ventas",
+        "text": "Ventas",
+        "icon": "fas fa-fw fa-cash-register",
+        "permiso": "ver_ventas",
+        "children": [
+            {
+                "id": "listado",
+                "text": "Listado de Ventas",
+                "icon": "fas fa-fw fa-list",
+                "path": "/ventas/listado",
+                "permiso": "ver_ventas"
+            },
+            {
+                "id": "informes",
+                "text": "Informes",
+                "icon": "fas fa-fw fa-chart-bar",
+                "path": "/ventas/informes",
+                "permiso": "ver_ventas",
+                "children": [
+                    {
+                        "id": "productos",
+                        "text": "Productos",
+                        "icon": "fas fa-fw fa-box",
+                        "path": "/ventas/informes/productos",
+                        "permiso": "ver_ventas"
+                    },
+                    {
+                        "id": "clientes",
+                        "text": "Clientes",
+                        "icon": "fas fa-fw fa-truck",
+                        "path": "/ventas/informes/clientes",
+                        "permiso": "ver_ventas"
+                    },
+                    {
+                        "id": "movimiento_stock",
+                        "text": "Movimiento de stock",
+                        "icon": "fas fa-fw fa-exclamation-triangle",
+                        "path": "/ventas/informes/movimiento-stock",
+                        "permiso": "ver_ventas"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "arqueos",
+        "text": "Arqueos",
+        "icon": "fas fa-fw fa-money-bill",
+        "permiso": "ver_arqueos",
+        "children": [
+            {
+                "id": "listado",
+                "text": "Listado de Arqueos",
+                "icon": "fas fa-fw fa-list",
+                "path": "/arqueos/listado",
+                "permiso": "ver_arqueos"
+            }
+        ]
     }
 ]

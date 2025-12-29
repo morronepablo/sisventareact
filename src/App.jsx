@@ -54,9 +54,17 @@ import CrearProveedor from "./pages/proveedores/CrearProveedor";
 import VerProveedor from "./pages/proveedores/VerProveedor";
 import EditarProveedor from "./pages/proveedores/EditarProveedor";
 
+// Arqueos
+import ListadoArqueos from "./pages/arqueos/ListadoArqueos";
+import CrearArqueo from "./pages/arqueos/CrearArqueo";
+import VerArqueo from "./pages/arqueos/VerArqueo";
+import EditarArqueo from "./pages/arqueos/EditarArqueo";
+import MovimientoArqueo from "./pages/arqueos/MovimientoArqueo";
+import CierreArqueo from "./pages/arqueos/CierreArqueo";
+
 // 👇 IMPORTACIÓN DE COMPONENTES DE RUTA
 import ProtectedRoute from "./utils/ProtectedRoute";
-import PublicRoute from "./utils/PublicRoute"; // <--- Nuevo
+import PublicRoute from "./utils/PublicRoute";
 
 const App = () => {
   return (
@@ -135,6 +143,14 @@ const App = () => {
         <Route path="/proveedores/crear" element={<CrearProveedor />} />
         <Route path="/proveedores/ver/:id" element={<VerProveedor />} />
         <Route path="/proveedores/editar/:id" element={<EditarProveedor />} />
+
+        {/* Arqueos */}
+        <Route path="/arqueos/listado" element={<ListadoArqueos />} />
+        <Route path="/arqueos/crear" element={<CrearArqueo />} />
+        <Route path="/arqueos/ver/:id" element={<VerArqueo />} />
+        <Route path="/arqueos/editar/:id" element={<EditarArqueo />} />
+        <Route path="/arqueos/movimiento/:id" element={<MovimientoArqueo />} />
+        <Route path="/arqueos/cierre/:id" element={<CierreArqueo />} />
 
         {/* 404 dentro del layout si la ruta no existe */}
         <Route path="*" element={<NotFound />} />

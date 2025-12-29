@@ -1,11 +1,10 @@
 // src/components/layout/NotificationsDropdown.jsx
 import React, { useState, useEffect } from "react";
 import api from "../../services/api";
-import { Link } from "react-router-dom";
-import { useTheme } from "../../context/ThemeContext"; // ← Importa useTheme
+import { useTheme } from "../../context/ThemeContext";
 
 const NotificationsDropdown = () => {
-  const { theme } = useTheme(); // ← Obtén el tema actual
+  const { theme } = useTheme();
   const [lowStockProducts, setLowStockProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,8 +23,6 @@ const NotificationsDropdown = () => {
   }, []);
 
   const lowStockCount = lowStockProducts.length;
-
-  // Define el ícono según el tema
   const bellIconClass = theme === "dark" ? "far fa-bell" : "fas fa-bell";
 
   return (
@@ -37,7 +34,7 @@ const NotificationsDropdown = () => {
         style={{ position: "relative" }}
       >
         <i
-          className={bellIconClass} // ← Ícono dinámico según tema
+          className={bellIconClass}
           style={{ fontSize: "1.2rem", marginRight: "4px" }}
         ></i>
         {lowStockCount > 0 && (
@@ -49,40 +46,87 @@ const NotificationsDropdown = () => {
           </span>
         )}
       </a>
+
       <div className="dropdown-menu dropdown-menu-lg dropdown-menu-right">
         <span className="dropdown-item dropdown-header">
           {lowStockCount} Productos con Bajo Stock
         </span>
         <div className="dropdown-divider"></div>
-        {loading ? (
-          <p className="dropdown-item text-center">Cargando...</p>
-        ) : lowStockProducts.length === 0 ? (
-          <a href="#" className="dropdown-item">
-            <i className="fas fa-check text-success mr-2"></i> No hay productos
-            con bajo stock
-          </a>
-        ) : (
-          <>
-            {lowStockProducts.map((prod) => (
-              <React.Fragment key={prod.id}>
-                <a href={`/productos/ver/${prod.id}`} className="dropdown-item">
-                  <i className="fas fa-exclamation-triangle text-danger mr-2"></i>
-                  {prod.nombre.length > 20
-                    ? prod.nombre.substring(0, 20) + "..."
-                    : prod.nombre}
-                  <span className="float-right text-muted text-sm">
-                    Stock: {prod.stock} / Mínimo: {prod.stock_minimo}
-                  </span>
-                </a>
-                <div className="dropdown-divider"></div>
-              </React.Fragment>
-            ))}
-          </>
-        )}
+
+        {/* CONTENEDOR CON SCROLL PARA LOS PRODUCTOS */}
+        <div
+          style={{
+            maxHeight: "260px", // Altura aproximada para 4-5 productos
+            overflowY: "auto",
+            overflowX: "hidden",
+          }}
+          className="low-stock-scroll-container"
+        >
+          {loading ? (
+            <p className="dropdown-item text-center">Cargando...</p>
+          ) : lowStockProducts.length === 0 ? (
+            <a href="#" className="dropdown-item">
+              <i className="fas fa-check text-success mr-2"></i> No hay
+              productos con bajo stock
+            </a>
+          ) : (
+            <>
+              {lowStockProducts.map((prod) => (
+                <React.Fragment key={prod.id}>
+                  <a
+                    href={`/productos/ver/${prod.id}`}
+                    className="dropdown-item"
+                  >
+                    <div className="d-flex align-items-center">
+                      <i className="fas fa-exclamation-triangle text-danger mr-2"></i>
+                      <div
+                        style={{
+                          flex: 1,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {prod.nombre}
+                      </div>
+                    </div>
+                    <span
+                      className="text-muted text-sm d-block"
+                      style={{ marginLeft: "25px" }}
+                    >
+                      Stock:{" "}
+                      <span className="text-danger font-weight-bold">
+                        {prod.stock}
+                      </span>{" "}
+                      / Mín: {prod.stock_minimo}
+                    </span>
+                  </a>
+                  <div className="dropdown-divider"></div>
+                </React.Fragment>
+              ))}
+            </>
+          )}
+        </div>
+        {/* FIN DEL CONTENEDOR CON SCROLL */}
+
         <a href="/productos/listado" className="dropdown-item dropdown-footer">
           Ver todos los productos
         </a>
       </div>
+
+      {/* ESTILO OPCIONAL PARA HACER EL SCROLL MÁS FINO (Chrome/Safari) */}
+      <style>{`
+        .low-stock-scroll-container::-webkit-scrollbar {
+          width: 6px;
+        }
+        .low-stock-scroll-container::-webkit-scrollbar-thumb {
+          background: #ccc;
+          border-radius: 10px;
+        }
+        .low-stock-scroll-container::-webkit-scrollbar-thumb:hover {
+          background: #b3b3b3;
+        }
+      `}</style>
     </li>
   );
 };
