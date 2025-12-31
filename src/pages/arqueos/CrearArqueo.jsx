@@ -1,13 +1,27 @@
 // src/pages/arqueos/CrearArqueo.jsx
-import React, { useState } from "react";
+/* eslint-disable no-unused-vars */
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import Swal from "sweetalert2";
+// Importamos el hook de notificaciones para actualizar el Navbar
+import { useNotifications } from "../../context/NotificationContext";
 
 const CrearArqueo = () => {
   const navigate = useNavigate();
+  const { refreshAll } = useNotifications();
+
+  // FUNCIÓN PARA OBTENER LA FECHA Y HORA LOCAL FORMATEADA PARA INPUT
+  const getLocalDateTime = () => {
+    const now = new Date();
+    // Ajustamos el desfase de la zona horaria local
+    const offset = now.getTimezoneOffset() * 60000;
+    const localISOTime = new Date(now - offset).toISOString().slice(0, 16);
+    return localISOTime;
+  };
+
   const [formData, setFormData] = useState({
-    fecha_apertura: new Date().toISOString().slice(0, 16), // Fecha actual por defecto
+    fecha_apertura: getLocalDateTime(), // Ahora sí pondrá tu hora real
     monto_inicial: "",
     descripcion: "",
   });
@@ -20,6 +34,11 @@ const CrearArqueo = () => {
     e.preventDefault();
     try {
       await api.post("/arqueos", formData);
+
+      // 👇 DISPARAMOS EL REFRESCO GLOBAL (Actualiza el botón verde en el Navbar)
+      if (refreshAll) refreshAll();
+      window.dispatchEvent(new Event("forceRefreshNotifications"));
+
       Swal.fire({
         icon: "success",
         title: "¡Registrado!",
@@ -82,6 +101,7 @@ const CrearArqueo = () => {
                       name="monto_inicial"
                       className="form-control text-right"
                       placeholder="0.00"
+                      style={{ fontSize: "1.2rem", fontWeight: "bold" }}
                       value={formData.monto_inicial}
                       onChange={handleChange}
                       required

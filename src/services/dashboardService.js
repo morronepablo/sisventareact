@@ -11,6 +11,9 @@ export const fetchCounts = async () => {
       unidades,
       productos,
       proveedores,
+      provSummary,
+      compras,
+      compSummary,
       arqueos,
     ] = await Promise.all([
       api.get("/users/count").catch(() => ({ data: { total: 0 } })),
@@ -20,6 +23,13 @@ export const fetchCounts = async () => {
       api.get("/unidades/count").catch(() => ({ data: { total: 0 } })),
       api.get("/productos/count").catch(() => ({ data: { total: 0 } })),
       api.get("/proveedores/count").catch(() => ({ data: { total: 0 } })),
+      api
+        .get("/proveedores/summary")
+        .catch(() => ({ data: { total: 0, totalDeuda: 0 } })),
+      api.get("/compras/count").catch(() => ({ data: { total: 0 } })),
+      api
+        .get("/compras/summary")
+        .catch(() => ({ data: { total: 0, totalAnio: 0 } })),
       api.get("/arqueos/count").catch(() => ({ data: { total: 0 } })),
     ]);
 
@@ -31,6 +41,9 @@ export const fetchCounts = async () => {
       unidades: unidades.data.total,
       productos: productos.data.total,
       proveedores: proveedores.data.total,
+      proveedoresDeuda: provSummary.data.totalDeuda,
+      compras: compras.data.total,
+      comprasAnio: compSummary.data.totalAnio,
       arqueos: arqueos.data.total,
     };
   } catch (error) {
@@ -43,6 +56,9 @@ export const fetchCounts = async () => {
       unidades: 0,
       productos: 0,
       proveedores: 0,
+      proveedoresDeuda: 0,
+      compras: 0,
+      comprasAnio: 0,
       arqueos: 0,
     };
   }

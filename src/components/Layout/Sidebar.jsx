@@ -64,9 +64,12 @@ const Sidebar = () => {
     } else if (item.permiso === "ver_proveedores") {
       total = counts.proveedores || 0;
       badgeClass = "badge-success"; // verde
+    } else if (item.permiso === "ver_compras") {
+      total = counts.compras || 0;
+      badgeClass = "badge-warning"; // amarillo
     } else if (item.permiso === "ver_arqueos") {
       total = counts.arqueos || 0;
-      badgeClass = "badge-warning"; // amarillo
+      badgeClass = "badge-danger"; // rojo
     } else {
       return null;
     }

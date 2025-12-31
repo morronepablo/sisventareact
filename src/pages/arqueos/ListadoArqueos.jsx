@@ -12,6 +12,12 @@ const ListadoArqueos = () => {
   const [arqueoAbierto, setArqueoAbierto] = useState(false);
   const navigate = useNavigate();
 
+  // FUNCIÓN CRÍTICA: Navegar eliminando tooltips huérfanos del DOM
+  const navegarSinTooltips = (url) => {
+    if (window.$) window.$(".tooltip").remove();
+    navigate(url);
+  };
+
   const fetchData = async () => {
     try {
       const response = await api.get("/arqueos");
@@ -75,7 +81,7 @@ const ListadoArqueos = () => {
   useEffect(() => {
     if (!loading) {
       const timer = setTimeout(() => {
-        if (!$.fn.DataTable.isDataTable("#arqueos-table")) {
+        if (window.$ && !$.fn.DataTable.isDataTable("#arqueos-table")) {
           const table = $("#arqueos-table").DataTable({
             paging: true,
             lengthChange: false,
@@ -120,12 +126,20 @@ const ListadoArqueos = () => {
               }
             }
           );
+
+          // INICIALIZAR TOOLTIPS DE BOOTSTRAP
+          window.$('[data-bs-toggle="tooltip"]').tooltip();
         }
-      }, 100);
+      }, 150);
+
       return () => {
         clearTimeout(timer);
-        if ($.fn.DataTable.isDataTable("#arqueos-table")) {
-          $("#arqueos-table").DataTable().destroy();
+        if (window.$) {
+          // LIMPIEZA DE TOOLTIPS AL DESMONTAR O RECARGAR
+          window.$(".tooltip").remove();
+          if ($.fn.DataTable.isDataTable("#arqueos-table")) {
+            $("#arqueos-table").DataTable().destroy();
+          }
         }
       };
     }
@@ -134,13 +148,21 @@ const ListadoArqueos = () => {
   const handleExport = (type) => {
     $("#arqueos-table").DataTable().button(`.buttons-${type}`).trigger();
   };
+
   const formatMoney = (amount) =>
     new Intl.NumberFormat("es-AR", {
       style: "currency",
       currency: "ARS",
     }).format(amount || 0);
 
-  if (loading) return <div className="p-4">Cargando...</div>;
+  if (loading)
+    return (
+      <div className="p-4 text-center">
+        <h4>
+          <i className="fas fa-spinner fa-spin"></i> Cargando arqueos...
+        </h4>
+      </div>
+    );
 
   return (
     <div className="content-header">
@@ -160,7 +182,7 @@ const ListadoArqueos = () => {
               {!arqueoAbierto && (
                 <button
                   className="btn btn-primary btn-sm"
-                  onClick={() => navigate("/arqueos/crear")}
+                  onClick={() => navegarSinTooltips("/arqueos/crear")}
                 >
                   <i className="fa fa-plus"></i> Crear nuevo
                 </button>
@@ -168,6 +190,7 @@ const ListadoArqueos = () => {
             </div>
           </div>
           <div className="card-body">
+            {/* Controles de tabla */}
             <div className="d-flex justify-content-between align-items-center mb-3">
               <div className="d-flex align-items-center">
                 <label className="mr-2 mb-0">Mostrar</label>
@@ -199,12 +222,6 @@ const ListadoArqueos = () => {
                     PDF
                   </button>
                   <button
-                    className="btn btn-info btn-sm"
-                    onClick={() => handleExport("csv")}
-                  >
-                    CSV
-                  </button>
-                  <button
                     className="btn btn-success btn-sm"
                     onClick={() => handleExport("excel")}
                   >
@@ -229,22 +246,12 @@ const ListadoArqueos = () => {
               />
             </div>
 
-            <style>{`
-              /* FORZAR CENTRADO VERTICAL */
-              #arqueos-table tbody td, 
-              #arqueos-table tbody th { 
-                vertical-align: middle !important; 
-              }
-              #arqueos-table { font-size: 0.82rem; } 
-              #arqueos-table thead th { text-align: center; vertical-align: middle !important; }
-            `}</style>
-
             <table
               id="arqueos-table"
               className="table table-striped table-bordered table-hover table-sm"
             >
               <thead className="thead-dark">
-                <tr>
+                <tr className="text-center">
                   <th></th>
                   <th>Nro.</th>
                   <th>Fecha Apertura</th>
@@ -260,7 +267,7 @@ const ListadoArqueos = () => {
                   <th>Acciones</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody style={{ verticalAlign: "middle" }}>
                 {arqueos.map((arq, index) => {
                   const m_ini = parseFloat(arq.monto_inicial || 0);
                   const ing = parseFloat(arq.total_ingresos || 0);
@@ -327,10 +334,14 @@ const ListadoArqueos = () => {
                         {arq.usuario_nombre || "Admin"}
                       </td>
                       <td className="text-center">
-                        <div className="btn-group">
+                        <div className="btn-group" role="group">
                           <button
                             className="btn btn-info btn-sm"
-                            onClick={() => navigate(`/arqueos/ver/${arq.id}`)}
+                            data-bs-toggle="tooltip"
+                            title="Ver Arqueo"
+                            onClick={() =>
+                              navegarSinTooltips(`/arqueos/ver/${arq.id}`)
+                            }
                           >
                             <i className="fas fa-eye"></i>
                           </button>
@@ -338,9 +349,11 @@ const ListadoArqueos = () => {
                             className={`btn btn-success btn-sm ${
                               arq.fecha_cierre ? "disabled" : ""
                             }`}
+                            data-bs-toggle="tooltip"
+                            title="Editar Arqueo"
                             onClick={() =>
                               !arq.fecha_cierre &&
-                              navigate(`/arqueos/editar/${arq.id}`)
+                              navegarSinTooltips(`/arqueos/editar/${arq.id}`)
                             }
                           >
                             <i className="fas fa-pencil"></i>
@@ -349,9 +362,13 @@ const ListadoArqueos = () => {
                             className={`btn btn-warning btn-sm ${
                               arq.fecha_cierre ? "disabled" : ""
                             }`}
+                            data-bs-toggle="tooltip"
+                            title="Registrar Movimiento"
                             onClick={() =>
                               !arq.fecha_cierre &&
-                              navigate(`/arqueos/movimiento/${arq.id}`)
+                              navegarSinTooltips(
+                                `/arqueos/movimiento/${arq.id}`
+                              )
                             }
                           >
                             <i className="fas fa-cash-register"></i>
@@ -360,14 +377,24 @@ const ListadoArqueos = () => {
                             className={`btn btn-secondary btn-sm ${
                               arq.fecha_cierre ? "disabled" : ""
                             }`}
+                            data-bs-toggle="tooltip"
+                            title="Cerrar Arqueo"
                             onClick={() =>
                               !arq.fecha_cierre &&
-                              navigate(`/arqueos/cierre/${arq.id}`)
+                              navegarSinTooltips(`/arqueos/cierre/${arq.id}`)
                             }
                           >
                             <i className="fas fa-lock"></i>
                           </button>
-                          <button className="btn btn-danger btn-sm">
+                          <button
+                            className="btn btn-danger btn-sm"
+                            data-bs-toggle="tooltip"
+                            title="Eliminar Arqueo"
+                            onClick={() => {
+                              if (window.$) window.$(".tooltip").remove();
+                              // Aquí iría tu función handleEliminar(arq.id)
+                            }}
+                          >
                             <i className="fas fa-trash"></i>
                           </button>
                         </div>

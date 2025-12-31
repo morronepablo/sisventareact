@@ -10,10 +10,13 @@ const Dashboard = () => {
   const [counts, setCounts] = useState({
     usuarios: 0,
     roles: 0,
-    permisos: 0,
     categorias: 0,
     unidades: 0,
     productos: 0,
+    proveedoresCount: 0,
+    proveedoresDeuda: 0,
+    comprasCount: 0,
+    comprasAnio: 0,
   });
 
   useEffect(() => {
@@ -24,7 +27,16 @@ const Dashboard = () => {
     loadData();
   }, []);
 
-  const InfoBox = ({ permission, link, color, icon, title, count, label }) => {
+  const InfoBox = ({
+    permission,
+    link,
+    color,
+    icon,
+    title,
+    count,
+    label,
+    extraInfo,
+  }) => {
     if (!hasPermission(permission)) return null;
 
     return (
@@ -38,22 +50,22 @@ const Dashboard = () => {
           <div className="info-box-content">
             <span
               className="info-box-text text-dark"
-              style={{ fontWeight: "500" }}
+              style={{ fontWeight: "600" }}
             >
               {title}
             </span>
-            <span
-              className="info-box-number"
-              style={{ fontSize: "1.25rem", fontWeight: "800" }}
-            >
-              {count}{" "}
-              <small
-                className="text-muted"
-                style={{ fontSize: "0.9rem", fontWeight: "400" }}
+            <div className="d-flex justify-content-between align-items-baseline">
+              <span
+                className="info-box-number"
+                style={{ fontSize: "1.2rem", fontWeight: "800" }}
               >
-                {label}
-              </small>
-            </span>
+                {count}{" "}
+                <small className="text-muted" style={{ fontWeight: "400" }}>
+                  {label}
+                </small>
+              </span>
+              {extraInfo}
+            </div>
           </div>
         </div>
       </div>
@@ -62,7 +74,6 @@ const Dashboard = () => {
 
   return (
     <div className="container-fluid pt-3">
-      {/* Título idéntico al original */}
       <div className="row mb-2">
         <div className="col-12">
           <h1 className="m-0" style={{ fontWeight: "700", fontSize: "2rem" }}>
@@ -72,7 +83,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Grid de Tarjetas */}
       <div className="row">
         <InfoBox
           permission="ver_roles"
@@ -114,10 +124,48 @@ const Dashboard = () => {
           permission="ver_productos"
           link="/productos/listado"
           color="bg-danger"
-          icon="fas fa-boxes-stacked"
+          icon="fas fa-boxes"
           title="Productos registrados"
           count={counts.productos}
           label="productos"
+        />
+
+        {/* Proveedores Replicado */}
+        <InfoBox
+          permission="ver_proveedores"
+          link="/proveedores/listado"
+          color="bg-dark"
+          icon="fas fa-truck"
+          title="Proveedores registrados"
+          count={counts.proveedoresCount}
+          label="proveedores"
+          extraInfo={
+            <span
+              className="text-danger"
+              style={{ fontWeight: "700", fontSize: "0.85rem" }}
+            >
+              Deuda: ${counts.proveedoresDeuda.toLocaleString("es-AR")}
+            </span>
+          }
+        />
+
+        {/* Compras Replicado */}
+        <InfoBox
+          permission="ver_compras"
+          link="/compras/listado"
+          color="bg-purple"
+          icon="fas fa-shopping-cart"
+          title="Compras registradas"
+          count={counts.comprasCount}
+          label="compras"
+          extraInfo={
+            <span
+              className="text-success"
+              style={{ fontWeight: "700", fontSize: "0.85rem" }}
+            >
+              {counts.comprasAnio} año actual
+            </span>
+          }
         />
       </div>
     </div>

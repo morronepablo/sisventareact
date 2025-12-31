@@ -53,6 +53,13 @@ import ListadoProveedores from "./pages/proveedores/ListadoProveedores";
 import CrearProveedor from "./pages/proveedores/CrearProveedor";
 import VerProveedor from "./pages/proveedores/VerProveedor";
 import EditarProveedor from "./pages/proveedores/EditarProveedor";
+import GestionPagos from "./pages/proveedores/GestionPagos";
+import MovimientosProveedor from "./pages/proveedores/MovimientosProveedor";
+
+// Compras
+import ListadoCompras from "./pages/compras/ListadoCompras";
+import CrearCompra from "./pages/compras/CrearCompra";
+import VerCompra from "./pages/compras/VerCompra";
 
 // Arqueos
 import ListadoArqueos from "./pages/arqueos/ListadoArqueos";
@@ -143,6 +150,16 @@ const App = () => {
         <Route path="/proveedores/crear" element={<CrearProveedor />} />
         <Route path="/proveedores/ver/:id" element={<VerProveedor />} />
         <Route path="/proveedores/editar/:id" element={<EditarProveedor />} />
+        <Route path="/proveedores/pagos/:id" element={<GestionPagos />} />
+        <Route
+          path="/proveedores/movimientos/:id"
+          element={<MovimientosProveedor />}
+        />
+
+        {/* Compras */}
+        <Route path="/compras/listado" element={<ListadoCompras />} />
+        <Route path="/compras/crear" element={<CrearCompra />} />
+        <Route path="/compras/ver/:id" element={<VerCompra />} />
 
         {/* Arqueos */}
         <Route path="/arqueos/listado" element={<ListadoArqueos />} />

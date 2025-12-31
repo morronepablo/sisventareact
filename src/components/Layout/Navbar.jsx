@@ -4,12 +4,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useLayout } from "../../context/LayoutContext";
-import NotificationsDropdown from "./NotificationsDropdown"; // ← Nuevo
+import { useNotifications } from "../../context/NotificationContext"; // ← Importamos el hook
+import NotificationsDropdown from "./NotificationsDropdown";
+import ProvidersDebtDropdown from "./ProvidersDebtDropdown";
+import Swal from "sweetalert2";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { toggleDesktopSidebar, toggleMobileSidebar } = useLayout();
+  const { arqueoAbierto, arqueoId } = useNotifications(); // ← Obtenemos el estado global del arqueo
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -22,10 +26,27 @@ const Navbar = () => {
     else toggleDesktopSidebar();
   };
 
+  const handleCierreArqueo = () => {
+    Swal.fire({
+      title: "¿Está seguro?",
+      text: "Esto cerrará el arqueo actual.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#28a745",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, ir al cierre",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        navigate(`/arqueos/cierre/${arqueoId}`);
+      }
+    });
+  };
+
   return (
     <nav
       className={`main-header navbar navbar-expand ${
-        theme === "dark" ? "navbar-dark" : "navbar-white navbar-light"
+        theme === "dark" ? "navbar-dark bg-dark" : "navbar-white navbar-light"
       }`}
     >
       <ul className="navbar-nav">
@@ -45,7 +66,7 @@ const Navbar = () => {
           </Link>
         </li>
 
-        {/* Botones principales */}
+        {/* Botones principales - SE MANTIENEN TODOS IGUAL */}
         <li className="nav-item d-none d-sm-inline-block ml-2">
           <Link
             to="/ventas/crear"
@@ -78,35 +99,39 @@ const Navbar = () => {
             type="button"
             className="nav-link btn btn-warning text-white"
             style={{ padding: "5px 10px", fontSize: "0.875rem" }}
-            onClick={() => {
-              // Aquí puedes abrir un modal o redirigir
-              alert("Funcionalidad no implementada aún.");
-            }}
+            onClick={() =>
+              Swal.fire(
+                "Información",
+                "Funcionalidad no implementada aún.",
+                "info"
+              )
+            }
           >
             <i className="fas fa-sync-alt"></i> Limpiar y Reconstruir
             Movimientos
           </button>
         </li>
-        <li className="nav-item d-none d-sm-inline-block ml-2">
-          <button
-            type="button"
-            className="nav-link btn btn-success text-white"
-            style={{ padding: "5px 10px", fontSize: "0.875rem" }}
-            onClick={() => {
-              // Aquí puedes abrir un modal o redirigir
-              alert("Funcionalidad no implementada aún.");
-            }}
-          >
-            <i className="fas fa-lock"></i> Cierre Arqueo
-          </button>
-        </li>
+
+        {/* 👇 BOTÓN CIERRE ARQUEO: Solo aparece si arqueoAbierto es true */}
+        {arqueoAbierto && (
+          <li className="nav-item d-none d-sm-inline-block ml-2">
+            <button
+              type="button"
+              className="nav-link btn btn-success text-white"
+              style={{ padding: "5px 10px", fontSize: "0.875rem" }}
+              onClick={handleCierreArqueo}
+            >
+              <i className="fas fa-lock"></i> Cierre Arqueo
+            </button>
+          </li>
+        )}
       </ul>
 
       <ul className="navbar-nav ml-auto">
-        {/* Campanita */}
         <NotificationsDropdown />
+        <ProvidersDebtDropdown />
 
-        {/* Icono de usuario */}
+        {/* Perfil de Usuario */}
         {user && (
           <li className="nav-item dropdown user-menu">
             <a
