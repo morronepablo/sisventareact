@@ -60,6 +60,12 @@ import MovimientosProveedor from "./pages/proveedores/MovimientosProveedor";
 import ListadoCompras from "./pages/compras/ListadoCompras";
 import CrearCompra from "./pages/compras/CrearCompra";
 import VerCompra from "./pages/compras/VerCompra";
+import InformeProductos from "./pages/compras/informes/InformeProductos";
+import DetalleInformeProductos from "./pages/compras/informes/DetalleInformeProductos";
+import InformeProveedores from "./pages/compras/informes/InformeProveedores";
+import DetalleInformeProveedores from "./pages/compras/informes/DetalleInformeProveedores";
+import InformeNoPagadas from "./pages/compras/informes/InformeNoPagadas";
+import DetalleInformeNoPagadas from "./pages/compras/informes/DetalleInformeNoPagadas";
 
 // Arqueos
 import ListadoArqueos from "./pages/arqueos/ListadoArqueos";
@@ -160,6 +166,30 @@ const App = () => {
         <Route path="/compras/listado" element={<ListadoCompras />} />
         <Route path="/compras/crear" element={<CrearCompra />} />
         <Route path="/compras/ver/:id" element={<VerCompra />} />
+        <Route
+          path="/compras/informes/productos"
+          element={<InformeProductos />}
+        />
+        <Route
+          path="/compras/informes/productos/detalle"
+          element={<DetalleInformeProductos />}
+        />
+        <Route
+          path="/compras/informes/proveedores"
+          element={<InformeProveedores />}
+        />
+        <Route
+          path="/compras/informes/proveedores/detalle"
+          element={<DetalleInformeProveedores />}
+        />
+        <Route
+          path="/compras/informes/no-pagadas"
+          element={<InformeNoPagadas />}
+        />
+        <Route
+          path="/compras/informes/no-pagadas/detalle"
+          element={<DetalleInformeNoPagadas />}
+        />
 
         {/* Arqueos */}
         <Route path="/arqueos/listado" element={<ListadoArqueos />} />
