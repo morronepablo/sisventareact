@@ -1,77 +1,85 @@
 // src/components/layout/Sidebar.jsx
-/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useLayout } from "../../context/LayoutContext";
+import { useNotifications } from "../../context/NotificationContext"; // 👈 Hook del contexto
 import menuItems from "../../data/menu.json";
-import { fetchCounts } from "../../services/dashboardService"; // ← nuevo
 
 const Sidebar = () => {
-  const [openMenu, setOpenMenu] = useState(null);
-  const [counts, setCounts] = useState({}); // ← almacena totales
+  const [openMenus, setOpenMenus] = useState({});
+  const { counts } = useNotifications(); // 👈 Obtenemos los counts globales
   const location = useLocation();
   const { user, hasPermission } = useAuth();
   const { closeMobileSidebar } = useLayout();
 
-  // Cargar conteos al inicio
-  useEffect(() => {
-    const loadCounts = async () => {
-      if (user) {
-        const data = await fetchCounts();
-        setCounts(data);
-      }
-    };
-    loadCounts();
-  }, [user]);
-
-  useEffect(() => {
-    const activeParent = menuItems.find((item) =>
-      item.children?.some((child) => location.pathname.startsWith(child.path))
-    );
-    if (activeParent) setOpenMenu(activeParent.id);
-  }, [location.pathname]);
-
-  const handleMenuClick = (id) => {
-    setOpenMenu(openMenu === id ? null : id);
+  const checkIsActive = (item) => {
+    if (item.path && location.pathname === item.path) return true;
+    if (item.children)
+      return item.children.some((child) => checkIsActive(child));
+    return false;
   };
 
-  // Función para obtener el badge con color personalizado
+  useEffect(() => {
+    const autoOpenPaths = {};
+    const findAndMarkParents = (items) => {
+      items.forEach((item) => {
+        if (item.children && checkIsActive(item)) {
+          autoOpenPaths[item.id] = true;
+          findAndMarkParents(item.children);
+        }
+      });
+    };
+    findAndMarkParents(menuItems);
+    setOpenMenus((prev) => ({ ...prev, ...autoOpenPaths }));
+  }, [location.pathname]);
+
+  const handleMenuClick = (e, id) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpenMenus((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
   const getTotalBadge = (item) => {
-    if (!item.children || !item.permiso) return null;
-
+    if (!item.permiso || !counts) return null;
     let total = 0;
-    let badgeClass = "badge-info"; // default
+    let badgeClass = "badge-info";
 
+    // 👈 Usamos los nombres sincronizados del dashboardService
     if (item.permiso === "ver_usuarios") {
-      total = counts.usuarios || 0;
-      badgeClass = "badge-primary"; // azul oscuro
+      total = counts.usuarios;
+      badgeClass = "badge-primary";
     } else if (item.permiso === "ver_roles") {
-      total = counts.roles || 0;
-      badgeClass = "badge-success"; // verde
+      total = counts.roles;
+      badgeClass = "badge-success";
     } else if (item.permiso === "ver_permisos") {
-      total = counts.permisos || 0;
-      badgeClass = "badge-warning"; // amarillo
+      total = counts.permisos;
+      badgeClass = "badge-warning";
     } else if (item.permiso === "ver_categorias") {
-      total = counts.categorias || 0;
-      badgeClass = "badge-danger"; // rojo
+      total = counts.categorias;
+      badgeClass = "badge-danger";
     } else if (item.permiso === "ver_unidades") {
-      total = counts.unidades || 0;
-      badgeClass = "badge-info"; // azul claro
+      total = counts.unidades;
+      badgeClass = "badge-info";
     } else if (item.permiso === "ver_productos") {
-      total = counts.productos || 0;
-      badgeClass = "badge-primary"; // azul oscuro
+      total = counts.productos;
+      badgeClass = "badge-primary";
     } else if (item.permiso === "ver_proveedores") {
-      total = counts.proveedores || 0;
-      badgeClass = "badge-success"; // verde
+      total = counts.proveedores;
+      badgeClass = "badge-success";
     } else if (item.permiso === "ver_compras") {
-      total = counts.compras || 0;
-      badgeClass = "badge-warning"; // amarillo
+      total = counts.compras;
+      badgeClass = "badge-warning";
+    } else if (item.permiso === "ver_clientes") {
+      total = counts.clientes;
+      badgeClass = "badge-danger";
+    } else if (item.permiso === "ver_ventas") {
+      total = counts.ventas;
+      badgeClass = "badge-info";
     } else if (item.permiso === "ver_arqueos") {
-      total = counts.arqueos || 0;
-      badgeClass = "badge-danger"; // rojo
-    } else {
-      return null;
+      total = counts.arqueos;
+      badgeClass = "badge-primary";
     }
 
     return total > 0 ? (
@@ -79,39 +87,38 @@ const Sidebar = () => {
     ) : null;
   };
 
-  const renderMenuItems = (items) => {
+  const renderMenuItems = (items, level = 0) => {
     return items
       .filter((item) => !item.permiso || hasPermission(item.permiso))
       .map((item) => {
-        const isActiveParent = openMenu === item.id;
-
+        const isOpen = !!openMenus[item.id];
+        const isActive = checkIsActive(item);
         if (item.children) {
           return (
             <li
               key={item.id}
-              className={`nav-item ${isActiveParent ? "menu-open" : ""}`}
+              className={`nav-item ${isOpen ? "menu-open" : ""}`}
             >
               <a
                 href="#"
-                className="nav-link"
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleMenuClick(item.id);
-                }}
+                className={`nav-link ${isActive ? "active" : ""}`}
+                onClick={(e) => handleMenuClick(e, item.id)}
               >
                 <i className={`nav-icon ${item.icon}`}></i>
                 <p>
                   {item.text} <i className="right fas fa-angle-left"></i>
-                  {getTotalBadge(item)}
+                  {level === 0 && getTotalBadge(item)}
                 </p>
               </a>
-              <ul className="nav nav-treeview">
-                {renderMenuItems(item.children)}
+              <ul
+                className="nav nav-treeview"
+                style={{ display: isOpen ? "block" : "none" }}
+              >
+                {renderMenuItems(item.children, level + 1)}
               </ul>
             </li>
           );
         }
-
         return (
           <li key={item.id} className="nav-item">
             <NavLink

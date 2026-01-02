@@ -67,6 +67,27 @@ import DetalleInformeProveedores from "./pages/compras/informes/DetalleInformePr
 import InformeNoPagadas from "./pages/compras/informes/InformeNoPagadas";
 import DetalleInformeNoPagadas from "./pages/compras/informes/DetalleInformeNoPagadas";
 
+// Clientes
+import ListadoClientes from "./pages/clientes/ListadoClientes";
+import VerCliente from "./pages/clientes/VerCliente";
+import GestionarPagosClientes from "./pages/clientes/GestionPagosClientes";
+import VerComprasCliente from "./pages/clientes/VerComprasCliente";
+import HistorialCliente from "./pages/clientes/HistorialCliente";
+import EditarCliente from "./pages/clientes/EditarCliente";
+
+// Ventas
+import ListadoVentas from "./pages/ventas/ListadoVentas";
+import CrearVenta from "./pages/ventas/CrearVenta";
+import VerVenta from "./pages/ventas/VerVenta";
+import InformeProductosVentas from "./pages/ventas/informes/InformeProductosVentas";
+import DetalleInformeProductosVentas from "./pages/ventas/informes/DetalleInformeProductosVentas";
+import InformeClientesVentas from "./pages/ventas/informes/InformeClientesVentas";
+import DetalleInformeClientesVentas from "./pages/ventas/informes/DetalleInformeClientesVentas";
+import InformeMetodosPagoVentas from "./pages/ventas/informes/InformeMetodosPagoVentas";
+import DetalleInformeMetodosPagoVentas from "./pages/ventas/informes/DetalleInformeMetodosPagoVentas";
+import InformeMovimientoStock from "./pages/ventas/informes/InformeMovimientoStock";
+import DetalleInformeMovimientoStock from "./pages/ventas/informes/DetalleInformeMovimientoStock";
+
 // Arqueos
 import ListadoArqueos from "./pages/arqueos/ListadoArqueos";
 import CrearArqueo from "./pages/arqueos/CrearArqueo";
@@ -189,6 +210,54 @@ const App = () => {
         <Route
           path="/compras/informes/no-pagadas/detalle"
           element={<DetalleInformeNoPagadas />}
+        />
+
+        {/* Clientes */}
+        <Route path="/clientes/listado" element={<ListadoClientes />} />
+        <Route path="/clientes/ver/:id" element={<VerCliente />} />
+        <Route
+          path="/clientes/pagos/:id"
+          element={<GestionarPagosClientes />}
+        />
+        <Route path="/clientes/compras/:id" element={<VerComprasCliente />} />
+        <Route path="/clientes/historial/:id" element={<HistorialCliente />} />
+        <Route path="/clientes/editar/:id" element={<EditarCliente />} />
+
+        {/* Ventas */}
+        <Route path="/ventas/listado" element={<ListadoVentas />} />
+        <Route path="/ventas/crear" element={<CrearVenta />} />
+        <Route path="/ventas/ver/:id" element={<VerVenta />} />
+        <Route
+          path="/ventas/informes/productos"
+          element={<InformeProductosVentas />}
+        />
+        <Route
+          path="/ventas/informes/productos/detalle"
+          element={<DetalleInformeProductosVentas />}
+        />
+        <Route
+          path="/ventas/informes/clientes"
+          element={<InformeClientesVentas />}
+        />
+        <Route
+          path="/ventas/informes/clientes/detalle"
+          element={<DetalleInformeClientesVentas />}
+        />
+        <Route
+          path="/ventas/informes/metodos-pago"
+          element={<InformeMetodosPagoVentas />}
+        />
+        <Route
+          path="/ventas/informes/metodos-pago/detalle"
+          element={<DetalleInformeMetodosPagoVentas />}
+        />
+        <Route
+          path="/ventas/informes/movimiento-stock"
+          element={<InformeMovimientoStock />}
+        />
+        <Route
+          path="/ventas/informes/movimiento-stock/detalle"
+          element={<DetalleInformeMovimientoStock />}
         />
 
         {/* Arqueos */}

@@ -7,24 +7,10 @@ import { fetchCounts } from "../services/dashboardService";
 
 const Dashboard = () => {
   const { user, hasPermission } = useAuth();
-  const [counts, setCounts] = useState({
-    usuarios: 0,
-    roles: 0,
-    categorias: 0,
-    unidades: 0,
-    productos: 0,
-    proveedoresCount: 0,
-    proveedoresDeuda: 0,
-    comprasCount: 0,
-    comprasAnio: 0,
-  });
+  const [counts, setCounts] = useState({});
 
   useEffect(() => {
-    const loadData = async () => {
-      const data = await fetchCounts();
-      setCounts(data);
-    };
-    loadData();
+    fetchCounts().then(setCounts);
   }, []);
 
   const InfoBox = ({
@@ -38,7 +24,6 @@ const Dashboard = () => {
     extraInfo,
   }) => {
     if (!hasPermission(permission)) return null;
-
     return (
       <div className="col-md-3 col-sm-6 col-12 mb-3">
         <div className="info-box zoomP shadow-sm">
@@ -59,7 +44,7 @@ const Dashboard = () => {
                 className="info-box-number"
                 style={{ fontSize: "1.2rem", fontWeight: "800" }}
               >
-                {count}{" "}
+                {count || 0}{" "}
                 <small className="text-muted" style={{ fontWeight: "400" }}>
                   {label}
                 </small>
@@ -130,40 +115,78 @@ const Dashboard = () => {
           label="productos"
         />
 
-        {/* Proveedores Replicado */}
         <InfoBox
           permission="ver_proveedores"
           link="/proveedores/listado"
           color="bg-dark"
           icon="fas fa-truck"
           title="Proveedores registrados"
-          count={counts.proveedoresCount}
+          count={counts.proveedores}
           label="proveedores"
           extraInfo={
             <span
               className="text-danger"
               style={{ fontWeight: "700", fontSize: "0.85rem" }}
             >
-              Deuda: ${counts.proveedoresDeuda.toLocaleString("es-AR")}
+              Deuda: $
+              {parseFloat(counts.proveedoresDeuda || 0).toLocaleString("es-AR")}
             </span>
           }
         />
 
-        {/* Compras Replicado */}
         <InfoBox
           permission="ver_compras"
           link="/compras/listado"
           color="bg-purple"
           icon="fas fa-shopping-cart"
           title="Compras registradas"
-          count={counts.comprasCount}
+          count={counts.compras}
           label="compras"
           extraInfo={
             <span
               className="text-success"
               style={{ fontWeight: "700", fontSize: "0.85rem" }}
             >
-              {counts.comprasAnio} año actual
+              {counts.comprasAnio || 0} año actual
+            </span>
+          }
+        />
+
+        <InfoBox
+          permission="ver_clientes"
+          link="/clientes/listado"
+          color="bg-secondary"
+          icon="fas fa-user-friends"
+          title="Clientes registrados"
+          count={counts.clientes}
+          label="clientes"
+          extraInfo={
+            <span
+              className="text-danger"
+              style={{ fontWeight: "700", fontSize: "0.85rem" }}
+            >
+              Deuda: $
+              {parseFloat(counts.clientesDeuda || 0).toLocaleString("es-AR", {
+                minimumFractionDigits: 2,
+              })}
+            </span>
+          }
+        />
+
+        <InfoBox
+          permission="ver_ventas"
+          link="/ventas/listado"
+          color="bg-orange"
+          icon="fas fa-cash-register"
+          title="Ventas registradas"
+          count={counts.ventas}
+          label="ventas"
+          extraInfo={
+            <span
+              className="text-success"
+              style={{ fontWeight: "700", fontSize: "0.85rem" }}
+            >
+              {counts.ventasAnio || 0} año actual
             </span>
           }
         />

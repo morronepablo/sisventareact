@@ -7,6 +7,7 @@ import { useLayout } from "../../context/LayoutContext";
 import { useNotifications } from "../../context/NotificationContext"; // ← Importamos el hook
 import NotificationsDropdown from "./NotificationsDropdown";
 import ProvidersDebtDropdown from "./ProvidersDebtDropdown";
+import ClientsDebtDropdown from "./ClientsDebtDropdown";
 import Swal from "sweetalert2";
 
 const Navbar = () => {
@@ -129,6 +130,7 @@ const Navbar = () => {
 
       <ul className="navbar-nav ml-auto">
         <NotificationsDropdown />
+        <ClientsDebtDropdown />
         <ProvidersDebtDropdown />
 
         {/* Perfil de Usuario */}

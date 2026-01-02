@@ -23,7 +23,7 @@
             {
                 "id": "listado",
                 "text": "Listado",
-                "icon": "far fa-circle",
+                "icon": "fas fa-fw fa-list",
                 "path": "/usuarios/listado",
                 "permiso": "ver_usuarios"
             }
@@ -39,7 +39,7 @@
             {
                 "id": "roles",
                 "text": "Listado",
-                "icon": "far fa-circle",
+                "icon": "fas fa-fw fa-list",
                 "path": "/roles/listado",
                 "permiso": "ver_roles"
             }
@@ -55,7 +55,7 @@
             {
                 "id": "listado",
                 "text": "Listado",
-                "icon": "far fa-circle",
+                "icon": "fas fa-fw fa-list",
                 "path": "/permisos/listado",
                 "permiso": "ver_permisos"
             }
@@ -70,7 +70,7 @@
             {
                 "id": "listado",
                 "text": "Listado",
-                "icon": "far fa-circle",
+                "icon": "fas fa-fw fa-list",
                 "path": "/categorias/listado",
                 "permiso": "ver_categorias"
             }
@@ -85,7 +85,7 @@
             {
                 "id": "listado",
                 "text": "Listado",
-                "icon": "far fa-circle",
+                "icon": "fas fa-fw fa-list",
                 "path": "/unidades/listado",
                 "permiso": "ver_unidades"
             }
@@ -100,7 +100,7 @@
             {
                 "id": "listado",
                 "text": "Listado",
-                "icon": "far fa-circle",
+                "icon": "fas fa-fw fa-list",
                 "path": "/productos/listado",
                 "permiso": "ver_productos"
             }
@@ -115,7 +115,7 @@
             {
                 "id": "listado",
                 "text": "Listado",
-                "icon": "far fa-circle",
+                "icon": "fas fa-fw fa-list",
                 "path": "/proveedores/listado",
                 "permiso": "ver_proveedores"
             }
@@ -216,9 +216,16 @@
                         "permiso": "ver_ventas"
                     },
                     {
+                        "id": "formas_pago",
+                        "text": "Formas de pago",
+                        "icon": "fas fa-fw fa-credit-card",
+                        "path": "/ventas/informes/metodos-pago",
+                        "permiso": "ver_ventas"
+                    },
+                    {
                         "id": "movimiento_stock",
                         "text": "Movimiento de stock",
-                        "icon": "fas fa-fw fa-exclamation-triangle",
+                        "icon": "fas fa-fw fa-exchange-alt",
                         "path": "/ventas/informes/movimiento-stock",
                         "permiso": "ver_ventas"
                     }

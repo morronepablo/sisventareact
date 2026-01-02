@@ -14,6 +14,10 @@ export const fetchCounts = async () => {
       provSummary,
       compras,
       compSummary,
+      clientes,
+      clieSummary,
+      ventas,
+      ventSummary,
       arqueos,
     ] = await Promise.all([
       api.get("/users/count").catch(() => ({ data: { total: 0 } })),
@@ -30,6 +34,14 @@ export const fetchCounts = async () => {
       api
         .get("/compras/summary")
         .catch(() => ({ data: { total: 0, totalAnio: 0 } })),
+      api.get("/clientes/count").catch(() => ({ data: { total: 0 } })),
+      api
+        .get("/clientes/summary")
+        .catch(() => ({ data: { total: 0, totalDeuda: 0 } })),
+      api.get("/ventas/count").catch(() => ({ data: { total: 0 } })),
+      api
+        .get("/ventas/summary")
+        .catch(() => ({ data: { total: 0, totalAnio: 0 } })),
       api.get("/arqueos/count").catch(() => ({ data: { total: 0 } })),
     ]);
 
@@ -40,26 +52,18 @@ export const fetchCounts = async () => {
       categorias: categorias.data.total,
       unidades: unidades.data.total,
       productos: productos.data.total,
-      proveedores: proveedores.data.total,
+      proveedores: proveedores.data.total, // Nombre unificado
       proveedoresDeuda: provSummary.data.totalDeuda,
-      compras: compras.data.total,
+      compras: compras.data.total, // Nombre unificado
       comprasAnio: compSummary.data.totalAnio,
+      clientes: clientes.data.total, // Nombre unificado
+      clientesDeuda: clieSummary.data.totalDeuda,
+      ventas: ventas.data.total, // Nombre unificado
+      ventasAnio: ventSummary.data.totalAnio,
       arqueos: arqueos.data.total,
     };
   } catch (error) {
     console.error("Error al cargar conteos:", error);
-    return {
-      usuarios: 0,
-      roles: 0,
-      permisos: 0,
-      categorias: 0,
-      unidades: 0,
-      productos: 0,
-      proveedores: 0,
-      proveedoresDeuda: 0,
-      compras: 0,
-      comprasAnio: 0,
-      arqueos: 0,
-    };
+    return {};
   }
 };

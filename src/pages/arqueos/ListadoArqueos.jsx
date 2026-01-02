@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import Swal from "sweetalert2";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 const ListadoArqueos = () => {
   const [arqueos, setArqueos] = useState([]);
@@ -12,7 +13,22 @@ const ListadoArqueos = () => {
   const [arqueoAbierto, setArqueoAbierto] = useState(false);
   const navigate = useNavigate();
 
-  // FUNCIÓN CRÍTICA: Navegar eliminando tooltips huérfanos del DOM
+  const spanishLanguage = {
+    sProcessing: "Procesando...",
+    sLengthMenu: "Mostrar _MENU_ registros",
+    sZeroRecords: "No se encontraron resultados",
+    sEmptyTable: "Ningún dato disponible en esta tabla",
+    sInfo:
+      "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+    sSearch: "Buscar:",
+    oPaginate: {
+      sFirst: "Primero",
+      sLast: "Último",
+      sNext: "Siguiente",
+      sPrevious: "Anterior",
+    },
+  };
+
   const navegarSinTooltips = (url) => {
     if (window.$) window.$(".tooltip").remove();
     navigate(url);
@@ -60,19 +76,15 @@ const ListadoArqueos = () => {
           style: "currency",
           currency: "ARS",
         }).format(m.monto);
-        html += `<tr><td class="text-center" style="vertical-align:middle"><b><span class="${
+        html += `<tr><td class="text-center"><b><span class="${
           m.tipo === "Ingreso" ? "text-success" : "text-danger"
-        }">${
-          m.tipo
-        }</span></b></td><td class="text-right" style="vertical-align:middle">${monto}</td><td style="vertical-align:middle">${
+        }">${m.tipo}</span></b></td><td class="text-right">${monto}</td><td>${
           m.descripcion || ""
-        }</td><td class="text-center" style="vertical-align:middle">${format24h(
-          m.created_at
-        )}</td></tr>`;
+        }</td><td class="text-center">${format24h(m.created_at)}</td></tr>`;
       });
       html += "</tbody></table>";
     } else {
-      html += '<p class="text-muted small">No hay movimientos.</p>';
+      html += '<p class="text-muted small">No hay movimientos registrados.</p>';
     }
     html += "</div>";
     return html;
@@ -81,20 +93,18 @@ const ListadoArqueos = () => {
   useEffect(() => {
     if (!loading) {
       const timer = setTimeout(() => {
-        if (window.$ && !$.fn.DataTable.isDataTable("#arqueos-table")) {
-          const table = $("#arqueos-table").DataTable({
+        const tableId = "#arqueos-table";
+        if (window.$ && !$.fn.DataTable.isDataTable(tableId)) {
+          const table = window.$(tableId).DataTable({
             paging: true,
-            lengthChange: false,
-            searching: true,
             ordering: true,
             info: true,
             autoWidth: false,
             responsive: true,
             pageLength: 8,
-            language: {
-              url: "//cdn.datatables.net/plug-ins/1.10.19/i18n/Spanish.json",
-            },
-            buttons: ["copy", "pdf", "csv", "excel", "print"],
+            language: spanishLanguage,
+            lengthChange: false,
+            searching: false,
             dom: "rtip",
             columnDefs: [
               { targets: 0, orderable: false },
@@ -102,51 +112,45 @@ const ListadoArqueos = () => {
             ],
           });
 
-          $("#arqueos-table tbody").on(
-            "click",
-            "td.details-control",
-            function () {
-              var tr = $(this).closest("tr"),
+          window
+            .$(`${tableId} tbody`)
+            .on("click", "td.details-control", function () {
+              var tr = window.$(this).closest("tr"),
                 row = table.row(tr),
                 index = tr.data("index");
               if (row.child.isShown()) {
                 row.child.hide();
                 tr.removeClass("shown");
-                $(this)
+                window
+                  .$(this)
                   .find("i")
-                  .removeClass("fa-minus-circle text-danger")
-                  .addClass("fa-plus-circle text-primary");
+                  .attr("class", "fas fa-plus-circle text-primary");
               } else {
                 row.child(formatDetails(arqueos[index])).show();
                 tr.addClass("shown");
-                $(this)
+                window
+                  .$(this)
                   .find("i")
-                  .removeClass("fa-plus-circle text-primary")
-                  .addClass("fa-minus-circle text-danger");
+                  .attr("class", "fas fa-minus-circle text-danger");
               }
-            }
-          );
+            });
 
-          // INICIALIZAR TOOLTIPS DE BOOTSTRAP
           window.$('[data-bs-toggle="tooltip"]').tooltip();
         }
       }, 150);
-
       return () => {
         clearTimeout(timer);
         if (window.$) {
-          // LIMPIEZA DE TOOLTIPS AL DESMONTAR O RECARGAR
           window.$(".tooltip").remove();
-          if ($.fn.DataTable.isDataTable("#arqueos-table")) {
-            $("#arqueos-table").DataTable().destroy();
-          }
+          if (window.$.fn.DataTable.isDataTable("#arqueos-table"))
+            window.$("#arqueos-table").DataTable().destroy();
         }
       };
     }
   }, [loading, arqueos]);
 
   const handleExport = (type) => {
-    $("#arqueos-table").DataTable().button(`.buttons-${type}`).trigger();
+    window.$("#arqueos-table").DataTable().button(`.buttons-${type}`).trigger();
   };
 
   const formatMoney = (amount) =>
@@ -155,28 +159,33 @@ const ListadoArqueos = () => {
       currency: "ARS",
     }).format(amount || 0);
 
-  if (loading)
-    return (
-      <div className="p-4 text-center">
-        <h4>
-          <i className="fas fa-spinner fa-spin"></i> Cargando arqueos...
-        </h4>
-      </div>
-    );
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="content-header">
       <div className="container-fluid">
-        <h1>
-          <b>Listado de Arqueos</b>
-        </h1>
+        <div className="row mb-2">
+          <div className="col-sm-6">
+            <h1>
+              <b>Listado de Arqueos</b>
+            </h1>
+          </div>
+        </div>
         <hr />
         <br />
         <div className="card card-outline card-primary shadow-sm">
           <div className="card-header">
-            <h3 className="card-title">Arqueos registrados</h3>
+            <h3 className="card-title my-1">Arqueos registrados</h3>
             <div className="card-tools">
-              <button className="btn btn-secondary btn-sm mr-2">
+              <button
+                className="btn btn-secondary btn-sm mr-2"
+                onClick={() =>
+                  window.open(
+                    "http://localhost:3001/api/arqueos/reporte",
+                    "_blank"
+                  )
+                }
+              >
                 <i className="fa fa-file-pdf"></i> Reporte
               </button>
               {!arqueoAbierto && (
@@ -190,7 +199,6 @@ const ListadoArqueos = () => {
             </div>
           </div>
           <div className="card-body">
-            {/* Controles de tabla */}
             <div className="d-flex justify-content-between align-items-center mb-3">
               <div className="d-flex align-items-center">
                 <label className="mr-2 mb-0">Mostrar</label>
@@ -198,7 +206,8 @@ const ListadoArqueos = () => {
                   className="form-control form-control-sm mr-2"
                   style={{ width: "65px" }}
                   onChange={(e) =>
-                    $("#arqueos-table")
+                    window
+                      .$("#arqueos-table")
                       .DataTable()
                       .page.len(e.target.value)
                       .draw()
@@ -241,7 +250,11 @@ const ListadoArqueos = () => {
                 placeholder="Buscar..."
                 style={{ width: "200px" }}
                 onChange={(e) =>
-                  $("#arqueos-table").DataTable().search(e.target.value).draw()
+                  window
+                    .$("#arqueos-table")
+                    .DataTable()
+                    .search(e.target.value)
+                    .draw()
                 }
               />
             </div>
@@ -250,30 +263,31 @@ const ListadoArqueos = () => {
               id="arqueos-table"
               className="table table-striped table-bordered table-hover table-sm"
             >
-              <thead className="thead-dark">
-                <tr className="text-center">
-                  <th></th>
-                  <th>Nro.</th>
+              <thead className="thead-dark text-center">
+                <tr>
+                  <th style={{ width: "30px" }}></th>
+                  <th style={{ width: "50px" }}>Nro.</th>
                   <th>Fecha Apertura</th>
                   <th>Monto Inicial</th>
                   <th>Fecha Cierre</th>
                   <th>Monto Final</th>
                   <th>Efectivo</th>
                   <th>Tarjetas</th>
-                  <th>Mercado Pago</th>
+                  <th>M. Pago</th>
                   <th>Descripción</th>
                   <th>Movimientos</th>
                   <th>Usuario</th>
-                  <th>Acciones</th>
+                  <th style={{ width: "180px" }}>Acciones</th>
                 </tr>
               </thead>
-              <tbody style={{ verticalAlign: "middle" }}>
+              <tbody>
                 {arqueos.map((arq, index) => {
                   const m_ini = parseFloat(arq.monto_inicial || 0);
                   const ing = parseFloat(arq.total_ingresos || 0);
                   const egr = parseFloat(arq.total_egresos || 0);
                   const m_fin = parseFloat(arq.monto_final || 0);
                   const teorico = m_ini + ing - egr;
+                  const isClosed = !!arq.fecha_cierre;
 
                   return (
                     <tr key={arq.id} data-index={index}>
@@ -291,10 +305,10 @@ const ListadoArqueos = () => {
                       </td>
                       <td className="text-right">{formatMoney(m_ini)}</td>
                       <td className="text-center">
-                        {arq.fecha_cierre ? format24h(arq.fecha_cierre) : ""}
+                        {isClosed ? format24h(arq.fecha_cierre) : "–"}
                       </td>
                       <td className="text-right">
-                        {arq.fecha_cierre ? formatMoney(m_fin) : ""}
+                        {isClosed ? formatMoney(m_fin) : "–"}
                       </td>
                       <td className="text-right">
                         {formatMoney(arq.ventas_efectivo)}
@@ -306,7 +320,7 @@ const ListadoArqueos = () => {
                         {formatMoney(arq.ventas_mercadopago)}
                       </td>
                       <td>{arq.descripcion}</td>
-                      <td style={{ minWidth: "220px" }}>
+                      <td style={{ minWidth: "200px" }}>
                         <div
                           className="row text-center m-0"
                           style={{ fontSize: "0.72rem" }}
@@ -324,9 +338,7 @@ const ListadoArqueos = () => {
                           <div className="col-4 p-0 text-warning">
                             <b>Dif.</b>
                             <br />
-                            {formatMoney(
-                              arq.fecha_cierre ? teorico - m_fin : teorico
-                            )}
+                            {formatMoney(isClosed ? teorico - m_fin : teorico)}
                           </div>
                         </div>
                       </td>
@@ -334,7 +346,7 @@ const ListadoArqueos = () => {
                         {arq.usuario_nombre || "Admin"}
                       </td>
                       <td className="text-center">
-                        <div className="btn-group" role="group">
+                        <div className="btn-group">
                           <button
                             className="btn btn-info btn-sm"
                             data-bs-toggle="tooltip"
@@ -345,27 +357,30 @@ const ListadoArqueos = () => {
                           >
                             <i className="fas fa-eye"></i>
                           </button>
+
+                          {/* BOTONES CON LÓGICA DE DESHABILITADO */}
                           <button
                             className={`btn btn-success btn-sm ${
-                              arq.fecha_cierre ? "disabled" : ""
+                              isClosed ? "disabled" : ""
                             }`}
                             data-bs-toggle="tooltip"
                             title="Editar Arqueo"
                             onClick={() =>
-                              !arq.fecha_cierre &&
+                              !isClosed &&
                               navegarSinTooltips(`/arqueos/editar/${arq.id}`)
                             }
                           >
-                            <i className="fas fa-pencil"></i>
+                            <i className="fas fa-pencil-alt"></i>
                           </button>
+
                           <button
                             className={`btn btn-warning btn-sm ${
-                              arq.fecha_cierre ? "disabled" : ""
+                              isClosed ? "disabled" : ""
                             }`}
                             data-bs-toggle="tooltip"
                             title="Registrar Movimiento"
                             onClick={() =>
-                              !arq.fecha_cierre &&
+                              !isClosed &&
                               navegarSinTooltips(
                                 `/arqueos/movimiento/${arq.id}`
                               )
@@ -373,27 +388,25 @@ const ListadoArqueos = () => {
                           >
                             <i className="fas fa-cash-register"></i>
                           </button>
+
                           <button
                             className={`btn btn-secondary btn-sm ${
-                              arq.fecha_cierre ? "disabled" : ""
+                              isClosed ? "disabled" : ""
                             }`}
                             data-bs-toggle="tooltip"
                             title="Cerrar Arqueo"
                             onClick={() =>
-                              !arq.fecha_cierre &&
+                              !isClosed &&
                               navegarSinTooltips(`/arqueos/cierre/${arq.id}`)
                             }
                           >
                             <i className="fas fa-lock"></i>
                           </button>
+
                           <button
                             className="btn btn-danger btn-sm"
                             data-bs-toggle="tooltip"
                             title="Eliminar Arqueo"
-                            onClick={() => {
-                              if (window.$) window.$(".tooltip").remove();
-                              // Aquí iría tu función handleEliminar(arq.id)
-                            }}
                           >
                             <i className="fas fa-trash"></i>
                           </button>

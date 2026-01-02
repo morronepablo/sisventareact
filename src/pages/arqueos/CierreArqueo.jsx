@@ -4,29 +4,16 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import Swal from "sweetalert2";
+import { useNotifications } from "../../context/NotificationContext";
 
 const CierreArqueo = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { refreshAll } = useNotifications();
   const [loading, setLoading] = useState(true);
   const [arqueoInfo, setArqueoInfo] = useState(null);
 
-  // Función para obtener la fecha local actual en formato YYYY-MM-DDTHH:mm
-  const getLocalNow = () => {
-    const now = new Date();
-    const offset = now.getTimezoneOffset() * 60000;
-    return new Date(now.getTime() - offset).toISOString().slice(0, 16);
-  };
-
-  // Función para convertir cualquier fecha de la DB a local para el input
-  const formatToLocalDatetime = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    const offset = date.getTimezoneOffset() * 60000;
-    return new Date(date.getTime() - offset).toISOString().slice(0, 16);
-  };
-
-  // Estados para el conteo de dinero
+  // Estados para el conteo de dinero (Billetes)
   const [bills, setBills] = useState({
     b20000: 0,
     b10000: 0,
@@ -40,6 +27,8 @@ const CierreArqueo = () => {
     b10: 0,
     b5: 0,
   });
+
+  // Estados para monedas
   const [coins, setCoins] = useState({
     c2: 0,
     c1: 0,
@@ -47,17 +36,42 @@ const CierreArqueo = () => {
     c025: 0,
   });
 
+  // Otros medios de pago
   const [cards, setCards] = useState(0);
   const [mp, setMp] = useState(0);
+  const [transfer, setTransfer] = useState(0); // Agregado: Transferencia
 
-  // CORRECCIÓN: Inicializamos con la hora local de Buenos Aires
+  // Funciones de fecha
+  const getLocalNow = () => {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    return new Date(now.getTime() - offset).toISOString().slice(0, 16);
+  };
+
+  const formatToLocalDatetime = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    const offset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+  };
+
   const [fechaCierre, setFechaCierre] = useState(getLocalNow());
 
   useEffect(() => {
     const fetchInfo = async () => {
       try {
         const response = await api.get(`/arqueos/${id}`);
-        setArqueoInfo(response.data.arqueo);
+        const data = response.data;
+        setArqueoInfo(data.arqueo);
+
+        // Auto-completar con lo que el sistema tiene registrado
+        if (data.totales_sistema) {
+          setCards(parseFloat(data.totales_sistema.total_tarjeta_sistema) || 0);
+          setMp(parseFloat(data.totales_sistema.total_mp_sistema) || 0);
+          setTransfer(
+            parseFloat(data.totales_sistema.total_transf_sistema) || 0
+          );
+        }
         setLoading(false);
       } catch (error) {
         navigate("/arqueos/listado");
@@ -66,7 +80,7 @@ const CierreArqueo = () => {
     fetchInfo();
   }, [id, navigate]);
 
-  // Cálculos automáticos
+  // Cálculos automáticos del contador físico
   const totalCash =
     bills.b20000 * 20000 +
     bills.b10000 * 10000 +
@@ -84,7 +98,11 @@ const CierreArqueo = () => {
     coins.c050 * 0.5 +
     coins.c025 * 0.25;
 
-  const totalFinal = totalCash + parseFloat(cards || 0) + parseFloat(mp || 0);
+  const totalFinal =
+    totalCash +
+    parseFloat(cards || 0) +
+    parseFloat(mp || 0) +
+    parseFloat(transfer || 0);
 
   const formatMoney = (val) =>
     new Intl.NumberFormat("es-AR", {
@@ -101,7 +119,12 @@ const CierreArqueo = () => {
         ventas_efectivo: totalCash,
         ventas_tarjeta: cards,
         ventas_mercadopago: mp,
+        ventas_transferencia: transfer,
       });
+
+      if (refreshAll) refreshAll();
+      window.dispatchEvent(new Event("forceRefreshNotifications"));
+
       Swal.fire({
         icon: "success",
         title: "¡Éxito!",
@@ -127,6 +150,7 @@ const CierreArqueo = () => {
         <br />
 
         <div className="row">
+          {/* COLUMNA IZQUIERDA: DATOS DE CIERRE (Restaurada como la Imagen 1) */}
           <div className="col-md-4">
             <div className="card card-outline card-primary shadow">
               <div className="card-header">
@@ -136,7 +160,6 @@ const CierreArqueo = () => {
                 <form onSubmit={handleSubmit}>
                   <div className="form-group">
                     <label>Fecha Apertura</label>
-                    {/* CORRECCIÓN: Mostramos la apertura también en hora local */}
                     <input
                       type="datetime-local"
                       className="form-control bg-light"
@@ -193,6 +216,7 @@ const CierreArqueo = () => {
             </div>
           </div>
 
+          {/* COLUMNA DERECHA: CONTADOR DE DINERO (Imagen 1) */}
           <div className="col-md-8">
             <div className="card card-outline card-primary shadow">
               <div className="card-header">
@@ -240,6 +264,7 @@ const CierreArqueo = () => {
                       </tbody>
                     </table>
                   </div>
+
                   <div className="col-md-6">
                     <h5 className="text-success border-bottom pb-2">
                       Monedas y Otros
@@ -310,26 +335,47 @@ const CierreArqueo = () => {
                             />
                           </td>
                         </tr>
+                        <tr className="bg-light">
+                          <td colSpan="2" className="align-middle">
+                            <b>Total Transferencia</b>
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              step="0.01"
+                              className="form-control form-control-sm text-right"
+                              value={transfer}
+                              onChange={(e) => setTransfer(e.target.value)}
+                            />
+                          </td>
+                        </tr>
                       </tbody>
                     </table>
+
+                    {/* RESUMEN DE CONTADO (Corregido con las 4 columnas) */}
                     <div className="row mt-4 border rounded p-2 bg-light shadow-sm">
                       <div className="col-12">
                         <label className="small">Resumen de Contado:</label>
                       </div>
-                      <div className="col-4 text-center small">
+                      <div className="col-3 text-center small">
                         Efectivo
                         <br />
                         <b>{formatMoney(totalCash)}</b>
                       </div>
-                      <div className="col-4 text-center small">
+                      <div className="col-3 text-center small">
                         Tarjetas
                         <br />
                         <b>{formatMoney(parseFloat(cards || 0))}</b>
                       </div>
-                      <div className="col-4 text-center small">
+                      <div className="col-3 text-center small">
                         M. Pago
                         <br />
                         <b>{formatMoney(parseFloat(mp || 0))}</b>
+                      </div>
+                      <div className="col-3 text-center small">
+                        Transf.
+                        <br />
+                        <b>{formatMoney(parseFloat(transfer || 0))}</b>
                       </div>
                     </div>
                   </div>
