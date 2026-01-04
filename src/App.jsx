@@ -69,6 +69,7 @@ import DetalleInformeNoPagadas from "./pages/compras/informes/DetalleInformeNoPa
 
 // Clientes
 import ListadoClientes from "./pages/clientes/ListadoClientes";
+import CrearCliente from "./pages/clientes/CrearCliente";
 import VerCliente from "./pages/clientes/VerCliente";
 import GestionarPagosClientes from "./pages/clientes/GestionPagosClientes";
 import VerComprasCliente from "./pages/clientes/VerComprasCliente";
@@ -95,6 +96,17 @@ import VerArqueo from "./pages/arqueos/VerArqueo";
 import EditarArqueo from "./pages/arqueos/EditarArqueo";
 import MovimientoArqueo from "./pages/arqueos/MovimientoArqueo";
 import CierreArqueo from "./pages/arqueos/CierreArqueo";
+
+// Combos
+import ListadoCombos from "./pages/combos/ListadoCombos";
+import CrearCombo from "./pages/combos/CrearCombo";
+import VerCombo from "./pages/combos/VerCombo";
+import EditarCombo from "./pages/combos/EditarCombo";
+
+// Devoluciones
+import ListadoDevoluciones from "./pages/devoluciones/ListadoDevoluciones";
+import CrearDevolucion from "./pages/devoluciones/CrearDevolucion";
+import VerDevolucion from "./pages/devoluciones/VerDevolucion";
 
 // 👇 IMPORTACIÓN DE COMPONENTES DE RUTA
 import ProtectedRoute from "./utils/ProtectedRoute";
@@ -214,6 +226,7 @@ const App = () => {
 
         {/* Clientes */}
         <Route path="/clientes/listado" element={<ListadoClientes />} />
+        <Route path="/clientes/crear" element={<CrearCliente />} />
         <Route path="/clientes/ver/:id" element={<VerCliente />} />
         <Route
           path="/clientes/pagos/:id"
@@ -267,6 +280,17 @@ const App = () => {
         <Route path="/arqueos/editar/:id" element={<EditarArqueo />} />
         <Route path="/arqueos/movimiento/:id" element={<MovimientoArqueo />} />
         <Route path="/arqueos/cierre/:id" element={<CierreArqueo />} />
+
+        {/* Combos */}
+        <Route path="/combos/listado" element={<ListadoCombos />} />
+        <Route path="/combos/crear" element={<CrearCombo />} />
+        <Route path="/combos/ver/:id" element={<VerCombo />} />
+        <Route path="/combos/editar/:id" element={<EditarCombo />} />
+
+        {/* Devoluciones */}
+        <Route path="/devoluciones/listado" element={<ListadoDevoluciones />} />
+        <Route path="/devoluciones/crear" element={<CrearDevolucion />} />
+        <Route path="/devoluciones/ver/:id" element={<VerDevolucion />} />
 
         {/* 404 dentro del layout si la ruta no existe */}
         <Route path="*" element={<NotFound />} />

@@ -95,11 +95,17 @@ const CrearProducto = () => {
         },
       });
 
-      Swal.fire("Éxito", "Producto creado correctamente", "success").then(
-        () => {
-          window.location.href = "/productos/listado";
-        }
-      );
+      Swal.fire({
+        position: "center",
+        icon: "success",
+        title: "¡Éxito!",
+        text: "Producto creado correctamente",
+        showConfirmButton: false,
+        timer: 1500,
+        timerProgressBar: true,
+      }).then(() => {
+        window.location.href = "/productos/listado";
+      });
     } catch (error) {
       Swal.fire(
         "Error",

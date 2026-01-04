@@ -13,6 +13,13 @@ const DetalleInformeProductosVentas = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // --- FUNCIÓN PARA CAMBIAR FORMATO DE FECHA (YYYY-MM-DD a DD/MM/YYYY) ---
+  const formatFecha = (fecha) => {
+    if (!fecha) return "";
+    const [year, month, day] = fecha.split("-");
+    return `${day}/${month}/${year}`;
+  };
+
   useEffect(() => {
     api
       .get(
@@ -24,9 +31,12 @@ const DetalleInformeProductosVentas = () => {
       });
   }, [desde, hasta]);
 
-  const totalGral = data.reduce((acc, curr) => acc + parseFloat(curr.total), 0);
   const totalGanancia = data.reduce(
-    (acc, curr) => acc + parseFloat(curr.ganancia) * parseFloat(curr.cantidad),
+    (acc, curr) => acc + parseFloat(curr.ganancia || 0),
+    0
+  );
+  const totalGral = data.reduce(
+    (acc, curr) => acc + parseFloat(curr.total || 0),
     0
   );
 
@@ -36,8 +46,9 @@ const DetalleInformeProductosVentas = () => {
     <div className="container-fluid bg-white p-4 mt-4 shadow rounded">
       <div className="text-center mb-4">
         <h1 className="text-success">Informe de Ventas por Productos</h1>
-        <p className="text-muted">
-          Período: {desde} - {hasta}
+        {/* USAMOS LA FUNCIÓN DE FORMATEO AQUÍ */}
+        <p className="text-muted" style={{ fontSize: "1rem" }}>
+          Período: {formatFecha(desde)} - {formatFecha(hasta)}
         </p>
       </div>
 

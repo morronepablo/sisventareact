@@ -1,4 +1,5 @@
 // src/pages/roles/ListadoRoles.jsx
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +12,6 @@ const ListadoRoles = () => {
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // OBJETO DE IDIOMA LOCAL
   const spanishLanguage = {
     sProcessing: "Procesando...",
     sLengthMenu: "Mostrar _MENU_ registros",
@@ -29,7 +29,10 @@ const ListadoRoles = () => {
   };
 
   const navegarSinTooltips = (url) => {
-    if (window.$) window.$(".tooltip").remove();
+    if (window.$) {
+      window.$(".tooltip").remove();
+      window.$('[data-toggle="tooltip"]').tooltip("hide");
+    }
     navigate(url);
   };
 
@@ -49,41 +52,65 @@ const ListadoRoles = () => {
   }, []);
 
   useEffect(() => {
-    if (!loading) {
-      const timer = setTimeout(() => {
-        const tableId = "#roles-table";
-        if (window.$.fn.DataTable.isDataTable(tableId)) {
-          window.$(tableId).DataTable().destroy();
-        }
+    let tableInstance = null;
 
-        window.$(tableId).DataTable({
-          paging: true,
-          ordering: true,
-          info: true,
-          autoWidth: false,
-          responsive: true,
-          pageLength: 10,
-          language: spanishLanguage,
-          lengthChange: false, // Desactivar original
-          searching: false, // Desactivar original
-          dom: "rtip", // Ocultar controles duplicados
-          columnDefs: [{ targets: -1, orderable: false }],
-        });
+    const inicializarTabla = () => {
+      const tableId = "#roles-table";
+      const $ = window.$;
 
-        // Inicializar tooltips
-        if (window.$) window.$('[data-bs-toggle="tooltip"]').tooltip();
-      }, 150);
+      // VALIDACIÓN CRÍTICA: Si jQuery o DataTable no están cargados, re-intentar en 100ms
+      if (!$ || !$.fn || !$.fn.DataTable) {
+        setTimeout(inicializarTabla, 100);
+        return;
+      }
 
-      return () => {
-        clearTimeout(timer);
-        if (window.$) {
-          window.$(".tooltip").remove();
-          if (window.$.fn.DataTable.isDataTable("#roles-table")) {
-            window.$("#roles-table").DataTable().destroy();
+      if ($.fn.DataTable.isDataTable(tableId)) {
+        $(tableId).DataTable().destroy();
+      }
+
+      tableInstance = $(tableId).DataTable({
+        paging: true,
+        ordering: true,
+        info: true,
+        autoWidth: false,
+        responsive: true,
+        pageLength: 10,
+        language: spanishLanguage,
+        lengthChange: false,
+        searching: false,
+        dom: "rtip",
+        columnDefs: [{ targets: -1, orderable: false }],
+        drawCallback: function () {
+          // FORZAR TOOLTIPS NEGROS DE ADMINLTE
+          if ($ && $.fn.tooltip) {
+            $('[data-toggle="tooltip"]').tooltip("dispose");
+            $('[data-toggle="tooltip"]').tooltip({
+              trigger: "hover",
+              boundary: "window",
+              // Esto asegura que use el estilo de Bootstrap y no el del navegador
+              template:
+                '<div class="tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner bg-dark text-white shadow-sm"></div></div>',
+            });
           }
-        }
-      };
+        },
+      });
+    };
+
+    if (!loading && roles.length > 0) {
+      inicializarTabla();
     }
+
+    return () => {
+      if (
+        window.$ &&
+        window.$.fn &&
+        window.$.fn.DataTable &&
+        window.$.fn.DataTable.isDataTable("#roles-table")
+      ) {
+        window.$("#roles-table").DataTable().destroy();
+      }
+      if (window.$) window.$(".tooltip").remove();
+    };
   }, [loading, roles]);
 
   const handleEliminar = async (id, roleName) => {
@@ -95,7 +122,6 @@ const ListadoRoles = () => {
       );
       return;
     }
-
     const result = await Swal.fire({
       title: "¿Estás seguro?",
       text: "¡No podrás revertir esto!",
@@ -106,25 +132,22 @@ const ListadoRoles = () => {
       confirmButtonText: "¡Sí, bórralo!",
       cancelButtonText: "Cancelar",
     });
-
     if (result.isConfirmed) {
       try {
         await api.delete(`/roles/${id}`);
         Swal.fire("¡Eliminado!", "El rol ha sido eliminado.", "success");
         fetchRoles();
       } catch (error) {
-        Swal.fire(
-          "Error",
-          error.response?.data?.message || "No se pudo eliminar el rol.",
-          "error"
-        );
+        Swal.fire("Error", "No se pudo eliminar el rol.", "error");
       }
     }
   };
 
   const handleExport = (type) => {
-    const table = window.$("#roles-table").DataTable();
-    table.button(`.buttons-${type}`).trigger();
+    if (window.$ && window.$.fn.DataTable.isDataTable("#roles-table")) {
+      const table = window.$("#roles-table").DataTable();
+      table.button(`.buttons-${type}`).trigger();
+    }
   };
 
   if (loading) return <LoadingSpinner />;
@@ -157,20 +180,21 @@ const ListadoRoles = () => {
           </div>
 
           <div className="card-body">
-            {/* Barra superior manual */}
             <div className="d-flex justify-content-between align-items-center mb-3">
               <div className="d-flex align-items-center">
                 <label className="mr-2 mb-0">Mostrar</label>
                 <select
                   className="form-control form-control-sm mr-2"
                   style={{ width: "65px" }}
-                  onChange={(e) =>
-                    window
-                      .$("#roles-table")
-                      .DataTable()
-                      .page.len(e.target.value)
-                      .draw()
-                  }
+                  onChange={(e) => {
+                    if (window.$.fn.DataTable.isDataTable("#roles-table")) {
+                      window
+                        .$("#roles-table")
+                        .DataTable()
+                        .page.len(e.target.value)
+                        .draw();
+                    }
+                  }}
                 >
                   <option value="10">10</option>
                   <option value="25">25</option>
@@ -219,18 +243,19 @@ const ListadoRoles = () => {
                   className="form-control form-control-sm"
                   placeholder="Buscar..."
                   style={{ width: "200px" }}
-                  onChange={(e) =>
-                    window
-                      .$("#roles-table")
-                      .DataTable()
-                      .search(e.target.value)
-                      .draw()
-                  }
+                  onChange={(e) => {
+                    if (window.$.fn.DataTable.isDataTable("#roles-table")) {
+                      window
+                        .$("#roles-table")
+                        .DataTable()
+                        .search(e.target.value)
+                        .draw();
+                    }
+                  }}
                 />
               </div>
             </div>
 
-            {/* Tabla */}
             <table
               id="roles-table"
               className="table table-striped table-bordered table-hover table-sm"
@@ -251,7 +276,7 @@ const ListadoRoles = () => {
                       <div className="btn-group">
                         <button
                           className="btn btn-info btn-sm"
-                          data-bs-toggle="tooltip"
+                          data-toggle="tooltip"
                           title="Ver Rol"
                           onClick={() =>
                             navegarSinTooltips(`/roles/ver/${rol.id}`)
@@ -261,7 +286,7 @@ const ListadoRoles = () => {
                         </button>
                         <button
                           className="btn btn-success btn-sm"
-                          data-bs-toggle="tooltip"
+                          data-toggle="tooltip"
                           title="Editar Rol"
                           onClick={() =>
                             navegarSinTooltips(`/roles/editar/${rol.id}`)
@@ -271,7 +296,7 @@ const ListadoRoles = () => {
                         </button>
                         <button
                           className="btn btn-warning btn-sm"
-                          data-bs-toggle="tooltip"
+                          data-toggle="tooltip"
                           title="Asignar Permisos"
                           onClick={() =>
                             navegarSinTooltips(`/roles/${rol.id}/permisos`)
@@ -283,7 +308,7 @@ const ListadoRoles = () => {
                           <button
                             type="button"
                             className="btn btn-danger btn-sm"
-                            data-bs-toggle="tooltip"
+                            data-toggle="tooltip"
                             title="Eliminar Rol"
                             onClick={() => handleEliminar(rol.id, rol.name)}
                           >

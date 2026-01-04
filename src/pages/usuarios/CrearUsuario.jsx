@@ -105,10 +105,13 @@ const CrearUsuario = () => {
       });
 
       Swal.fire({
+        position: "center",
+        icon: "success",
         title: "¡Éxito!",
         text: "Usuario creado exitosamente.",
-        icon: "success",
-        confirmButtonText: "Aceptar",
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
       }).then(() => {
         navigate("/usuarios/listado");
       });

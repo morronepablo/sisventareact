@@ -120,10 +120,13 @@ const EditarUsuario = () => {
       });
 
       Swal.fire({
+        position: "center",
+        icon: "success",
         title: "¡Éxito!",
         text: "Usuario actualizado exitosamente.",
-        icon: "success",
-        confirmButtonText: "Aceptar",
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
       }).then(() => {
         navigate("/usuarios/listado");
       });

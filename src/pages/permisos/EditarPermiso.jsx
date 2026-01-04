@@ -79,10 +79,13 @@ const EditarPermiso = () => {
       });
 
       Swal.fire({
+        position: "center",
+        icon: "success",
         title: "¡Éxito!",
         text: "Permiso actualizado exitosamente.",
-        icon: "success",
-        confirmButtonText: "Aceptar",
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
       }).then(() => {
         window.location.href = "/permisos/listado";
       });

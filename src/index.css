@@ -643,3 +643,79 @@ a:hover {
   font-weight: 700 !important;
   color: #000 !important;
 }
+
+/* Colores AdminLTE que faltan en Bootstrap estándar */
+.bg-purple {
+  background-color: #605ca8 !important;
+}
+.bg-navy {
+  background-color: #001f3f !important;
+}
+
+/* Estilo para el scroll del top productos */
+.productos-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.productos-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+.productos-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+/* Efecto Zoom para los boxes */
+.zoomP {
+  transition: transform 0.2s;
+}
+.zoomP:hover {
+  transform: scale(1.02);
+}
+
+/* Scroll elegante para el Dashboard */
+.productos-scroll {
+  max-height: 105px; /* Ajuste para que entren 3 o 4 items */
+  overflow-y: auto;
+  padding-right: 5px;
+  margin-bottom: 10px;
+}
+
+/* Ocultar scrollbar en Chrome/Safari/Edge pero permitir scroll */
+.productos-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.productos-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+.productos-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+/* Para Firefox */
+.productos-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+/* Estilo de los nombres de productos en el Top */
+.product-name {
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80%;
+}
+
+/* Badges circulares pequeños */
+.badge-circle {
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+}

@@ -16,7 +16,15 @@ const CrearUnidad = () => {
     setLoading(true);
     try {
       await api.post("/unidades", { nombre, descripcion });
-      Swal.fire("Éxito", "Unidad creada correctamente", "success").then(() => {
+      Swal.fire({
+        position: "center",
+        icon: "success",
+        title: "¡Éxito!",
+        text: "Unidad creada exitosamente.",
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
+      }).then(() => {
         window.location.href = "/unidades/listado";
       });
     } catch (error) {

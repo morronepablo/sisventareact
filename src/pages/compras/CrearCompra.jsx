@@ -7,13 +7,13 @@ import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../../context/NotificationContext";
 import { useAuth } from "../../context/AuthContext";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 const CrearCompra = () => {
   const navigate = useNavigate();
-  const { user } = useAuth(); // Contexto de autenticación real
-  const { refreshAll, arqueoAbierto } = useNotifications(); // Contexto de notificaciones y arqueo
+  const { user } = useAuth();
+  const { refreshAll, arqueoAbierto } = useNotifications();
 
-  // --- 1. CONFIGURACIÓN DE LENGUAJE LOCAL (Elimina errores de CORS) ---
   const spanishLanguage = {
     sProcessing: "Procesando...",
     sLengthMenu: "Mostrar _MENU_ registros",
@@ -21,10 +21,7 @@ const CrearCompra = () => {
     sEmptyTable: "Ningún dato disponible en esta tabla",
     sInfo:
       "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-    sInfoEmpty: "Mostrando registros del 0 al 0 de un total de 0 registros",
-    sInfoFiltered: "(filtrado de un total de _MAX_ registros)",
     sSearch: "Buscar:",
-    sLoadingRecords: "Cargando...",
     oPaginate: {
       sFirst: "Primero",
       sLast: "Último",
@@ -43,8 +40,13 @@ const CrearCompra = () => {
   const [codigo, setCodigo] = useState("");
   const [proveedorSeleccionado, setProveedorSeleccionado] = useState(null);
 
+  // Fecha ajustada para Buenos Aires, Argentina
   const [formData, setFormData] = useState({
-    fecha: new Date().toISOString().split("T")[0],
+    fecha: (() => {
+      const hoy = new Date();
+      const offset = hoy.getTimezoneOffset() * 60000;
+      return new Date(hoy - offset).toISOString().split("T")[0];
+    })(),
     comprobante: "",
     numero: "",
     precio_total: 0,
@@ -77,10 +79,8 @@ const CrearCompra = () => {
 
   useEffect(() => {
     const inicializar = async () => {
-      // Si el arqueo es null, el contexto aún está cargando datos del servidor
       if (arqueoAbierto === null || !user) return;
 
-      // Si el arqueo es false (confirmado cerrado), redirigimos al listado
       if (arqueoAbierto === false) {
         await Swal.fire({
           icon: "error",
@@ -93,7 +93,6 @@ const CrearCompra = () => {
         return;
       }
 
-      // Si la caja está abierta, cargamos los catálogos
       try {
         const [resP, resProv] = await Promise.all([
           api.get("/productos"),
@@ -105,30 +104,36 @@ const CrearCompra = () => {
         setLoadingData(false);
       } catch (error) {
         console.error("Error al cargar datos:", error);
-        navigate("/compras/listado");
       }
     };
-
     inicializar();
-  }, [arqueoAbierto, user, navigate]);
+  }, [arqueoAbierto, user]);
 
-  // --- 4. ACCIONES ---
+  // --- 4. ACCIONES (CORREGIDAS) ---
 
-  const handleAddProduct = async (e) => {
-    if (e.key === "Enter" && codigo) {
-      const p = productos.find((x) => x.codigo === codigo);
+  const addItem = async (codigoItem) => {
+    try {
+      const p = productos.find((x) => x.codigo === codigoItem);
       if (p) {
-        await api.post("/compras/tmp", {
+        const res = await api.post("/compras/tmp", {
           producto_id: p.id,
-          cantidad,
+          cantidad: parseFloat(cantidad), // Usa la cantidad del input
           usuario_id: user.id,
         });
-        setCodigo("");
-        fetchTmp();
+        if (res.data.success) {
+          setCodigo("");
+          fetchTmp();
+        }
       } else {
         Swal.fire("Error", "Producto no encontrado", "error");
       }
+    } catch (e) {
+      console.error(e);
     }
+  };
+
+  const handleAddProduct = async (e) => {
+    if (e.key === "Enter" && codigo) addItem(codigo);
   };
 
   const handleConfirmarCompra = async () => {
@@ -150,11 +155,14 @@ const CrearCompra = () => {
         refreshAll();
         window.dispatchEvent(new Event("forceRefreshNotifications"));
         window.$("#modal-pagos").modal("hide");
-        await Swal.fire(
-          "Éxito",
-          "Compra registrada satisfactoriamente",
-          "success"
-        );
+        await Swal.fire({
+          position: "center",
+          icon: "success",
+          title: "¡Éxito!",
+          text: "Compra registrada correctamente",
+          showConfirmButton: false,
+          timer: 1500,
+        });
         navigate("/compras/listado");
       }
     } catch (e) {
@@ -178,7 +186,7 @@ const CrearCompra = () => {
           window.$(id).DataTable({
             paging: true,
             pageLength: 5,
-            language: spanishLanguage, // 👈 Fix CORS
+            language: spanishLanguage,
           });
         });
       }, 400);
@@ -186,14 +194,8 @@ const CrearCompra = () => {
     }
   }, [loadingData, productos]);
 
-  // Pantalla de espera para evitar el salto al Dashboard
   if (arqueoAbierto === null || loadingData) {
-    return (
-      <div className="p-5 text-center">
-        <div className="spinner-border text-primary" role="status"></div>
-        <h4 className="mt-3">Sincronizando sesión y estado de caja...</h4>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
@@ -224,7 +226,7 @@ const CrearCompra = () => {
                           onChange={(e) => setCantidad(e.target.value)}
                         />
                       </div>
-                      <div className="col-md-6">
+                      <div className="col-md-7">
                         <label>Código</label>
                         <div className="input-group">
                           <div className="input-group-prepend">
@@ -239,18 +241,26 @@ const CrearCompra = () => {
                             onChange={(e) => setCodigo(e.target.value)}
                             onKeyDown={handleAddProduct}
                             autoFocus
+                            placeholder="Escanee o escriba código..."
                           />
+                          <div className="input-group-append">
+                            {/* BOTÓN BUSCAR (AZUL) */}
+                            <button
+                              className="btn btn-primary"
+                              data-toggle="modal"
+                              data-target="#modal-productos"
+                            >
+                              <i className="fa fa-search"></i>
+                            </button>
+                            {/* BOTÓN NUEVO (VERDE) */}
+                            <button
+                              className="btn btn-success"
+                              onClick={() => navigate("/productos/crear")}
+                            >
+                              <i className="fa fa-plus"></i>
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div style={{ height: "32px" }}></div>
-                        <button
-                          className="btn btn-primary"
-                          data-toggle="modal"
-                          data-target="#modal-productos"
-                        >
-                          <i className="fa fa-search"></i> Buscar
-                        </button>
                       </div>
                     </div>
                     <table className="table table-striped table-bordered table-sm mt-3">
@@ -317,6 +327,12 @@ const CrearCompra = () => {
                         </tr>
                       </tfoot>
                     </table>
+                    <button
+                      className="btn btn-secondary btn-sm mt-2"
+                      onClick={() => navigate("/compras/listado")}
+                    >
+                      <i className="fas fa-reply"></i> Volver
+                    </button>
                   </div>
 
                   {/* SECCIÓN DERECHA: PROVEEDOR Y TOTALES */}
@@ -391,7 +407,7 @@ const CrearCompra = () => {
                       </h3>
                     </div>
                     <button
-                      className="btn btn-primary btn-lg btn-block mt-3"
+                      className="btn btn-primary btn-block mt-3"
                       data-toggle="modal"
                       data-target="#modal-pagos"
                     >
@@ -408,12 +424,11 @@ const CrearCompra = () => {
 
       {/* --- MODALES --- */}
 
-      {/* MODAL PAGOS */}
       <div className="modal fade" id="modal-pagos" tabIndex="-1">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header bg-primary text-white">
-              <h5 className="modal-title">Registrar Pago Inicial</h5>
+              <h5>Registrar Pago Inicial</h5>
               <button className="close" data-dismiss="modal">
                 ×
               </button>
@@ -426,15 +441,6 @@ const CrearCompra = () => {
                     <input
                       type="number"
                       className="form-control text-right"
-                      style={{
-                        fontSize: "1.2rem",
-                        backgroundColor:
-                          m === "efectivo"
-                            ? "#d4edda"
-                            : m === "tarjeta"
-                            ? "#d1ecf1"
-                            : "#fff3cd",
-                      }}
                       value={pagos[m]}
                       onChange={(e) =>
                         setPagos({ ...pagos, [m]: e.target.value })
@@ -465,7 +471,6 @@ const CrearCompra = () => {
                   <input
                     type="text"
                     className="form-control text-right font-weight-bold bg-light"
-                    style={{ fontSize: "1.2rem" }}
                     value={`$ ${importeAbonar.toLocaleString("es-AR", {
                       minimumFractionDigits: 2,
                     })}`}
@@ -489,7 +494,6 @@ const CrearCompra = () => {
         </div>
       </div>
 
-      {/* MODAL LISTADO PRODUCTOS */}
       <div className="modal fade" id="modal-productos" tabIndex="-1">
         <div className="modal-dialog modal-xl modal-dialog-centered">
           <div className="modal-content">
@@ -523,7 +527,7 @@ const CrearCompra = () => {
                         <button
                           className="btn btn-secondary btn-sm"
                           onClick={() => {
-                            setCodigo(p.codigo);
+                            addItem(p.codigo); // <--- INSERCIÓN AUTOMÁTICA
                             window.$("#modal-productos").modal("hide");
                           }}
                         >
@@ -545,7 +549,6 @@ const CrearCompra = () => {
         </div>
       </div>
 
-      {/* MODAL LISTADO PROVEEDORES */}
       <div className="modal fade" id="modal-proveedores" tabIndex="-1">
         <div className="modal-dialog modal-xl modal-dialog-centered">
           <div className="modal-content">

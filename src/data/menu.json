@@ -1,5 +1,9 @@
 [
     {
+        "type": "header",
+        "text": "ADMINISTRAR SISTEMA"
+    },
+    {
         "id": "configuracion",
         "text": "Configuración",
         "icon": "fas fa-cogs",
@@ -60,6 +64,10 @@
                 "permiso": "ver_permisos"
             }
         ]
+    },
+    {
+        "type": "header",
+        "text": "DATOS DEL SISTEMA"
     },
     {
         "id": "categorias",
@@ -245,6 +253,36 @@
                 "icon": "fas fa-fw fa-list",
                 "path": "/arqueos/listado",
                 "permiso": "ver_arqueos"
+            }
+        ]
+    },
+    {
+        "id": "combos",
+        "text": "Combos",
+        "icon": "fas fa-fw fa-volleyball-ball",
+        "permiso": "ver_combos",
+        "children": [
+            {
+                "id": "listado",
+                "text": "Listado de Combos",
+                "icon": "fas fa-fw fa-list",
+                "path": "/combos/listado",
+                "permiso": "ver_combos"
+            }
+        ]
+    },
+    {
+        "id": "devoluciones",
+        "text": "Devoluciones",
+        "icon": "fas fa-fw fa-rotate-left",
+        "permiso": "ver_devoluciones",
+        "children": [
+            {
+                "id": "listado",
+                "text": "Listado Devoluciones",
+                "icon": "fas fa-fw fa-list",
+                "path": "/devoluciones/listado",
+                "permiso": "ver_devoluciones"
             }
         ]
     }

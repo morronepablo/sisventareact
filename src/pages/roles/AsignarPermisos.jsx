@@ -1,10 +1,12 @@
 // src/pages/roles/AsignarPermisos.jsx
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+
 import api from "../../services/api";
 import Swal from "sweetalert2";
 
 const AsignarPermisos = () => {
+  const navigate = useNavigate();
   const { id: roleId } = useParams(); // ← Usa useParams para obtener el id
   const [rolName, setRolName] = useState("");
   const [permissions, setPermissions] = useState([]);
@@ -58,15 +60,15 @@ const AsignarPermisos = () => {
       await api.post(`/roles/${roleId}/permisos`, {
         permissionIds: selectedPermissions,
       });
-
       Swal.fire({
+        icon: "success",
         title: "¡Éxito!",
         text: "Permisos asignados exitosamente.",
-        icon: "success",
-        confirmButtonText: "Aceptar",
-      }).then(() => {
-        window.location.href = "/roles/listado";
+        timer: 2000,
+        showConfirmButton: false,
       });
+      // window.location.href = "/roles/listado";
+      navigate("/roles/listado");
     } catch (error) {
       console.error("Error al asignar permisos:", error);
       Swal.fire("Error", "No se pudieron asignar los permisos.", "error");

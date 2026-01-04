@@ -12,6 +12,13 @@ const DetalleInformeMovimientoStock = () => {
   const [data, setData] = useState({ conMovimiento: [], sinMovimiento: [] });
   const [loading, setLoading] = useState(true);
 
+  // --- FUNCIÓN PARA CAMBIAR FORMATO DE FECHA (YYYY-MM-DD a DD/MM/YYYY) ---
+  const formatFecha = (fecha) => {
+    if (!fecha) return "";
+    const [year, month, day] = fecha.split("-");
+    return `${day}/${month}/${year}`;
+  };
+
   useEffect(() => {
     api
       .get(
@@ -30,8 +37,9 @@ const DetalleInformeMovimientoStock = () => {
     <div className="container bg-white p-4 mt-4 shadow rounded">
       <div className="text-center mb-4">
         <h1 className="text-primary">Informe de Movimiento de Stock</h1>
-        <p className="text-muted">
-          Período: {desde} - {hasta}
+        {/* USAMOS LA FUNCIÓN DE FORMATEO AQUÍ */}
+        <p className="text-muted" style={{ fontSize: "1rem" }}>
+          Período: {formatFecha(desde)} - {formatFecha(hasta)}
         </p>
       </div>
 

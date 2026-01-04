@@ -4,11 +4,20 @@ import { useNavigate } from "react-router-dom";
 
 const InformeMetodosPagoVentas = () => {
   const navigate = useNavigate();
-  const [fechas, setFechas] = useState({
-    inicio: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-      .toISOString()
-      .split("T")[0],
-    fin: new Date().toISOString().split("T")[0],
+  // --- LÓGICA PARA OBTENER FECHA LOCAL DE ARGENTINA ---
+  const [fechas, setFechas] = useState(() => {
+    const hoy = new Date();
+    // Ajuste de milisegundos para Argentina (GMT-3)
+    const offset = hoy.getTimezoneOffset() * 60000;
+    const hoyLocal = new Date(hoy - offset).toISOString().split("T")[0];
+
+    // El primer día del mes también basado en la fecha local
+    const inicioMes = hoyLocal.substring(0, 8) + "01";
+
+    return {
+      inicio: inicioMes,
+      fin: hoyLocal,
+    };
   });
 
   const handleGenerar = () => {

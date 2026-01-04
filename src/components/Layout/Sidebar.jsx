@@ -4,12 +4,12 @@ import React, { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useLayout } from "../../context/LayoutContext";
-import { useNotifications } from "../../context/NotificationContext"; // 👈 Hook del contexto
+import { useNotifications } from "../../context/NotificationContext";
 import menuItems from "../../data/menu.json";
 
 const Sidebar = () => {
   const [openMenus, setOpenMenus] = useState({});
-  const { counts } = useNotifications(); // 👈 Obtenemos los counts globales
+  const { counts } = useNotifications();
   const location = useLocation();
   const { user, hasPermission } = useAuth();
   const { closeMobileSidebar } = useLayout();
@@ -46,7 +46,6 @@ const Sidebar = () => {
     let total = 0;
     let badgeClass = "badge-info";
 
-    // 👈 Usamos los nombres sincronizados del dashboardService
     if (item.permiso === "ver_usuarios") {
       total = counts.usuarios;
       badgeClass = "badge-primary";
@@ -80,6 +79,12 @@ const Sidebar = () => {
     } else if (item.permiso === "ver_arqueos") {
       total = counts.arqueos;
       badgeClass = "badge-primary";
+    } else if (item.permiso === "ver_combos") {
+      total = counts.combos;
+      badgeClass = "badge-success";
+    } else if (item.permiso === "ver_devoluciones") {
+      total = counts.devoluciones;
+      badgeClass = "badge-warning";
     }
 
     return total > 0 ? (
@@ -89,10 +94,26 @@ const Sidebar = () => {
 
   const renderMenuItems = (items, level = 0) => {
     return items
-      .filter((item) => !item.permiso || hasPermission(item.permiso))
-      .map((item) => {
+      .filter((item) => {
+        // Los headers no tienen permiso, siempre se muestran si hay contenido visible debajo (opcional)
+        // Por simplicidad, filtramos los que tengan permiso o sean headers
+        if (item.type === "header") return true;
+        return !item.permiso || hasPermission(item.permiso);
+      })
+      .map((item, index) => {
+        // 1. CASO: ENCABEZADO (HEADER)
+        if (item.type === "header") {
+          return (
+            <li key={`header-${index}`} className="nav-header text-uppercase">
+              {item.text}
+            </li>
+          );
+        }
+
         const isOpen = !!openMenus[item.id];
         const isActive = checkIsActive(item);
+
+        // 2. CASO: MENÚ CON SUBMENÚS (TREEVIEW)
         if (item.children) {
           return (
             <li
@@ -119,6 +140,8 @@ const Sidebar = () => {
             </li>
           );
         }
+
+        // 3. CASO: LINK SIMPLE
         return (
           <li key={item.id} className="nav-item">
             <NavLink

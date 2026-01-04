@@ -36,11 +36,17 @@ const EditarUnidad = () => {
     setLoading(true);
     try {
       await api.put(`/unidades/${id}`, { nombre, descripcion });
-      Swal.fire("Éxito", "Unidad actualizada correctamente", "success").then(
-        () => {
-          window.location.href = "/unidades/listado";
-        }
-      );
+      Swal.fire({
+        position: "center",
+        icon: "success",
+        title: "¡Éxito!",
+        text: "Unidad actualizada exitosamente.",
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
+      }).then(() => {
+        window.location.href = "/unidades/listado";
+      });
     } catch (error) {
       Swal.fire(
         "Error",

@@ -137,12 +137,17 @@ const EditarProducto = () => {
       }
 
       await api.put(`/productos/${id}`, formData); // ← Sin headers
-
-      Swal.fire("Éxito", "Producto actualizado correctamente", "success").then(
-        () => {
-          window.location.href = "/productos/listado";
-        }
-      );
+      Swal.fire({
+        position: "center",
+        icon: "success",
+        title: "¡Éxito!",
+        text: "Producto actualizado correctamente",
+        showConfirmButton: false,
+        timer: 1500,
+        timerProgressBar: true,
+      }).then(() => {
+        window.location.href = "/productos/listado";
+      });
     } catch (error) {
       Swal.fire(
         "Error",

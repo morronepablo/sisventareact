@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../../context/NotificationContext";
 import { useAuth } from "../../context/AuthContext";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 const CrearVenta = () => {
   const navigate = useNavigate();
@@ -38,7 +39,12 @@ const CrearVenta = () => {
 
   const [cantidad, setCantidad] = useState(1);
   const [codigo, setCodigo] = useState("");
-  const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
+  const [fecha, setFecha] = useState(() => {
+    const hoy = new Date();
+    const offset = hoy.getTimezoneOffset() * 60000; // Ajuste de milisegundos de la zona horaria local
+    const fechaLocal = new Date(hoy - offset).toISOString().split("T")[0];
+    return fechaLocal;
+  });
   const [clienteSel, setClienteSel] = useState({
     id: 1,
     nombre_cliente: "Consumidor Final",
@@ -257,12 +263,7 @@ const CrearVenta = () => {
     }
   }, [loading]);
 
-  if (loading || arqueoAbierto === null)
-    return (
-      <div className="p-5 text-center">
-        <h4>Cargando módulo de ventas...</h4>
-      </div>
-    );
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="content-header">

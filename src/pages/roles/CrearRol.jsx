@@ -56,10 +56,13 @@ const CrearRol = () => {
       });
 
       Swal.fire({
+        position: "center",
+        icon: "success",
         title: "¡Éxito!",
         text: "Rol creado exitosamente.",
-        icon: "success",
-        confirmButtonText: "Aceptar",
+        showConfirmButton: false,
+        timer: 2500,
+        timerProgressBar: true,
       }).then(() => {
         navigate("/roles/listado");
       });

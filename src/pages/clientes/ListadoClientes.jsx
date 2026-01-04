@@ -1,6 +1,5 @@
 // src/pages/clientes/ListadoClientes.jsx
 /* eslint-disable react-hooks/exhaustive-deps */
-// src/pages/arqueos/ListadoClientes.jsx
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";

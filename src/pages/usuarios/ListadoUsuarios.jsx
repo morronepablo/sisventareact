@@ -1,5 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 // src/pages/usuarios/ListadoUsuarios.jsx
-/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";

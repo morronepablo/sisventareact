@@ -16,11 +16,17 @@ const CrearCategoria = () => {
     setLoading(true);
     try {
       await api.post("/categorias", { nombre, descripcion });
-      Swal.fire("Éxito", "Categoría creada correctamente", "success").then(
-        () => {
-          window.location.href = "/categorias/listado";
-        }
-      );
+      Swal.fire({
+        position: "center",
+        icon: "success",
+        title: "¡Éxito!",
+        text: "Categoría creada correctamente",
+        showConfirmButton: false,
+        timer: 1500,
+        timerProgressBar: true,
+      }).then(() => {
+        window.location.href = "/categorias/listado";
+      });
     } catch (error) {
       Swal.fire(
         "Error",

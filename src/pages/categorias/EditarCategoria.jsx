@@ -38,11 +38,17 @@ const EditarCategoria = () => {
     setLoading(true);
     try {
       await api.put(`/categorias/${id}`, { nombre, descripcion });
-      Swal.fire("Éxito", "Categoría actualizada correctamente", "success").then(
-        () => {
-          window.location.href = "/categorias/listado";
-        }
-      );
+      Swal.fire({
+        position: "center",
+        icon: "success",
+        title: "¡Éxito!",
+        text: "Categoría actualizada correctamente",
+        showConfirmButton: false,
+        timer: 1500,
+        timerProgressBar: true,
+      }).then(() => {
+        window.location.href = "/categorias/listado";
+      });
     } catch (error) {
       Swal.fire(
         "Error",
