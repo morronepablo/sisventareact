@@ -260,10 +260,11 @@
         "id": "combos",
         "text": "Combos",
         "icon": "fas fa-fw fa-volleyball-ball",
+        "path": "/combos",
         "permiso": "ver_combos",
         "children": [
             {
-                "id": "listado",
+                "id": "combos_listado",
                 "text": "Listado de Combos",
                 "icon": "fas fa-fw fa-list",
                 "path": "/combos/listado",
@@ -275,10 +276,11 @@
         "id": "devoluciones",
         "text": "Devoluciones",
         "icon": "fas fa-fw fa-rotate-left",
+        "path": "/devoluciones",
         "permiso": "ver_devoluciones",
         "children": [
             {
-                "id": "listado",
+                "id": "devoluciones_listado",
                 "text": "Listado Devoluciones",
                 "icon": "fas fa-fw fa-list",
                 "path": "/devoluciones/listado",
