@@ -4,17 +4,18 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useLayout } from "../../context/LayoutContext";
-import { useNotifications } from "../../context/NotificationContext"; // ← Importamos el hook
+import { useNotifications } from "../../context/NotificationContext";
 import NotificationsDropdown from "./NotificationsDropdown";
 import ProvidersDebtDropdown from "./ProvidersDebtDropdown";
 import ClientsDebtDropdown from "./ClientsDebtDropdown";
+import api from "../../services/api"; // 👈 Importamos api para la reconstrucción
 import Swal from "sweetalert2";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { toggleDesktopSidebar, toggleMobileSidebar } = useLayout();
-  const { arqueoAbierto, arqueoId } = useNotifications(); // ← Obtenemos el estado global del arqueo
+  const { arqueoAbierto, arqueoId } = useNotifications();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -44,6 +45,56 @@ const Navbar = () => {
     });
   };
 
+  // --- NUEVA FUNCIÓN: LIMPIAR Y RECONSTRUIR MOVIMIENTOS ---
+  const handleRebuildMovimientos = () => {
+    Swal.fire({
+      title: "¿Estás seguro?",
+      text: "Esto eliminará todos los movimientos y los reconstruirá desde compras, ventas, devoluciones y ajustes.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#f39c12",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Sí, reconstruir",
+      cancelButtonText: "Cancelar",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        // Mostrar estado de carga
+        Swal.fire({
+          title: "Reconstruyendo...",
+          text: "Por favor espere mientras se procesan los datos históricos.",
+          allowOutsideClick: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
+
+        try {
+          // Llamada al backend
+          const response = await api.post("/movimientos/rebuild");
+
+          if (response.data.success) {
+            await Swal.fire({
+              icon: "success",
+              title: "¡Éxito!",
+              text: response.data.message,
+              confirmButtonText: "Ir al Historial",
+            });
+            // Opcional: Redirigir al historial de movimientos
+            navigate("/movimientos/listado");
+          }
+        } catch (error) {
+          console.error(error);
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "No se pudo completar el proceso de reconstrucción. Verifique la conexión con el servidor.",
+          });
+        }
+      }
+    });
+  };
+
   return (
     <nav
       className={`main-header navbar navbar-expand ${
@@ -67,7 +118,7 @@ const Navbar = () => {
           </Link>
         </li>
 
-        {/* Botones principales - SE MANTIENEN TODOS IGUAL */}
+        {/* Botones principales */}
         <li className="nav-item d-none d-sm-inline-block ml-2">
           <Link
             to="/ventas/crear"
@@ -95,25 +146,21 @@ const Navbar = () => {
             <i className="fas fa-rotate-left"></i> Devolver
           </Link>
         </li>
+
+        {/* Botón Reconstruir Actualizado */}
         <li className="nav-item d-none d-sm-inline-block ml-2">
           <button
             type="button"
             className="nav-link btn btn-warning text-white"
             style={{ padding: "5px 10px", fontSize: "0.875rem" }}
-            onClick={() =>
-              Swal.fire(
-                "Información",
-                "Funcionalidad no implementada aún.",
-                "info"
-              )
-            }
+            onClick={handleRebuildMovimientos}
           >
             <i className="fas fa-sync-alt"></i> Limpiar y Reconstruir
             Movimientos
           </button>
         </li>
 
-        {/* 👇 BOTÓN CIERRE ARQUEO: Solo aparece si arqueoAbierto es true */}
+        {/* BOTÓN CIERRE ARQUEO */}
         {arqueoAbierto && (
           <li className="nav-item d-none d-sm-inline-block ml-2">
             <button

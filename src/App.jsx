@@ -109,6 +109,15 @@ import ListadoDevoluciones from "./pages/devoluciones/ListadoDevoluciones";
 import CrearDevolucion from "./pages/devoluciones/CrearDevolucion";
 import VerDevolucion from "./pages/devoluciones/VerDevolucion";
 
+// Ajustes
+import ListadoAjustes from "./pages/ajustes/ListadoAjustes";
+import CrearAjuste from "./pages/ajustes/CrearAjuste";
+import VerAjuste from "./pages/ajustes/VerAjuste";
+
+// Movimientos
+import ListadoProductosMovimientos from "./pages/movimientos/ListadoProductosMovimientos";
+import VerMovimientosProducto from "./pages/movimientos/VerMovimientosProducto";
+
 // 👇 IMPORTACIÓN DE COMPONENTES DE RUTA
 import ProtectedRoute from "./utils/ProtectedRoute";
 import PublicRoute from "./utils/PublicRoute";
@@ -293,6 +302,21 @@ const App = () => {
         <Route path="/devoluciones/listado" element={<ListadoDevoluciones />} />
         <Route path="/devoluciones/crear" element={<CrearDevolucion />} />
         <Route path="/devoluciones/ver/:id" element={<VerDevolucion />} />
+
+        {/* Ajustes */}
+        <Route path="/ajustes/listado" element={<ListadoAjustes />} />
+        <Route path="/ajustes/crear" element={<CrearAjuste />} />
+        <Route path="/ajustes/ver/:id" element={<VerAjuste />} />
+
+        {/* Movimientos */}
+        <Route
+          path="/movimientos/listado"
+          element={<ListadoProductosMovimientos />}
+        />
+        <Route
+          path="/movimientos/ver/:id"
+          element={<VerMovimientosProducto />}
+        />
 
         {/* 404 dentro del layout si la ruta no existe */}
         <Route path="*" element={<NotFound />} />

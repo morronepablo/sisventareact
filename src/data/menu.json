@@ -7,6 +7,7 @@
         "id": "configuracion",
         "text": "Configuración",
         "icon": "fas fa-cogs",
+        "path": "/configuracion",
         "permiso": "ver_empresa",
         "children": [
             {
@@ -22,6 +23,7 @@
         "id": "sesion",
         "text": "Sesión",
         "icon": "fas fa-user-clock",
+        "path": "/sesion",
         "permiso": "ver_configuracion",
         "children": [
             {
@@ -37,6 +39,7 @@
         "id": "usuarios",
         "text": "Usuarios",
         "icon": "fas fa-users",
+        "path": "/usuarios",
         "permiso": "ver_usuarios",
         "children": [
             {
@@ -88,6 +91,7 @@
         "id": "categorias",
         "text": "Categorías",
         "icon": "fas fa-tags",
+        "path": "/categorias",
         "permiso": "ver_categorias",
         "children": [
             {
@@ -103,6 +107,7 @@
         "id": "unidades",
         "text": "Unidades",
         "icon": "fas fa-fw fa-weight-hanging",
+        "path": "/unidades",
         "permiso": "ver_unidades",
         "children": [
             {
@@ -118,6 +123,7 @@
         "id": "productos",
         "text": "Productos",
         "icon": "fas fa-fw fa-boxes-stacked",
+        "path": "/productos",
         "permiso": "ver_productos",
         "children": [
             {
@@ -133,6 +139,7 @@
         "id": "proveedores",
         "text": "Proveedores",
         "icon": "fas fa-fw fa-truck",
+        "path": "/proveedores",
         "permiso": "ver_proveedores",
         "children": [
             {
@@ -148,6 +155,7 @@
         "id": "compras",
         "text": "Compras",
         "icon": "fas fa-fw fa-shopping-cart",
+        "path": "/compras",
         "permiso": "ver_compras",
         "children": [
             {
@@ -193,6 +201,7 @@
         "id": "clientes",
         "text": "Clientes",
         "icon": "fas fa-fw fa-users",
+        "path": "/clientes",
         "permiso": "ver_clientes",
         "children": [
             {
@@ -208,6 +217,7 @@
         "id": "ventas",
         "text": "Ventas",
         "icon": "fas fa-fw fa-cash-register",
+        "path": "/ventas",
         "permiso": "ver_ventas",
         "children": [
             {
@@ -260,6 +270,7 @@
         "id": "arqueos",
         "text": "Arqueos",
         "icon": "fas fa-fw fa-money-bill",
+        "path": "/arqueos",
         "permiso": "ver_arqueos",
         "children": [
             {
@@ -300,6 +311,38 @@
                 "icon": "fas fa-fw fa-list",
                 "path": "/devoluciones/listado",
                 "permiso": "ver_devoluciones"
+            }
+        ]
+    },
+    {
+        "id": "ajustes",
+        "text": "Ajustes Inventario",
+        "icon": "fas fa-fw fa-tools",
+        "path": "/ajustes",
+        "permiso": "ver_ajustes",
+        "children": [
+            {
+                "id": "ajustes_listado",
+                "text": "Listado de Ajustes",
+                "icon": "fas fa-fw fa-list",
+                "path": "/ajustes/listado",
+                "permiso": "ver_ajustes"
+            }
+        ]
+    },
+    {
+        "id": "movimientos",
+        "text": "Histo. Movim.",
+        "icon": "fas fa-fw fa-history",
+        "path": "/movimientos",
+        "permiso": "ver_movimientos",
+        "children": [
+            {
+                "id": "historial_movimientos",
+                "text": "Listado de Movimientos",
+                "icon": "fas fa-fw fa-list",
+                "path": "/movimientos/listado",
+                "permiso": "ver_movimientos"
             }
         ]
     }

@@ -14,6 +14,26 @@ const CrearDevolucion = () => {
   const { user } = useAuth();
   const { refreshAll, arqueoAbierto } = useNotifications();
 
+  // --- 1. CONFIGURACIÓN DE IDIOMA LOCAL (Para evitar errores de carga externa) ---
+  const spanishLanguage = {
+    sProcessing: "Procesando...",
+    sLengthMenu: "Mostrar _MENU_ registros",
+    sZeroRecords: "No se encontraron resultados",
+    sEmptyTable: "Ningún dato disponible en esta tabla",
+    sInfo:
+      "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+    sInfoEmpty: "Mostrando registros del 0 al 0 de un total de 0 registros",
+    sInfoFiltered: "(filtrado de un total de _MAX_ registros)",
+    sSearch: "Buscar:",
+    sLoadingRecords: "Cargando...",
+    oPaginate: {
+      sFirst: "Primero",
+      sLast: "Último",
+      sNext: "Siguiente",
+      sPrevious: "Anterior",
+    },
+  };
+
   const [loading, setLoading] = useState(true);
   const [productos, setProductos] = useState([]);
   const [combos, setCombos] = useState([]);
@@ -24,9 +44,8 @@ const CrearDevolucion = () => {
   const [codigo, setCodigo] = useState("");
   const [fecha, setFecha] = useState(() => {
     const hoy = new Date();
-    const offset = hoy.getTimezoneOffset() * 60000; // Ajuste de milisegundos de la zona horaria local
-    const fechaLocal = new Date(hoy - offset).toISOString().split("T")[0];
-    return fechaLocal;
+    const offset = hoy.getTimezoneOffset() * 60000;
+    return new Date(hoy - offset).toISOString().split("T")[0];
   });
   const [motivo, setMotivo] = useState("");
   const [clienteSel, setClienteSel] = useState({
@@ -67,18 +86,16 @@ const CrearDevolucion = () => {
     fetchData();
   }, [arqueoAbierto]);
 
-  // --- LOGICA DE AGREGAR ITEM (REUTILIZABLE) ---
   const addItem = async (codigoItem) => {
     try {
       const res = await api.post("/devoluciones/tmp", {
         codigo: codigoItem.trim(),
-        cantidad: parseFloat(cantidad), // Usa la cantidad del input
+        cantidad: parseFloat(cantidad),
         usuario_id: user.id,
       });
-
       if (res.data.success) {
-        setCodigo(""); // Limpia el buscador
-        fetchData(); // Recarga la grilla
+        setCodigo("");
+        fetchData();
       } else {
         Swal.fire("Error", res.data.message, "error");
       }
@@ -89,12 +106,9 @@ const CrearDevolucion = () => {
   };
 
   const handleAddProduct = (e) => {
-    if (e.key === "Enter" && codigo) {
-      addItem(codigo);
-    }
+    if (e.key === "Enter" && codigo) addItem(codigo);
   };
 
-  // --- OTROS MANEJADORES ---
   const updateDeudaCliente = async (id) => {
     try {
       const res = await api.get(`/ventas/deuda-cliente/${id}`);
@@ -135,7 +149,6 @@ const CrearDevolucion = () => {
     }
   };
 
-  // Cálculos de totales
   const totalCantidad = tmpItems.reduce(
     (acc, it) => acc + parseFloat(it.cantidad),
     0
@@ -149,21 +162,25 @@ const CrearDevolucion = () => {
     return acc + parseFloat(it.cantidad) * precio;
   }, 0);
 
+  // --- 2. INICIALIZACIÓN DE DATATABLE EN ESPAÑOL ---
   useEffect(() => {
     if (!loading) {
       const timer = setTimeout(() => {
-        window.$("#prod-table, #clie-table").DataTable({
-          paging: true,
-          pageLength: 5,
-          retrieve: true,
-          language: {
-            url: "//cdn.datatables.net/plug-ins/1.10.19/i18n/Spanish.json",
-          },
+        ["#prod-table", "#clie-table"].forEach((id) => {
+          if (window.$.fn.DataTable.isDataTable(id)) {
+            window.$(id).DataTable().destroy();
+          }
+          window.$(id).DataTable({
+            paging: true,
+            pageLength: 5,
+            retrieve: true,
+            language: spanishLanguage, // 👈 USAMOS EL OBJETO LOCAL AQUÍ
+          });
         });
       }, 400);
       return () => clearTimeout(timer);
     }
-  }, [loading]);
+  }, [loading, productos, combos, clientes]);
 
   if (loading) return <LoadingSpinner />;
 
@@ -318,7 +335,6 @@ const CrearDevolucion = () => {
           </div>
 
           <div className="col-md-4">
-            {/* Sidebar con Cliente, Totales y Motivo */}
             <div className="card shadow-sm">
               <div className="card-body">
                 <div className="row mb-3">
@@ -458,14 +474,14 @@ const CrearDevolucion = () => {
                         <button
                           className="btn btn-secondary btn-sm"
                           onClick={() => {
-                            addItem(p.codigo); // <--- LLAMADA DIRECTA AL AGREGAR
+                            addItem(p.codigo);
                             window.$("#modal-productos").modal("hide");
                           }}
                         >
                           <i className="fas fa-check"></i>
                         </button>
                       </td>
-                      <td>{p.codigo}</td>
+                      <td className="text-center">{p.codigo}</td>
                       <td>{p.nombre}</td>
                       <td>{p.stock}</td>
                       <td>
@@ -482,14 +498,14 @@ const CrearDevolucion = () => {
                         <button
                           className="btn btn-secondary btn-sm"
                           onClick={() => {
-                            addItem(c.codigo); // <--- LLAMADA DIRECTA AL AGREGAR
+                            addItem(c.codigo);
                             window.$("#modal-productos").modal("hide");
                           }}
                         >
                           <i className="fas fa-check"></i>
                         </button>
                       </td>
-                      <td>{c.codigo}</td>
+                      <td className="text-center">{c.codigo}</td>
                       <td>{c.nombre}</td>
                       <td>N/A</td>
                       <td>

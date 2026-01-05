@@ -85,6 +85,12 @@ const Sidebar = () => {
     } else if (item.permiso === "ver_devoluciones") {
       total = counts.devoluciones;
       badgeClass = "badge-warning";
+    } else if (item.permiso === "ver_ajustes") {
+      total = counts.ajustes;
+      badgeClass = "badge-danger";
+    } else if (item.permiso === "ver_movimientos") {
+      total = counts.movimientos;
+      badgeClass = "badge-info";
     }
 
     return total > 0 ? (
