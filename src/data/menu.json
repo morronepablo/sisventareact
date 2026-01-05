@@ -19,6 +19,21 @@
         ]
     },
     {
+        "id": "sesion",
+        "text": "Sesión",
+        "icon": "fas fa-user-clock",
+        "permiso": "ver_configuracion",
+        "children": [
+            {
+                "id": "config_sesion",
+                "text": "Configurar",
+                "icon": "fas fa-tools",
+                "path": "/configuracion/sesion",
+                "permiso": "ver_configuracion"
+            }
+        ]
+    },
+    {
         "id": "usuarios",
         "text": "Usuarios",
         "icon": "fas fa-users",

@@ -29,6 +29,7 @@ import EditarPermiso from "./pages/permisos/EditarPermiso";
 
 // Configuración
 import ConfiguracionEmpresa from "./pages/configuracion/ConfiguracionEmpresa";
+import ConfiguracionSesion from "./pages/configuracion/ConfiguracionSesion";
 
 // Categorías
 import ListadoCategorias from "./pages/categorias/ListadoCategorias";
@@ -165,6 +166,7 @@ const App = () => {
           path="/configuracion/empresa"
           element={<ConfiguracionEmpresa />}
         />
+        <Route path="/configuracion/sesion" element={<ConfiguracionSesion />} />
 
         {/* Categorías */}
         <Route path="/categorias/listado" element={<ListadoCategorias />} />
