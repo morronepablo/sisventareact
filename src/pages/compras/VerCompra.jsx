@@ -1,7 +1,10 @@
 // src/pages/compras/VerCompra.jsx
+/* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 const VerCompra = () => {
   const { id } = useParams();
@@ -9,37 +12,46 @@ const VerCompra = () => {
   const [compra, setCompra] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchCompra = async () => {
+    try {
+      const res = await api.get(`/compras/${id}`);
+      setCompra(res.data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error al cargar la compra", error);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchCompra = async () => {
-      try {
-        const res = await api.get(`/compras/${id}`);
-        setCompra(res.data);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error al cargar la compra", error);
-        setLoading(false);
-      }
-    };
     fetchCompra();
   }, [id]);
 
-  if (loading)
+  if (loading) return <LoadingSpinner />;
+  if (!compra)
     return (
       <div className="p-4 text-center">
-        <h4>Cargando detalle...</h4>
+        <h4>Compra no encontrada.</h4>
       </div>
     );
-  if (!compra) return <div className="p-4">Compra no encontrada.</div>;
 
-  // Cálculos para el footer de la tabla
+  // --- CÁLCULOS SEGUROS PARA EL FOOTER ---
   const totalCantidad = compra.detalles?.reduce(
-    (acc, d) => acc + parseFloat(d.cantidad),
+    (acc, d) => acc + Number(d.cantidad || 0),
     0
   );
+
   const totalCompraCalculado = compra.detalles?.reduce(
-    (acc, d) => acc + d.cantidad * d.precio_compra,
+    (acc, d) => acc + Number(d.cantidad || 0) * Number(d.precio_compra || 0),
     0
   );
+
+  const formatMoney = (val) =>
+    new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+      minimumFractionDigits: 2,
+    }).format(val || 0);
 
   return (
     <div className="content-header">
@@ -55,84 +67,82 @@ const VerCompra = () => {
       </div>
 
       <div className="container-fluid">
-        <div className="card card-outline card-info">
+        <div className="card card-outline card-info shadow-sm">
           <div className="card-header">
-            <h3 className="card-title">Datos registrados</h3>
+            <h3 className="card-title text-bold">Datos registrados</h3>
           </div>
           <div className="card-body">
             <div className="row">
-              {/* COLUMNA IZQUIERDA: TABLA DE PRODUCTOS */}
+              {/* TABLA DE PRODUCTOS */}
               <div className="col-md-8">
-                <table className="table table-striped table-bordered table-hover table-sm">
-                  <thead className="thead-dark">
-                    <tr className="text-center">
-                      <th>Nro.</th>
-                      <th>Código</th>
-                      <th>Cantidad</th>
-                      <th>Producto</th>
-                      <th>Costo</th>
-                      <th>Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {compra.detalles?.map((detalle, index) => (
-                      <tr key={detalle.id}>
-                        <td className="text-center">{index + 1}</td>
-                        <td className="text-center">
-                          {detalle.producto_codigo}
+                <div className="table-responsive">
+                  <table className="table table-striped table-bordered table-hover table-sm">
+                    <thead className="thead-dark text-center">
+                      <tr>
+                        <th>Nro.</th>
+                        <th>Código</th>
+                        <th>Cantidad</th>
+                        <th>Producto</th>
+                        <th>Costo</th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {compra.detalles?.map((detalle, index) => {
+                        const costo = Number(detalle.precio_compra || 0);
+                        const cant = Number(detalle.cantidad || 0);
+                        return (
+                          <tr key={detalle.id || index}>
+                            <td className="text-center align-middle">
+                              {index + 1}
+                            </td>
+                            <td className="text-center align-middle">
+                              {detalle.producto_codigo}
+                            </td>
+                            <td className="text-center align-middle">{cant}</td>
+                            <td className="align-middle">
+                              {detalle.producto_nombre}
+                            </td>
+                            <td className="text-right align-middle">
+                              {formatMoney(costo)}
+                            </td>
+                            <td className="text-right align-middle font-weight-bold">
+                              {formatMoney(cant * costo)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                    <tfoot className="bg-light text-bold">
+                      <tr>
+                        <td colSpan="2" className="text-right">
+                          Total Cantidad
                         </td>
-                        <td className="text-right">{detalle.cantidad}</td>
-                        <td>{detalle.producto_nombre}</td>
-                        <td className="text-right">
-                          ${" "}
-                          {parseFloat(detalle.precio_compra).toLocaleString(
-                            "es-AR",
-                            { minimumFractionDigits: 2 }
-                          )}
+                        <td className="text-center text-primary">
+                          {totalCantidad}
                         </td>
-                        <td className="text-right">
-                          ${" "}
-                          {(
-                            detalle.cantidad * detalle.precio_compra
-                          ).toLocaleString("es-AR", {
-                            minimumFractionDigits: 2,
-                          })}
+                        <td colSpan="2" className="text-right">
+                          Total Compra
+                        </td>
+                        <td className="text-right text-primary">
+                          {formatMoney(compra.precio_total)}
                         </td>
                       </tr>
-                    ))}
-                  </tbody>
-                  <tfoot className="bg-light">
-                    <tr>
-                      <td colSpan="2" className="text-right">
-                        <b>Total Cantidad</b>
-                      </td>
-                      <td className="text-right text-primary">
-                        <b>{totalCantidad}</b>
-                      </td>
-                      <td colSpan="2" className="text-right">
-                        <b>Total Compra</b>
-                      </td>
-                      <td className="text-right text-primary">
-                        <b>
-                          ${" "}
-                          {totalCompraCalculado.toLocaleString("es-AR", {
-                            minimumFractionDigits: 2,
-                          })}
-                        </b>
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
+                    </tfoot>
+                  </table>
+                </div>
               </div>
 
-              {/* COLUMNA DERECHA: DATOS DE CABECERA */}
+              {/* DATOS DE CABECERA */}
               <div className="col-md-4">
                 <div className="form-group">
-                  <label>Proveedor</label>
+                  <label className="text-muted">
+                    <small>Proveedor</small>
+                  </label>
                   <input
                     type="text"
-                    className="form-control"
-                    value={compra.proveedor_nombre || ""}
+                    className="form-control bg-light font-weight-bold"
+                    value={compra.proveedor_nombre || "N/A"}
                     disabled
                   />
                 </div>
@@ -140,21 +150,27 @@ const VerCompra = () => {
                 <div className="row">
                   <div className="col-md-5">
                     <div className="form-group">
-                      <label>Fecha de compra</label>
+                      <label className="text-muted">
+                        <small>Fecha</small>
+                      </label>
                       <input
-                        type="date"
-                        className="form-control"
-                        value={compra.fecha.split("T")[0]}
+                        type="text"
+                        className="form-control bg-light text-center"
+                        value={new Date(compra.fecha).toLocaleDateString(
+                          "es-AR"
+                        )}
                         disabled
                       />
                     </div>
                   </div>
                   <div className="col-md-7">
                     <div className="form-group">
-                      <label>Comprobante</label>
+                      <label className="text-muted">
+                        <small>Comprobante</small>
+                      </label>
                       <input
                         type="text"
-                        className="form-control"
+                        className="form-control bg-light text-center"
                         value={compra.comprobante}
                         disabled
                       />
@@ -162,15 +178,14 @@ const VerCompra = () => {
                   </div>
                 </div>
                 <div className="form-group">
-                  <label>Precio Total</label>
+                  <label className="text-muted">
+                    <small>Precio Total *</small>
+                  </label>
                   <input
                     type="text"
-                    className="form-control text-right bg-warning text-bold"
-                    style={{ fontSize: "1.2rem" }}
-                    value={`$ ${parseFloat(compra.precio_total).toLocaleString(
-                      "es-AR",
-                      { minimumFractionDigits: 2 }
-                    )}`}
+                    className="form-control text-right bg-warning font-weight-bold"
+                    style={{ fontSize: "1.3rem" }}
+                    value={formatMoney(compra.precio_total)}
                     disabled
                   />
                 </div>
@@ -181,10 +196,10 @@ const VerCompra = () => {
             <div className="row">
               <div className="col-md-12">
                 <button
-                  className="btn btn-secondary btn-sm"
+                  className="btn btn-secondary btn-sm shadow-sm"
                   onClick={() => navigate("/compras/listado")}
                 >
-                  <i className="fas fa-reply"></i> Volver
+                  <i className="fas fa-reply mr-1"></i> Volver al listado
                 </button>
               </div>
             </div>

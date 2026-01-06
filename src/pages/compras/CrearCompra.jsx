@@ -30,7 +30,7 @@ const CrearCompra = () => {
     },
   };
 
-  // --- 2. ESTADOS ---
+  // --- ESTADOS ---
   const [productos, setProductos] = useState([]);
   const [proveedores, setProveedores] = useState([]);
   const [tmpCompras, setTmpCompras] = useState([]);
@@ -59,7 +59,7 @@ const CrearCompra = () => {
     banco: 0,
   });
 
-  // --- 3. LÓGICA DE CARGA ---
+  // --- LÓGICA DE CARGA ---
 
   const fetchTmp = async () => {
     if (!user?.id) return;
@@ -109,7 +109,23 @@ const CrearCompra = () => {
     inicializar();
   }, [arqueoAbierto, user]);
 
-  // --- 4. ACCIONES (CORREGIDAS) ---
+  // --- ACCIONES ---
+
+  // --- NUEVA FUNCIÓN PARA ACTUALIZAR CANTIDAD (+ / -) ---
+  const updateQty = async (id, currentQty, delta) => {
+    const newQty = parseFloat(currentQty) + delta;
+    if (newQty < 1) return; // Validación: No permitir menos de 1
+
+    try {
+      const res = await api.put(`/compras/tmp/${id}`, { cantidad: newQty });
+      if (res.data.success) {
+        fetchTmp(); // Recarga la tabla y recalcula totales
+      }
+    } catch (e) {
+      console.error(e);
+      Swal.fire("Error", "No se pudo actualizar la cantidad", "error");
+    }
+  };
 
   const addItem = async (codigoItem) => {
     try {
@@ -117,11 +133,12 @@ const CrearCompra = () => {
       if (p) {
         const res = await api.post("/compras/tmp", {
           producto_id: p.id,
-          cantidad: parseFloat(cantidad), // Usa la cantidad del input
+          cantidad: parseFloat(cantidad),
           usuario_id: user.id,
         });
         if (res.data.success) {
           setCodigo("");
+          setCantidad(1); // Resetear cantidad a 1 después de agregar
           fetchTmp();
         }
       } else {
@@ -227,7 +244,7 @@ const CrearCompra = () => {
                         />
                       </div>
                       <div className="col-md-7">
-                        <label>Código</label>
+                        <label>Código / Nombre</label>
                         <div className="input-group">
                           <div className="input-group-prepend">
                             <span className="input-group-text">
@@ -244,7 +261,6 @@ const CrearCompra = () => {
                             placeholder="Escanee o escriba código..."
                           />
                           <div className="input-group-append">
-                            {/* BOTÓN BUSCAR (AZUL) */}
                             <button
                               className="btn btn-primary"
                               data-toggle="modal"
@@ -252,12 +268,12 @@ const CrearCompra = () => {
                             >
                               <i className="fa fa-search"></i>
                             </button>
-                            {/* BOTÓN NUEVO (VERDE) */}
                             <button
                               className="btn btn-success"
                               onClick={() => navigate("/productos/crear")}
+                              title="Nuevo Producto"
                             >
-                              <i className="fa fa-plus"></i>
+                              <i className="fas fa-plus"></i>
                             </button>
                           </div>
                         </div>
@@ -268,7 +284,7 @@ const CrearCompra = () => {
                         <tr>
                           <th>Nro.</th>
                           <th>Código</th>
-                          <th>Cant.</th>
+                          <th style={{ width: "120px" }}>Cant.</th>
                           <th>Producto</th>
                           <th>Costo</th>
                           <th>Total</th>
@@ -278,25 +294,56 @@ const CrearCompra = () => {
                       <tbody>
                         {tmpCompras.map((it, i) => (
                           <tr key={it.id}>
-                            <td className="text-center">{i + 1}</td>
-                            <td className="text-center">{it.codigo}</td>
-                            <td className="text-center">{it.cantidad}</td>
-                            <td>{it.nombre}</td>
-                            <td className="text-right">
+                            <td className="text-center align-middle">
+                              {i + 1}
+                            </td>
+                            <td className="text-center align-middle">
+                              {it.codigo}
+                            </td>
+                            {/* COLUMNA CANTIDAD CON BOTONES + / - */}
+                            <td className="text-center align-middle">
+                              <div className="btn-group btn-group-sm d-flex justify-content-center">
+                                <button
+                                  className="btn btn-outline-secondary btn-xs"
+                                  onClick={() =>
+                                    updateQty(it.id, it.cantidad, -1)
+                                  }
+                                  disabled={it.cantidad <= 1}
+                                >
+                                  <i className="fas fa-minus"></i>
+                                </button>
+                                <span
+                                  className="px-2 font-weight-bold align-self-center"
+                                  style={{ minWidth: "30px" }}
+                                >
+                                  {it.cantidad}
+                                </span>
+                                <button
+                                  className="btn btn-outline-secondary btn-xs"
+                                  onClick={() =>
+                                    updateQty(it.id, it.cantidad, 1)
+                                  }
+                                >
+                                  <i className="fas fa-plus"></i>
+                                </button>
+                              </div>
+                            </td>
+                            <td className="align-middle">{it.nombre}</td>
+                            <td className="text-right align-middle">
                               ${" "}
                               {parseFloat(it.precio_compra).toLocaleString(
                                 "es-AR",
                                 { minimumFractionDigits: 2 }
                               )}
                             </td>
-                            <td className="text-right text-bold">
+                            <td className="text-right align-middle text-bold">
                               ${" "}
                               {(it.cantidad * it.precio_compra).toLocaleString(
                                 "es-AR",
                                 { minimumFractionDigits: 2 }
                               )}
                             </td>
-                            <td className="text-center">
+                            <td className="text-center align-middle">
                               <button
                                 className="btn btn-danger btn-sm"
                                 onClick={async () => {
@@ -335,7 +382,6 @@ const CrearCompra = () => {
                     </button>
                   </div>
 
-                  {/* SECCIÓN DERECHA: PROVEEDOR Y TOTALES */}
                   <div className="col-md-4">
                     <div className="row mb-3">
                       <div className="col-md-6">
@@ -407,7 +453,7 @@ const CrearCompra = () => {
                       </h3>
                     </div>
                     <button
-                      className="btn btn-primary btn-block mt-3"
+                      className="btn btn-primary btn-lg btn-block mt-3"
                       data-toggle="modal"
                       data-target="#modal-pagos"
                     >
@@ -426,7 +472,7 @@ const CrearCompra = () => {
 
       <div className="modal fade" id="modal-pagos" tabIndex="-1">
         <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
+          <div className="modal-content shadow-lg">
             <div className="modal-header bg-primary text-white">
               <h5>Registrar Pago Inicial</h5>
               <button className="close" data-dismiss="modal">
@@ -465,19 +511,6 @@ const CrearCompra = () => {
                   </div>
                 </div>
               ))}
-              <div className="form-group row">
-                <label className="col-sm-5">Importe Abonar</label>
-                <div className="col-sm-7">
-                  <input
-                    type="text"
-                    className="form-control text-right font-weight-bold bg-light"
-                    value={`$ ${importeAbonar.toLocaleString("es-AR", {
-                      minimumFractionDigits: 2,
-                    })}`}
-                    readOnly
-                  />
-                </div>
-              </div>
             </div>
             <div className="modal-footer">
               <button className="btn btn-secondary" data-dismiss="modal">
@@ -522,22 +555,22 @@ const CrearCompra = () => {
                 <tbody>
                   {productos.map((p, i) => (
                     <tr key={p.id}>
-                      <td className="text-center">{i + 1}</td>
-                      <td className="text-center">
+                      <td className="text-center align-middle">{i + 1}</td>
+                      <td className="text-center align-middle">
                         <button
                           className="btn btn-secondary btn-sm"
                           onClick={() => {
-                            addItem(p.codigo); // <--- INSERCIÓN AUTOMÁTICA
+                            addItem(p.codigo);
                             window.$("#modal-productos").modal("hide");
                           }}
                         >
                           <i className="fas fa-check"></i>
                         </button>
                       </td>
-                      <td className="text-center">{p.codigo}</td>
-                      <td>{p.nombre}</td>
-                      <td className="text-right">{p.stock}</td>
-                      <td className="text-right">
+                      <td className="text-center align-middle">{p.codigo}</td>
+                      <td className="align-middle">{p.nombre}</td>
+                      <td className="text-right align-middle">{p.stock}</td>
+                      <td className="text-right align-middle">
                         $ {parseFloat(p.precio_compra).toLocaleString("es-AR")}
                       </td>
                     </tr>
@@ -576,8 +609,8 @@ const CrearCompra = () => {
                 <tbody>
                   {proveedores.map((pr, i) => (
                     <tr key={pr.id}>
-                      <td className="text-center">{i + 1}</td>
-                      <td className="text-center">
+                      <td className="text-center align-middle">{i + 1}</td>
+                      <td className="text-center align-middle">
                         <button
                           className="btn btn-secondary btn-sm"
                           onClick={() => {
@@ -588,9 +621,9 @@ const CrearCompra = () => {
                           <i className="fas fa-check"></i>
                         </button>
                       </td>
-                      <td>{pr.empresa}</td>
-                      <td>{pr.marca}</td>
-                      <td>{pr.contacto}</td>
+                      <td className="align-middle">{pr.empresa}</td>
+                      <td className="align-middle">{pr.marca}</td>
+                      <td className="align-middle">{pr.contacto}</td>
                     </tr>
                   ))}
                 </tbody>

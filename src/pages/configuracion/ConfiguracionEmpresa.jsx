@@ -1,8 +1,9 @@
 // src/pages/configuracion/ConfiguracionEmpresa.jsx
-
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
 import Swal from "sweetalert2";
+import { Link } from "react-router-dom";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 const ConfiguracionEmpresa = () => {
   const [empresa, setEmpresa] = useState({
@@ -46,6 +47,60 @@ const ConfiguracionEmpresa = () => {
     };
     fetchEmpresa();
   }, []);
+
+  // --- NUEVA FUNCIÓN PARA DESCARGAR BACKUP CON SEGURIDAD ---
+  const handleDownloadBackup = async () => {
+    try {
+      Swal.fire({
+        title: "Generando Copia de Seguridad",
+        text: "Por favor espere, esto puede tardar unos segundos...",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      // Pedimos el archivo al backend usando 'blob' como tipo de respuesta
+      const response = await api.get("/backup/download", {
+        responseType: "blob",
+      });
+
+      // Crear un objeto URL para el archivo binario recibido
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+
+      // Nombre del archivo
+      const fecha = new Date().toISOString().split("T")[0];
+      const fileName = `backup-${empresa.nombre_empresa.replace(
+        /\s+/g,
+        "_"
+      )}-${fecha}.sql`;
+
+      link.setAttribute("download", fileName);
+      document.body.appendChild(link);
+      link.click();
+
+      // Limpiar el DOM y la memoria
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      Swal.close();
+      Swal.fire(
+        "¡Éxito!",
+        "Copia de seguridad descargada correctamente.",
+        "success"
+      );
+    } catch (error) {
+      console.error("Error al descargar backup:", error);
+      Swal.close();
+      Swal.fire(
+        "Error",
+        "No se pudo generar la copia de seguridad. Verifique que mysqldump esté instalado en el servidor.",
+        "error"
+      );
+    }
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -107,12 +162,7 @@ const ConfiguracionEmpresa = () => {
     }
   };
 
-  if (loading)
-    return (
-      <div className="content-header">
-        <div className="container-fluid">Cargando...</div>
-      </div>
-    );
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="content-header">
@@ -367,6 +417,26 @@ const ConfiguracionEmpresa = () => {
                     </div>
                   </div>
                 </form>
+              </div>
+            </div>
+            {/* SECCIÓN DE BACKUP ACTUALIZADA */}
+            <div className="card card-outline card-warning mt-4 shadow-sm">
+              <div className="card-header">
+                <h3 className="card-title text-bold">Base de Datos</h3>
+              </div>
+              <div className="card-body">
+                <p>
+                  Se recomienda realizar una copia de seguridad de su
+                  información periódicamente para evitar pérdidas accidentales.
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-warning text-white shadow-sm"
+                  onClick={handleDownloadBackup} // 👈 USAMOS LA NUEVA FUNCIÓN
+                >
+                  <i className="fas fa-database mr-1"></i> Descargar Copia de
+                  Seguridad (.SQL)
+                </button>
               </div>
             </div>
           </div>

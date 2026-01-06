@@ -84,6 +84,22 @@
         ]
     },
     {
+        "id": "logs",
+        "text": "Hist. de Activ.",
+        "icon": "fas fa-history",
+        "path": "/logs",
+        "permiso": "ver_logs",
+        "children": [
+            {
+                "id": "logs_listado",
+                "text": "Ver Actividad",
+                "icon": "fas fa-clipboard-list",
+                "path": "/logs/listado",
+                "permiso": "ver_logs"
+            }
+        ]
+    },
+    {
         "type": "header",
         "text": "DATOS DEL SISTEMA"
     },
@@ -343,6 +359,22 @@
                 "icon": "fas fa-fw fa-list",
                 "path": "/movimientos/listado",
                 "permiso": "ver_movimientos"
+            }
+        ]
+    },
+    {
+        "id": "gastos",
+        "text": "Gastos",
+        "icon": "fas fa-file-invoice-dollar",
+        "path": "/gastos",
+        "permiso": "ver_gastos",
+        "children": [
+            {
+                "id": "gastos_listado",
+                "text": "Listado de Gastos",
+                "icon": "fas fa-list",
+                "path": "/gastos/listado",
+                "permiso": "ver_gastos"
             }
         ]
     }

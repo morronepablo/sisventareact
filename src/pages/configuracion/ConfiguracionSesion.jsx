@@ -6,22 +6,29 @@ import api from "../../services/api";
 import Swal from "sweetalert2";
 import { Link } from "react-router-dom";
 
-// --- ESTILOS PARA IGUALAR SELECT2 CON BOOTSTRAP ---
+// --- CSS REFORZADO PARA SELECT2 (ESTILO ADMINLTE / BOOTSTRAP 4) ---
 const select2CustomStyles = `
-  .select2-container .select2-selection--single {
+  .select2-container--default .select2-selection--single {
     height: 38px !important;
+    padding: 0 !important;
     display: flex !important;
     align-items: center !important;
     border: 1px solid #ced4da !important;
     border-radius: 4px !important;
+    box-shadow: none !important;
   }
   .select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: 38px !important;
-    padding-left: 12px !important;
     color: #495057 !important;
+    padding-left: 12px !important;
+    line-height: 38px !important; /* Centrado vertical perfecto */
   }
   .select2-container--default .select2-selection--single .select2-selection__arrow {
     height: 36px !important;
+    right: 8px !important;
+  }
+  .select2-dropdown {
+    border: 1px solid #ced4da !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
   }
 `;
 
@@ -31,7 +38,7 @@ const ConfiguracionSesion = () => {
   const selectRef = useRef(null);
 
   useEffect(() => {
-    // 1. Cargar configuración
+    // 1. Cargar configuración actual
     api
       .get("/config-session")
       .then((res) => {
@@ -39,21 +46,26 @@ const ConfiguracionSesion = () => {
         setLoading(false);
       })
       .catch((err) => {
-        console.error(err);
+        console.error("Error al cargar config:", err);
         setLoading(false);
       });
 
-    // 2. Inicializar Select2
+    // 2. Inicializar Select2 con un pequeño delay para asegurar el render
     const timer = setTimeout(() => {
-      if (window.$ && window.$.fn.select2) {
-        const $select = window.$(selectRef.current);
-        $select.select2({ theme: "bootstrap4", width: "100%" });
+      const $select = window.$(selectRef.current);
+      if ($select.length) {
+        $select.select2({
+          theme: "default", // Cambiado a default para usar nuestro CSS manual
+          width: "100%",
+          placeholder: "Seleccione una unidad",
+        });
 
+        // Sincronizar cambio de Select2 con el estado de React
         $select.on("change", (e) => {
           setFormData((prev) => ({ ...prev, unidad: e.target.value }));
         });
       }
-    }, 500);
+    }, 300);
 
     return () => {
       clearTimeout(timer);
@@ -63,7 +75,7 @@ const ConfiguracionSesion = () => {
     };
   }, []);
 
-  // Sincronizar Select2 cuando los datos llegan del servidor
+  // Sincronizar valor visual de Select2 cuando los datos llegan del servidor
   useEffect(() => {
     if (!loading && window.$ && selectRef.current) {
       window
@@ -80,12 +92,12 @@ const ConfiguracionSesion = () => {
       Swal.fire({
         icon: "success",
         title: "¡Éxito!",
-        text: "Configuración actualizada. Se aplicará en el próximo login.",
+        text: "Configuración actualizada. Se aplicará en el próximo inicio de sesión.",
         timer: 3000,
         showConfirmButton: false,
       });
     } catch (error) {
-      Swal.fire("Error", "No se pudo guardar", "error");
+      Swal.fire("Error", "No se pudo guardar la configuración", "error");
     }
   };
 
@@ -114,25 +126,23 @@ const ConfiguracionSesion = () => {
             <div className="card card-outline card-primary shadow-sm">
               <div className="card-header border-primary">
                 <h3 className="card-title text-bold text-primary">
-                  <i className="fas fa-user-clock mr-2"></i> Duración del Token
-                  de Acceso
+                  <i className="fas fa-user-clock mr-2"></i> Duración de la
+                  Sesión
                 </h3>
               </div>
 
               <form onSubmit={handleSubmit}>
                 <div className="card-body">
                   <p className="text-muted">
-                    Configure el tiempo de expiración de la sesión para todos
-                    los usuarios.
+                    Configure el tiempo de validez del token de acceso. Una vez
+                    vencido, el usuario deberá reautenticarse.
                   </p>
 
                   <div className="form-group mb-4">
                     <label className="font-weight-bold">Medir tiempo en:</label>
-                    <select
-                      ref={selectRef}
-                      className="form-control"
-                      value={formData.unidad}
-                    >
+                    {/* Quitamos 'value' del select para evitar advertencias de React 
+                        ya que Select2 lo maneja por nosotros vía jQuery */}
+                    <select ref={selectRef} className="form-control">
                       <option value="minutos">Minutos</option>
                       <option value="horas">Horas</option>
                       <option value="dias">Días</option>
@@ -163,7 +173,10 @@ const ConfiguracionSesion = () => {
                     >
                       <i className="fas fa-reply mr-1"></i> Volver
                     </Link>
-                    <button type="submit" className="btn btn-primary shadow-sm">
+                    <button
+                      type="submit"
+                      className="btn btn-primary shadow-sm text-bold"
+                    >
                       <i className="fas fa-save mr-1"></i> Guardar Cambios
                     </button>
                   </div>
@@ -171,11 +184,13 @@ const ConfiguracionSesion = () => {
               </form>
             </div>
 
-            <div className="alert alert-info mt-3 shadow-sm">
-              <i className="icon fas fa-info"></i>
-              Por seguridad, el sistema verifica la validez del token cada 10
-              segundos. Si el tiempo expira, la sesión se cerrará
-              automáticamente.
+            <div
+              className="alert alert-info mt-3 shadow-sm"
+              style={{ borderLeft: "5px solid #117a8b" }}
+            >
+              <i className="icon fas fa-info-circle"></i>
+              El sistema verifica la expiración cada 10 segundos para mayor
+              seguridad.
             </div>
           </div>
         </div>

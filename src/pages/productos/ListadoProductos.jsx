@@ -6,6 +6,7 @@ import api from "../../services/api";
 import Swal from "sweetalert2";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext"; // Importamos para obtener empresa_id
 
 const ListadoProductos = () => {
   const [productos, setProductos] = useState([]);
@@ -16,6 +17,7 @@ const ListadoProductos = () => {
   const [importing, setImporting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const navigate = useNavigate();
+  const { user } = useAuth(); // Obtenemos el usuario logueado
 
   const API_URL = "http://localhost:3001";
 
@@ -36,7 +38,10 @@ const ListadoProductos = () => {
   };
 
   const navegarSinTooltips = (url) => {
-    if (window.$) window.$(".tooltip").remove();
+    if (window.$) {
+      window.$(".tooltip").remove();
+      window.$('[data-bs-toggle="tooltip"]').tooltip("hide");
+    }
     navigate(url);
   };
 
@@ -69,33 +74,47 @@ const ListadoProductos = () => {
     if (!loading) {
       const timer = setTimeout(() => {
         const tableId = "#productos-table";
-        if (window.$.fn.DataTable.isDataTable(tableId)) {
-          window.$(tableId).DataTable().destroy();
+        const $ = window.$;
+        if ($ && $.fn.DataTable) {
+          if ($.fn.DataTable.isDataTable(tableId)) {
+            $(tableId).DataTable().destroy();
+          }
+
+          $(tableId).DataTable({
+            paging: true,
+            ordering: true,
+            info: true,
+            autoWidth: false,
+            responsive: true,
+            pageLength: 5,
+            language: spanishLanguage,
+            lengthChange: false,
+            searching: false,
+            dom: "rtip",
+            buttons: ["copy", "pdf", "csv", "excel", "print"],
+            columnDefs: [{ targets: -1, orderable: false }],
+            // RE-INICIALIZAR TOOLTIPS NEGROS CADA VEZ QUE LA TABLA CAMBIA
+            drawCallback: function () {
+              if ($ && $.fn.tooltip) {
+                $('[data-bs-toggle="tooltip"]').tooltip("dispose");
+                $('[data-bs-toggle="tooltip"]').tooltip({
+                  trigger: "hover",
+                  boundary: "window",
+                });
+              }
+            },
+          });
         }
-
-        window.$(tableId).DataTable({
-          paging: true,
-          ordering: true,
-          info: true,
-          autoWidth: false,
-          responsive: true,
-          pageLength: 5, // 👈 CAMBIADO A 5 POR DEFECTO
-          language: spanishLanguage,
-          lengthChange: false,
-          searching: false,
-          dom: "rtip",
-          buttons: ["copy", "pdf", "csv", "excel", "print"],
-          columnDefs: [{ targets: -1, orderable: false }],
-        });
-
-        if (window.$) window.$('[data-bs-toggle="tooltip"]').tooltip();
-      }, 150);
+      }, 200);
 
       return () => {
         clearTimeout(timer);
         if (window.$) {
           window.$(".tooltip").remove();
-          if (window.$.fn.DataTable.isDataTable("#productos-table")) {
+          if (
+            window.$.fn.DataTable &&
+            window.$.fn.DataTable.isDataTable("#productos-table")
+          ) {
             window.$("#productos-table").DataTable().destroy();
           }
         }
@@ -112,6 +131,7 @@ const ListadoProductos = () => {
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
       confirmButtonText: "¡Sí, bórralo!",
+      cancelButtonText: "Cancelar",
     });
 
     if (result.isConfirmed) {
@@ -216,10 +236,9 @@ const ListadoProductos = () => {
                         <th>N. Corto</th>
                         <th>Unidad</th>
                         <th>Stock</th>
-                        <th>Precio Compra</th>
-                        <th>Porcentaje</th>
-                        <th>Por. Valor</th>
-                        <th>Precio Venta</th>
+                        <th>P. Compra</th>
+                        <th>%</th>
+                        <th>P. Venta</th>
                         <th>Imagen</th>
                         <th>Acciones</th>
                       </tr>
@@ -266,14 +285,7 @@ const ListadoProductos = () => {
                                 type="checkbox"
                                 checked={prod.aplicar_porcentaje}
                                 disabled
-                                style={{
-                                  accentColor: "#ff4500",
-                                  transform: "scale(1.5)",
-                                }}
                               />
-                            </td>
-                            <td className="text-right align-middle">
-                              {prod.valor_porcentaje ?? "0"} %
                             </td>
                             <td className="text-right align-middle font-weight-bold">
                               ${" "}
@@ -344,7 +356,12 @@ const ListadoProductos = () => {
                   <button
                     className="btn btn-secondary btn-sm"
                     onClick={() =>
-                      window.open(`${API_URL}/api/productos/reporte`, "_blank")
+                      window.open(
+                        `${API_URL}/api/productos/reporte?empresa_id=${
+                          user?.empresa_id || 1
+                        }`,
+                        "_blank"
+                      )
                     }
                   >
                     <i className="fa fa-file-pdf"></i> Stock Valorizado
@@ -364,14 +381,13 @@ const ListadoProductos = () => {
                 </div>
               </div>
               <div className="card-body">
-                {/* BARRA MANUAL SUPERIOR */}
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <div className="d-flex align-items-center">
                     <label className="mr-2 mb-0">Mostrar</label>
                     <select
                       className="form-control form-control-sm mr-2"
                       style={{ width: "65px" }}
-                      defaultValue="5" // 👈 CAMBIADO A 5 POR DEFECTO EN EL SELECT
+                      defaultValue="5"
                       onChange={(e) =>
                         window
                           .$("#productos-table")
@@ -386,7 +402,6 @@ const ListadoProductos = () => {
                       <option value="50">50</option>
                     </select>
                     <span className="mr-3">registros</span>
-
                     <div className="dt-buttons btn-group">
                       <button
                         className="btn btn-secondary btn-sm"
@@ -439,13 +454,11 @@ const ListadoProductos = () => {
                       <th>Categoría</th>
                       <th>Código</th>
                       <th>Nombre</th>
-                      <th>N. Corto</th>
                       <th>Unidad</th>
                       <th>Stock</th>
-                      <th>Precio Compra</th>
-                      <th>Porcentaje</th>
-                      <th>Por. Valor</th>
-                      <th>Precio Venta</th>
+                      <th>P. Compra</th>
+                      <th>%</th>
+                      <th>P. Venta</th>
                       <th>Imagen</th>
                       <th>Acciones</th>
                     </tr>
@@ -466,7 +479,6 @@ const ListadoProductos = () => {
                           </td>
                           <td className="align-middle">{prod.codigo}</td>
                           <td className="align-middle">{prod.nombre}</td>
-                          <td className="align-middle">{prod.nombre_corto}</td>
                           <td className="align-middle">{prod.unidad_nombre}</td>
                           <td
                             className="text-right align-middle"
@@ -486,14 +498,7 @@ const ListadoProductos = () => {
                               type="checkbox"
                               checked={prod.aplicar_porcentaje}
                               disabled
-                              style={{
-                                accentColor: "#ff4500",
-                                transform: "scale(1.5)",
-                              }}
                             />
-                          </td>
-                          <td className="text-right align-middle">
-                            {prod.valor_porcentaje ?? "0"} %
                           </td>
                           <td className="text-right align-middle font-weight-bold">
                             ${" "}
@@ -540,6 +545,31 @@ const ListadoProductos = () => {
                                 }
                               >
                                 <i className="fas fa-pencil-alt"></i>
+                              </button>
+                              <button
+                                className="btn btn-primary btn-sm"
+                                data-bs-toggle="tooltip" // 👈 CORREGIDO A data-bs-toggle
+                                title="Generar Etiquetas"
+                                onClick={() => {
+                                  const empresaId = user?.empresa_id || 1;
+                                  Swal.fire({
+                                    title: "¿Cuántas etiquetas?",
+                                    input: "number",
+                                    inputValue: 12,
+                                    showCancelButton: true,
+                                    confirmButtonText: "Generar PDF",
+                                    cancelButtonText: "Cancelar",
+                                  }).then((result) => {
+                                    if (result.isConfirmed) {
+                                      window.open(
+                                        `${API_URL}/api/productos/${prod.id}/etiquetas?cantidad=${result.value}&empresa_id=${empresaId}`,
+                                        "_blank"
+                                      );
+                                    }
+                                  });
+                                }}
+                              >
+                                <i className="fas fa-barcode"></i>
                               </button>
                               <button
                                 className="btn btn-danger btn-sm"

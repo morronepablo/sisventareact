@@ -118,6 +118,13 @@ import VerAjuste from "./pages/ajustes/VerAjuste";
 import ListadoProductosMovimientos from "./pages/movimientos/ListadoProductosMovimientos";
 import VerMovimientosProducto from "./pages/movimientos/VerMovimientosProducto";
 
+// Gastos
+import ListadoGastos from "./pages/gastos/ListadoGastos";
+import CrearGasto from "./pages/gastos/CrearGasto";
+
+// Logs
+import ListadoLogs from "./pages/logs/ListadoLogs";
+
 // 👇 IMPORTACIÓN DE COMPONENTES DE RUTA
 import ProtectedRoute from "./utils/ProtectedRoute";
 import PublicRoute from "./utils/PublicRoute";
@@ -317,6 +324,13 @@ const App = () => {
           path="/movimientos/ver/:id"
           element={<VerMovimientosProducto />}
         />
+
+        {/* Gastos */}
+        <Route path="/gastos/listado" element={<ListadoGastos />} />
+        <Route path="/gastos/crear" element={<CrearGasto />} />
+
+        {/* Logs */}
+        <Route path="/logs/listado" element={<ListadoLogs />} />
 
         {/* 404 dentro del layout si la ruta no existe */}
         <Route path="*" element={<NotFound />} />

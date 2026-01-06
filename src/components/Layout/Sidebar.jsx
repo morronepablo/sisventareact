@@ -91,6 +91,12 @@ const Sidebar = () => {
     } else if (item.permiso === "ver_movimientos") {
       total = counts.movimientos;
       badgeClass = "badge-info";
+    } else if (item.permiso === "ver_gastos") {
+      total = counts.gastos;
+      badgeClass = "badge-primary";
+    } else if (item.permiso === "ver_logs") {
+      total = counts.logs;
+      badgeClass = "badge-secondary";
     }
 
     return total > 0 ? (

@@ -27,6 +27,8 @@ export const fetchCounts = async () => {
       comprasMetrics,
       ajustes,
       movimientos,
+      gastos,
+      logs,
     ] = await Promise.all([
       api.get("/users/count").catch(() => ({ data: { total: 0 } })),
       api.get("/roles/count").catch(() => ({ data: { total: 0 } })),
@@ -55,6 +57,8 @@ export const fetchCounts = async () => {
       api.get("/compras/dashboard-metrics").catch(() => ({ data: {} })),
       api.get("/ajustes/count").catch(() => ({ data: { total: 0 } })),
       api.get("/movimientos/count").catch(() => ({ data: { total: 0 } })),
+      api.get("/gastos/count").catch(() => ({ data: { total: 0 } })),
+      api.get("/logs/count").catch(() => ({ data: { total: 0 } })),
     ]);
 
     return {
@@ -94,6 +98,8 @@ export const fetchCounts = async () => {
       total_inventario: comprasMetrics.data.total_inventario || 0,
       ajustes: ajustes.data.total,
       movimientos: movimientos.data.total,
+      gastos: gastos.data.total,
+      logs: logs.data.total,
     };
   } catch (error) {
     console.error("Error al cargar conteos:", error);

@@ -8,7 +8,7 @@ import { useNotifications } from "../../context/NotificationContext";
 import NotificationsDropdown from "./NotificationsDropdown";
 import ProvidersDebtDropdown from "./ProvidersDebtDropdown";
 import ClientsDebtDropdown from "./ClientsDebtDropdown";
-import api from "../../services/api"; // 👈 Importamos api para la reconstrucción
+import api from "../../services/api";
 import Swal from "sweetalert2";
 
 const Navbar = () => {
@@ -18,8 +18,10 @@ const Navbar = () => {
   const { arqueoAbierto, arqueoId } = useNotifications();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout();
+  // --- LOGOUT ACTUALIZADO ---
+  const handleLogout = async () => {
+    // Llamamos a la función asíncrona del contexto pasando el motivo
+    await logout("Cierre manual desde menú");
     navigate("/login");
   };
 
@@ -45,7 +47,6 @@ const Navbar = () => {
     });
   };
 
-  // --- NUEVA FUNCIÓN: LIMPIAR Y RECONSTRUIR MOVIMIENTOS ---
   const handleRebuildMovimientos = () => {
     Swal.fire({
       title: "¿Estás seguro?",
@@ -58,7 +59,6 @@ const Navbar = () => {
       cancelButtonText: "Cancelar",
     }).then(async (result) => {
       if (result.isConfirmed) {
-        // Mostrar estado de carga
         Swal.fire({
           title: "Reconstruyendo...",
           text: "Por favor espere mientras se procesan los datos históricos.",
@@ -70,9 +70,7 @@ const Navbar = () => {
         });
 
         try {
-          // Llamada al backend
           const response = await api.post("/movimientos/rebuild");
-
           if (response.data.success) {
             await Swal.fire({
               icon: "success",
@@ -80,7 +78,6 @@ const Navbar = () => {
               text: response.data.message,
               confirmButtonText: "Ir al Historial",
             });
-            // Opcional: Redirigir al historial de movimientos
             navigate("/movimientos/listado");
           }
         } catch (error) {
@@ -88,7 +85,7 @@ const Navbar = () => {
           Swal.fire({
             icon: "error",
             title: "Error",
-            text: "No se pudo completar el proceso de reconstrucción. Verifique la conexión con el servidor.",
+            text: "No se pudo completar el proceso de reconstrucción.",
           });
         }
       }
@@ -117,8 +114,6 @@ const Navbar = () => {
             Home
           </Link>
         </li>
-
-        {/* Botones principales */}
         <li className="nav-item d-none d-sm-inline-block ml-2">
           <Link
             to="/ventas/crear"
@@ -146,8 +141,6 @@ const Navbar = () => {
             <i className="fas fa-rotate-left"></i> Devolver
           </Link>
         </li>
-
-        {/* Botón Reconstruir Actualizado */}
         <li className="nav-item d-none d-sm-inline-block ml-2">
           <button
             type="button"
@@ -159,8 +152,6 @@ const Navbar = () => {
             Movimientos
           </button>
         </li>
-
-        {/* BOTÓN CIERRE ARQUEO */}
         {arqueoAbierto && (
           <li className="nav-item d-none d-sm-inline-block ml-2">
             <button
@@ -179,8 +170,6 @@ const Navbar = () => {
         <NotificationsDropdown />
         <ClientsDebtDropdown />
         <ProvidersDebtDropdown />
-
-        {/* Perfil de Usuario */}
         {user && (
           <li className="nav-item dropdown user-menu">
             <a
@@ -220,8 +209,6 @@ const Navbar = () => {
             </ul>
           </li>
         )}
-
-        {/* Modo oscuro */}
         <li className="nav-item">
           <a
             className="nav-link"

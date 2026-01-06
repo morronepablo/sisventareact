@@ -41,9 +41,8 @@ const CrearVenta = () => {
   const [codigo, setCodigo] = useState("");
   const [fecha, setFecha] = useState(() => {
     const hoy = new Date();
-    const offset = hoy.getTimezoneOffset() * 60000; // Ajuste de milisegundos de la zona horaria local
-    const fechaLocal = new Date(hoy - offset).toISOString().split("T")[0];
-    return fechaLocal;
+    const offset = hoy.getTimezoneOffset() * 60000;
+    return new Date(hoy - offset).toISOString().split("T")[0];
   });
   const [clienteSel, setClienteSel] = useState({
     id: 1,
@@ -141,6 +140,23 @@ const CrearVenta = () => {
     pagos.efectivo > restoParaEfectivo ? pagos.efectivo - restoParaEfectivo : 0;
 
   // --- ACCIONES ---
+
+  // Nueva función para subir/bajar cantidad
+  const updateQty = async (id, currentQty, delta) => {
+    const newQty = parseFloat(currentQty) + delta;
+    if (newQty < 1) return;
+
+    try {
+      const res = await api.put(`/ventas/tmp/${id}`, { cantidad: newQty });
+      if (res.data.success) {
+        fetchData(); // Recalcula todo automáticamente
+      }
+    } catch (e) {
+      console.error(e);
+      Swal.fire("Error", "No se pudo actualizar la cantidad", "error");
+    }
+  };
+
   const addItem = async (codigoItem) => {
     try {
       const res = await api.post("/ventas/tmp", {
@@ -150,6 +166,7 @@ const CrearVenta = () => {
       });
       if (res.data.success) {
         setCodigo("");
+        setCantidad(1);
         fetchData();
       } else {
         Swal.fire("Error", res.data.message, "error");
@@ -278,7 +295,6 @@ const CrearVenta = () => {
         <hr />
 
         <div className="row">
-          {/* GRILLA IZQUIERDA */}
           <div className="col-md-8">
             <div className="card card-outline card-primary shadow-sm">
               <div className="card-header">
@@ -314,7 +330,6 @@ const CrearVenta = () => {
                         placeholder="Código o nombre..."
                       />
                       <div className="input-group-append">
-                        {/* BOTÓN BUSCAR (AZUL) */}
                         <button
                           className="btn btn-primary"
                           type="button"
@@ -323,7 +338,6 @@ const CrearVenta = () => {
                         >
                           <i className="fas fa-search"></i>
                         </button>
-                        {/* 👈 BOTÓN NUEVO PRODUCTO (VERDE) AGREGADO */}
                         <button
                           className="btn btn-success"
                           type="button"
@@ -343,7 +357,7 @@ const CrearVenta = () => {
                       <tr>
                         <th>Nro.</th>
                         <th>Código</th>
-                        <th>Cantidad</th>
+                        <th style={{ width: "120px" }}>Cantidad</th>
                         <th>Producto/Combo</th>
                         <th>Unidad</th>
                         <th>Costo</th>
@@ -362,28 +376,59 @@ const CrearVenta = () => {
                             (1 + parseFloat(it.valor_porcentaje) / 100);
                         return (
                           <tr key={it.id}>
-                            <td className="text-center">{i + 1}</td>
-                            <td className="text-center">
+                            <td className="text-center align-middle">
+                              {i + 1}
+                            </td>
+                            <td className="text-center align-middle">
                               {it.codigo || it.combo_codigo}
                             </td>
-                            <td className="text-center">{it.cantidad}</td>
-                            <td>{it.nombre || it.combo_nombre}</td>
-                            <td className="text-center">
+                            {/* COLUMNA CANTIDAD CON BOTONES + / - */}
+                            <td className="text-center align-middle">
+                              <div className="btn-group btn-group-sm d-flex justify-content-center">
+                                <button
+                                  className="btn btn-outline-secondary btn-xs"
+                                  onClick={() =>
+                                    updateQty(it.id, it.cantidad, -1)
+                                  }
+                                  disabled={it.cantidad <= 1}
+                                >
+                                  <i className="fas fa-minus"></i>
+                                </button>
+                                <span
+                                  className="px-2 font-weight-bold align-self-center"
+                                  style={{ minWidth: "30px" }}
+                                >
+                                  {it.cantidad}
+                                </span>
+                                <button
+                                  className="btn btn-outline-secondary btn-xs"
+                                  onClick={() =>
+                                    updateQty(it.id, it.cantidad, 1)
+                                  }
+                                >
+                                  <i className="fas fa-plus"></i>
+                                </button>
+                              </div>
+                            </td>
+                            <td className="align-middle">
+                              {it.nombre || it.combo_nombre}
+                            </td>
+                            <td className="text-center align-middle">
                               {it.unidad_nombre || "N/A"}
                             </td>
-                            <td className="text-right">
+                            <td className="text-right align-middle">
                               ${" "}
                               {precio.toLocaleString("es-AR", {
                                 minimumFractionDigits: 2,
                               })}
                             </td>
-                            <td className="text-right text-bold">
+                            <td className="text-right align-middle text-bold">
                               ${" "}
                               {(it.cantidad * precio).toLocaleString("es-AR", {
                                 minimumFractionDigits: 2,
                               })}
                             </td>
-                            <td className="text-center">
+                            <td className="text-center align-middle">
                               <button
                                 className="btn btn-danger btn-sm"
                                 onClick={async () => {
@@ -397,6 +442,16 @@ const CrearVenta = () => {
                           </tr>
                         );
                       })}
+                      {tmpVentas.length === 0 && (
+                        <tr>
+                          <td
+                            colSpan="8"
+                            className="text-center text-muted py-3 italic"
+                          >
+                            No hay productos en el carrito
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                     <tfoot className="bg-light">
                       <tr className="text-bold">
@@ -430,7 +485,6 @@ const CrearVenta = () => {
             </div>
           </div>
 
-          {/* SIDEBAR DERECHO */}
           <div className="col-md-4">
             <div className="card shadow-sm">
               <div className="card-body">
@@ -591,6 +645,8 @@ const CrearVenta = () => {
         </div>
       </div>
 
+      {/* --- MODALES --- */}
+
       {/* MODAL PAGOS */}
       <div className="modal fade" id="modal-pagos" tabIndex="-1">
         <div className="modal-dialog modal-dialog-centered">
@@ -736,7 +792,7 @@ const CrearVenta = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {productos.map((p, i) => (
+                  {productos.map((p) => (
                     <tr key={`p-${p.id}`}>
                       <td className="text-center">
                         <button
@@ -751,8 +807,8 @@ const CrearVenta = () => {
                       </td>
                       <td className="text-center">{p.codigo}</td>
                       <td>{p.nombre}</td>
-                      <td>{p.stock}</td>
-                      <td>
+                      <td className="text-center">{p.stock}</td>
+                      <td className="text-right">
                         $ {parseFloat(p.precio_venta).toLocaleString("es-AR")}
                       </td>
                       <td className="text-center">
@@ -760,7 +816,7 @@ const CrearVenta = () => {
                       </td>
                     </tr>
                   ))}
-                  {combos.map((c, i) => (
+                  {combos.map((c) => (
                     <tr key={`c-${c.id}`}>
                       <td className="text-center">
                         <button
@@ -775,8 +831,8 @@ const CrearVenta = () => {
                       </td>
                       <td className="text-center">{c.codigo}</td>
                       <td>{c.nombre}</td>
-                      <td>N/A</td>
-                      <td>
+                      <td className="text-center">N/A</td>
+                      <td className="text-right">
                         $ {parseFloat(c.precio_venta).toLocaleString("es-AR")}
                       </td>
                       <td className="text-center">
@@ -829,7 +885,7 @@ const CrearVenta = () => {
                           <i className="fas fa-check"></i>
                         </button>
                       </td>
-                      <td>{cl.cuil_codigo}</td>
+                      <td className="text-center">{cl.cuil_codigo}</td>
                       <td>{cl.nombre_cliente}</td>
                     </tr>
                   ))}

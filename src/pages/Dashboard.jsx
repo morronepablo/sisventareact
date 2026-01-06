@@ -58,9 +58,11 @@ const Dashboard = () => {
     "Diciembre",
   ];
 
-  const fetchData = async () => {
+  // --- FUNCIÓN DE CARGA SINCRONIZADA ---
+  const loadDashboardData = async () => {
     setLoading(true);
     try {
+      // Esperamos ambas respuestas antes de renderizar
       const [countsRes, chartsRes] = await Promise.all([
         fetchCounts(),
         fetchChartData(selectedMonth),
@@ -68,15 +70,20 @@ const Dashboard = () => {
       setCounts(countsRes);
       setCharts(chartsRes);
     } catch (error) {
-      console.error("Error al cargar datos del dashboard:", error);
+      console.error("Error al cargar datos:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    loadDashboardData();
   }, [selectedMonth]);
+
+  const formatARS = (val) =>
+    `$ ${parseFloat(val || 0).toLocaleString("es-AR", {
+      minimumFractionDigits: 2,
+    })}`;
 
   const generateColors = (count) => {
     const colors = [
@@ -93,11 +100,6 @@ const Dashboard = () => {
     ];
     return Array.from({ length: count }, (_, i) => colors[i % colors.length]);
   };
-
-  const formatARS = (val) =>
-    `$ ${parseFloat(val || 0).toLocaleString("es-AR", {
-      minimumFractionDigits: 2,
-    })}`;
 
   // --- COMPONENTES UI ---
   const InfoBox = ({
@@ -169,12 +171,14 @@ const Dashboard = () => {
   // --- VALIDACIÓN DE CARGA ---
   if (loading || !charts) return <LoadingSpinner />;
 
-  // --- PREPARACIÓN DE DATOS (Solo se ejecuta si charts no es null) ---
+  // --- PREPARACIÓN DE DATOS PARA GRÁFICOS ---
+
+  // Fila 1: Ganancias
   const dataG9 = {
     labels: mesesLabels,
     datasets: [
       {
-        label: "Ganancias por Mes",
+        label: "Ganancias ($)",
         data: mesesLabels.map((_, i) =>
           charts.gananciasRaw
             .filter((r) => r.mes === i + 1)
@@ -218,7 +222,7 @@ const Dashboard = () => {
       </h1>
       <hr />
 
-      {/* FILAS 1-5 DE INDICADORES */}
+      {/* FILAS 1-5: InfoBoxes y SmallBoxes */}
       <div className="row">
         <InfoBox
           permission="ver_roles"
@@ -274,10 +278,7 @@ const Dashboard = () => {
           count={counts.proveedores}
           label="proveedores"
           extraInfo={
-            <span
-              className="text-danger"
-              style={{ fontWeight: "700", fontSize: "0.75rem" }}
-            >
+            <span className="text-danger" style={{ fontWeight: "700" }}>
               Deuda: {formatARS(counts.proveedoresDeuda)}
             </span>
           }
@@ -291,10 +292,7 @@ const Dashboard = () => {
           count={counts.compras}
           label="compras"
           extraInfo={
-            <span
-              className="text-success"
-              style={{ fontWeight: "700", fontSize: "0.75rem" }}
-            >
+            <span className="text-success" style={{ fontWeight: "700" }}>
               {counts.comprasAnio || 0} año actual
             </span>
           }
@@ -308,10 +306,7 @@ const Dashboard = () => {
           count={counts.clientes}
           label="clientes"
           extraInfo={
-            <span
-              className="text-danger"
-              style={{ fontWeight: "700", fontSize: "0.75rem" }}
-            >
+            <span className="text-danger" style={{ fontWeight: "700" }}>
               Deuda: {formatARS(counts.clientesDeuda)}
             </span>
           }
@@ -325,10 +320,7 @@ const Dashboard = () => {
           count={counts.ventas}
           label="ventas"
           extraInfo={
-            <span
-              className="text-success"
-              style={{ fontWeight: "700", fontSize: "0.75rem" }}
-            >
+            <span className="text-success" style={{ fontWeight: "700" }}>
               {counts.ventasAnio || 0} año actual
             </span>
           }
@@ -342,10 +334,7 @@ const Dashboard = () => {
           count={counts.arqueos}
           label="Arqueos"
           extraInfo={
-            <span
-              className="text-success"
-              style={{ fontWeight: "700", fontSize: "0.75rem" }}
-            >
+            <span className="text-success" style={{ fontWeight: "700" }}>
               {counts.arqueosAnio || 0} año actual
             </span>
           }
@@ -370,7 +359,9 @@ const Dashboard = () => {
         />
       </div>
 
-      <div className="row mt-3">
+      <hr />
+
+      <div className="row">
         <SmallBox
           color="bg-info"
           title="Ventas del día"
@@ -536,10 +527,11 @@ const Dashboard = () => {
         />
       </div>
 
-      <div className="row mt-4 mb-3">
+      {/* --- SECCIÓN DE GRÁFICOS --- */}
+      <div className="row mt-4 mb-3 align-items-center">
         <div className="col-md-3">
           <label>
-            <b>Seleccionar Mes:</b>
+            <b>Seleccionar Mes para Gráficos:</b>
           </label>
           <select
             className="form-control"
@@ -555,44 +547,40 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* FILAS DE GRÁFICOS REPLICADAS */}
       <div className="row">
+        {/* Fila 1: Ganancias */}
         <div className="col-md-6 mb-4">
-          <div className="card card-outline card-primary shadow-sm">
+          <div className="card card-outline card-primary shadow-sm h-100">
             <div className="card-header">
               <h3 className="card-title text-bold">Ganancias del Año</h3>
             </div>
             <div className="card-body">
-              <Bar data={dataG9} />
+              <Bar data={dataG9} options={{ responsive: true }} />
             </div>
           </div>
         </div>
         <div className="col-md-6 mb-4">
-          <div className="card card-outline card-primary shadow-sm">
+          <div className="card card-outline card-primary shadow-sm h-100">
             <div className="card-header">
-              <h3 className="card-title text-bold">
-                Ganancias por Mes y Categoría
-              </h3>
+              <h3 className="card-title text-bold">Ganancias por Categoría</h3>
             </div>
             <div className="card-body">
               <Bar
                 data={dataG10}
                 options={{
+                  responsive: true,
                   scales: { x: { stacked: true }, y: { stacked: true } },
                 }}
               />
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="row">
+        {/* Fila 2: Compras */}
         <div className="col-md-6 mb-4">
           <div className="card card-outline card-warning shadow-sm">
             <div className="card-header">
-              <h3 className="card-title text-bold">
-                Total cantidad de compras
-              </h3>
+              <h3 className="card-title text-bold">Cantidad de Compras</h3>
             </div>
             <div className="card-body">
               <Line
@@ -616,9 +604,7 @@ const Dashboard = () => {
         <div className="col-md-6 mb-4">
           <div className="card card-outline card-success shadow-sm">
             <div className="card-header">
-              <h3 className="card-title text-bold">
-                Total de compras monetizadas
-              </h3>
+              <h3 className="card-title text-bold">Compras Monetizadas ($)</h3>
             </div>
             <div className="card-body">
               <Bar
@@ -636,13 +622,12 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="row">
+        {/* Fila 3: Ventas */}
         <div className="col-md-6 mb-4">
           <div className="card card-outline card-primary shadow-sm">
             <div className="card-header">
-              <h3 className="card-title text-bold">Total cantidad de ventas</h3>
+              <h3 className="card-title text-bold">Cantidad de Ventas</h3>
             </div>
             <div className="card-body">
               <Line
@@ -666,9 +651,7 @@ const Dashboard = () => {
         <div className="col-md-6 mb-4">
           <div className="card card-outline card-purple shadow-sm">
             <div className="card-header">
-              <h3 className="card-title text-bold">
-                Total de ventas monetizadas
-              </h3>
+              <h3 className="card-title text-bold">Ventas Monetizadas ($)</h3>
             </div>
             <div className="card-body">
               <Bar
@@ -686,9 +669,8 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="row">
+        {/* Fila 4: Categorías */}
         <div className="col-md-6 mb-4">
           <div className="card card-outline card-info shadow-sm text-center">
             <div className="card-header">
@@ -737,9 +719,8 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="row">
+        {/* Fila 5: Diarios */}
         <div className="col-md-6 mb-4">
           <div className="card card-outline card-success shadow-sm text-center">
             <div className="card-header">
