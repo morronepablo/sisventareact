@@ -719,3 +719,92 @@ a:hover {
   font-size: 0.7rem;
   font-weight: bold;
 }
+
+/* ---------------------------------------------------------------------- */
+
+/* === NUEVO LAYOUT FIJO CON FLEXBOX === */
+
+/* Evitamos que el navegador haga scroll en el body */
+html,
+body,
+#root {
+  height: 100% !important;
+  margin: 0;
+  overflow: hidden !important;
+}
+
+/* El wrapper ocupa toda la pantalla y es un contenedor flex vertical */
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh !important;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* El Navbar se queda arriba y no se encoge */
+.main-header {
+  flex-shrink: 0;
+  width: 100%;
+  margin: 0 !important; /* Reseteamos márgenes */
+  position: relative !important; /* Importante: deja de ser fixed para ser parte del flex */
+  z-index: 1037;
+}
+
+/* El Sidebar se mantiene fijo a la izquierda (AdminLTE style) */
+.main-sidebar {
+  height: 100vh !important;
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  z-index: 1038;
+}
+
+/* EL CORAZÓN DEL CAMBIO: El contenedor central */
+.content-wrapper {
+  flex: 1; /* Ocupa todo el espacio sobrante */
+  overflow-y: auto; /* HABILITA EL SCROLL AQUÍ */
+  overflow-x: hidden;
+  background-color: #f4f6f9;
+
+  /* Eliminamos los paddings calculados que tenías antes */
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  display: flex;
+  flex-direction: column;
+}
+
+/* El Footer se queda abajo y no se encoge */
+.main-footer {
+  flex-shrink: 0;
+  width: 100%;
+  margin: 0 !important;
+  position: relative !important; /* Deja de ser fixed */
+  z-index: 1036;
+}
+
+/* --- AJUSTES DE MARGENES PARA ESCRITORIO --- */
+@media (min-width: 992px) {
+  .main-header,
+  .content-wrapper,
+  .main-footer {
+    margin-left: 250px !important; /* Ancho del sidebar */
+    transition: margin-left 0.3s ease-in-out;
+  }
+
+  /* Cuando el sidebar está colapsado */
+  body.sidebar-collapse .main-header,
+  body.sidebar-collapse .content-wrapper,
+  body.sidebar-collapse .main-footer {
+    margin-left: 4.6rem !important;
+  }
+}
+
+/* --- AJUSTES PARA MÓVIL --- */
+@media (max-width: 991.98px) {
+  .main-header,
+  .content-wrapper,
+  .main-footer {
+    margin-left: 0 !important;
+  }
+}

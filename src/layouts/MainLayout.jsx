@@ -16,7 +16,14 @@ const MainLayout = () => {
   }, [location.pathname]);
 
   useEffect(() => {
-    document.body.classList.add("sidebar-mini", "layout-fixed");
+    // Añadimos estas clases para que AdminLTE sepa que queremos todo fijo
+    document.body.classList.add(
+      "sidebar-mini",
+      "layout-fixed",
+      "layout-navbar-fixed",
+      "layout-footer-fixed"
+    );
+
     if (isDesktopCollapsed) document.body.classList.add("sidebar-collapse");
     else document.body.classList.remove("sidebar-collapse");
 
@@ -27,6 +34,8 @@ const MainLayout = () => {
       document.body.classList.remove(
         "sidebar-mini",
         "layout-fixed",
+        "layout-navbar-fixed",
+        "layout-footer-fixed",
         "sidebar-collapse",
         "sidebar-open"
       );
