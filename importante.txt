@@ -1,0 +1,3 @@
+url-front-nube: https://sisventareact-nube.vercel.app/
+url-back-nube: https://sisventanode-nube.onrender.com
+bases de datos nube: https://console.aiven.io/account/a530181db205/projects
