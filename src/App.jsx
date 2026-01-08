@@ -121,6 +121,7 @@ import VerMovimientosProducto from "./pages/movimientos/VerMovimientosProducto";
 // Gastos
 import ListadoGastos from "./pages/gastos/ListadoGastos";
 import CrearGasto from "./pages/gastos/CrearGasto";
+import VerGasto from "./pages/gastos/VerGasto";
 
 // Logs
 import ListadoLogs from "./pages/logs/ListadoLogs";
@@ -328,6 +329,7 @@ const App = () => {
         {/* Gastos */}
         <Route path="/gastos/listado" element={<ListadoGastos />} />
         <Route path="/gastos/crear" element={<CrearGasto />} />
+        <Route path="/gastos/ver/:id" element={<VerGasto />} />
 
         {/* Logs */}
         <Route path="/logs/listado" element={<ListadoLogs />} />

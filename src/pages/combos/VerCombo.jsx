@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../../services/api";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 const VerCombo = () => {
   const { id } = useParams();
@@ -24,8 +25,8 @@ const VerCombo = () => {
     }
   };
 
-  if (loading)
-    return <div className="p-5 text-center">Cargando detalles...</div>;
+  if (loading) return <LoadingSpinner />;
+
   if (!combo)
     return <div className="p-5 text-center">Combo no encontrado.</div>;
 

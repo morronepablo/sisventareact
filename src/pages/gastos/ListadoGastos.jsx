@@ -52,82 +52,83 @@ const ListadoGastos = () => {
   }, []);
 
   useEffect(() => {
-    if (!loading && gastos.length > 0) {
+    if (!loading && gastos.length >= 0) {
+      const tableId = "#gastos-table";
+      const $ = window.$;
       const timer = setTimeout(() => {
-        const tableId = "#gastos-table";
-        const $ = window.$;
+        if ($.fn.DataTable.isDataTable(tableId))
+          $(tableId).DataTable().destroy();
 
-        if ($ && $.fn.DataTable) {
-          if ($.fn.DataTable.isDataTable(tableId))
-            $(tableId).DataTable().destroy();
-
-          $(tableId).DataTable({
-            paging: true,
-            lengthChange: true,
-            searching: true,
-            ordering: true,
-            info: true,
-            responsive: true,
-            pageLength: 10,
-            language: spanishLanguage,
-            dom: '<"row"<"col-md-6"l><"col-md-6 text-right"f>><"row"<"col-md-12"B>>rt<"row"<"col-md-6"i><"col-md-6 text-right"p>>',
-            buttons: [
-              {
-                extend: "copy",
-                text: '<i class="fas fa-copy"></i> Copiar',
-                className: "btn btn-secondary btn-sm",
-              },
-              {
-                extend: "pdf",
-                text: '<i class="fas fa-file-pdf"></i> PDF',
-                className: "btn btn-danger btn-sm",
-              },
-              {
-                extend: "csv",
-                text: '<i class="fas fa-file-csv"></i> CSV',
-                className: "btn btn-info btn-sm",
-              },
-              {
-                extend: "excel",
-                text: '<i class="fas fa-file-excel"></i> Excel',
-                className: "btn btn-success btn-sm",
-              },
-              {
-                extend: "print",
-                text: '<i class="fas fa-print"></i> Imprimir',
-                className: "btn btn-warning btn-sm",
-              },
-            ],
-            drawCallback: function () {
+        $(tableId).DataTable({
+          paging: true,
+          ordering: true,
+          info: true,
+          responsive: true,
+          autoWidth: false,
+          pageLength: 10,
+          language: spanishLanguage,
+          dom: "rtip",
+          columnDefs: [{ targets: -1, orderable: false }],
+          drawCallback: function () {
+            if ($ && $.fn.tooltip) {
               $('[data-toggle="tooltip"]').tooltip("dispose");
               $('[data-toggle="tooltip"]').tooltip({
                 trigger: "hover",
                 boundary: "window",
+                template:
+                  '<div class="tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner bg-dark text-white shadow-sm"></div></div>',
               });
-            },
-          });
-        }
-      }, 200);
+            }
+          },
+        });
+      }, 100);
       return () => clearTimeout(timer);
     }
   }, [loading, gastos]);
 
+  // const handleDelete = (id) => {
+  //   Swal.fire({
+  //     title: "¿Eliminar este gasto?",
+  //     text: "Esta acción no se puede deshacer.",
+  //     icon: "warning",
+  //     showCancelButton: true,
+  //     confirmButtonText: "Sí, eliminar",
+  //     cancelButtonText: "Cancelar",
+  //   }).then(async (result) => {
+  //     if (result.isConfirmed) {
+  //       try {
+  //         await api.delete(`/gastos/${id}`);
+  //         Swal.fire("Eliminado", "El gasto ha sido borrado.", "success");
+  //         fetchData();
+  //       } catch (error) {
+  //         Swal.fire("Error", "No se pudo eliminar.", "error");
+  //       }
+  //     }
+  //   });
+  // };
+
   const handleDelete = (id) => {
     Swal.fire({
       title: "¿Eliminar este gasto?",
-      text: "Esta acción no se puede deshacer.",
+      text: "Si el gasto fue en efectivo, se ajustará automáticamente el saldo de la caja abierta.",
       icon: "warning",
       showCancelButton: true,
+      confirmButtonColor: "#d33",
       confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           await api.delete(`/gastos/${id}`);
-          Swal.fire("Eliminado", "El gasto ha sido borrado.", "success");
-          fetchData();
+          await Swal.fire({
+            title: "Eliminado",
+            text: "Gasto borrado y caja sincronizada.",
+            icon: "success",
+            timer: 1500,
+            showConfirmButton: false,
+          });
+          window.location.reload();
         } catch (error) {
-          Swal.fire("Error", "No se pudo eliminar.", "error");
+          Swal.fire("Error", "No se pudo eliminar el gasto.", "error");
         }
       }
     });
@@ -208,14 +209,28 @@ const ListadoGastos = () => {
                       {g.usuario_nombre}
                     </td>
                     <td className="text-center align-middle">
-                      <button
-                        className="btn btn-danger btn-sm"
-                        data-toggle="tooltip"
-                        title="Eliminar Gasto"
-                        onClick={() => handleDelete(g.id)}
-                      >
-                        <i className="fas fa-trash"></i>
-                      </button>
+                      <div className="btn-group">
+                        {/* BOTÓN VER GASTO CORREGIDO */}
+                        <button
+                          className="btn btn-info btn-sm"
+                          data-toggle="tooltip"
+                          title="Ver Detalle"
+                          onClick={() =>
+                            navegarSinTooltips(`/gastos/ver/${g.id}`)
+                          } // 👈 USAR LA FUNCIÓN WRAPPER
+                        >
+                          <i className="fas fa-eye"></i>
+                        </button>
+
+                        <button
+                          className="btn btn-danger btn-sm"
+                          data-toggle="tooltip"
+                          title="Eliminar Gasto"
+                          onClick={() => handleDelete(g.id)}
+                        >
+                          <i className="fas fa-trash"></i>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
