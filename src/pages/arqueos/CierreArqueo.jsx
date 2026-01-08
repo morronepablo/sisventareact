@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import Swal from "sweetalert2";
+import LoadingSpinner from "../../components/LoadingSpinner";
 import { useNotifications } from "../../context/NotificationContext";
 
 const CierreArqueo = () => {
@@ -138,7 +139,7 @@ const CierreArqueo = () => {
     }
   };
 
-  if (loading) return <div className="p-4">Cargando datos de cierre...</div>;
+  if (loading) return <LoadingSpinner />;
 
   return (
     <div className="content-header">
