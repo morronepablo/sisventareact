@@ -1,5 +1,215 @@
-// src/pages/usuarios/ListadoUsuarios.jsx
+// // src/pages/usuarios/ListadoUsuarios.jsx
+// /* eslint-disable react-hooks/exhaustive-deps */
+// import React, { useEffect, useState } from "react";
+// import api from "../../services/api";
+// import LoadingSpinner from "../../components/LoadingSpinner";
+// import { useNavigate } from "react-router-dom";
+// import { useAuth } from "../../context/AuthContext";
+// import Swal from "sweetalert2";
+
+// const ListadoUsuarios = () => {
+//   const [usuarios, setUsuarios] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const navigate = useNavigate();
+//   const { user } = useAuth();
+
+//   const spanishLanguage = {
+//     sProcessing: "Procesando...",
+//     sLengthMenu: "Mostrar _MENU_ registros",
+//     sZeroRecords: "No se encontraron resultados",
+//     sEmptyTable: "Ningún dato disponible en esta tabla",
+//     sInfo:
+//       "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+//     sSearch: "Buscar:",
+//     oPaginate: {
+//       sFirst: "Primero",
+//       sLast: "Último",
+//       sNext: "Siguiente",
+//       sPrevious: "Anterior",
+//     },
+//   };
+
+//   const fetchUsuarios = async () => {
+//     try {
+//       const response = await api.get("/users");
+//       setUsuarios(response.data);
+//       setLoading(false);
+//     } catch (error) {
+//       console.error("Error al cargar usuarios:", error);
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchUsuarios();
+//   }, []);
+
+//   useEffect(() => {
+//     if (!loading && usuarios.length > 0) {
+//       const tableId = "#usuarios-table";
+//       const timer = setTimeout(() => {
+//         if (window.$.fn.DataTable.isDataTable(tableId)) {
+//           window.$(tableId).DataTable().destroy();
+//         }
+//         window.$(tableId).DataTable({
+//           paging: true,
+//           ordering: true,
+//           info: true,
+//           responsive: true,
+//           autoWidth: false,
+//           pageLength: 10,
+//           language: spanishLanguage,
+//           dom: "rtip",
+//           columnDefs: [{ targets: -1, orderable: false }],
+//         });
+//       }, 100);
+//       return () => clearTimeout(timer);
+//     }
+//   }, [loading, usuarios]);
+
+//   const handleEliminar = async (id) => {
+//     const result = await Swal.fire({
+//       title: "¿Estás seguro?",
+//       text: "¡No podrás revertir esto!",
+//       icon: "warning",
+//       showCancelButton: true,
+//       confirmButtonColor: "#3085d6",
+//       cancelButtonColor: "#d33",
+//       confirmButtonText: "Sí, eliminar",
+//       cancelButtonText: "Cancelar",
+//     });
+
+//     if (result.isConfirmed) {
+//       try {
+//         await api.delete(`/users/${id}`);
+//         await Swal.fire({
+//           title: "¡Eliminado!",
+//           text: "El usuario ha sido borrado.",
+//           icon: "success",
+//           timer: 1500,
+//           showConfirmButton: false,
+//         });
+
+//         // --- LA SOLUCIÓN DEFINITIVA ---
+//         window.location.reload();
+//       } catch (error) {
+//         const mensaje = error.response?.data?.message || "No se pudo eliminar.";
+//         Swal.fire("Error", mensaje, "error");
+//       }
+//     }
+//   };
+
+//   if (loading) return <LoadingSpinner />;
+
+//   return (
+//     <div className="content-header">
+//       <div className="container-fluid">
+//         <h1>
+//           <b>Listado de Usuarios</b>
+//         </h1>
+//         <hr />
+//         <div className="card card-outline card-primary shadow-sm">
+//           <div className="card-header">
+//             <h3 className="card-title">Usuarios registrados</h3>
+//             <div className="card-tools">
+//               <button
+//                 className="btn btn-primary btn-sm"
+//                 onClick={() => navigate("/usuarios/crear")}
+//               >
+//                 <i className="fa fa-plus"></i> Crear nuevo
+//               </button>
+//             </div>
+//           </div>
+//           <div className="card-body">
+//             <table
+//               id="usuarios-table"
+//               className="table table-striped table-bordered table-hover table-sm"
+//             >
+//               <thead className="thead-dark text-center">
+//                 <tr>
+//                   <th>Nro.</th>
+//                   <th>Rol</th>
+//                   <th>Nombre</th>
+//                   <th>Email</th>
+//                   <th>Acciones</th>
+//                 </tr>
+//               </thead>
+//               <tbody>
+//                 {usuarios.map((usuario, index) => (
+//                   <tr key={usuario.id}>
+//                     <td className="text-center">{index + 1}</td>
+//                     <td className="text-center">
+//                       {usuario.roles?.map((r, i) => (
+//                         <span
+//                           key={i}
+//                           className={`badge ${
+//                             r.name === "Administrador"
+//                               ? "badge-danger"
+//                               : "badge-info"
+//                           } mr-1`}
+//                         >
+//                           {r.name}
+//                         </span>
+//                       ))}
+//                     </td>
+//                     <td>{usuario.name}</td>
+//                     <td>{usuario.email}</td>
+//                     <td className="text-center">
+//                       <div className="btn-group">
+//                         <button
+//                           className="btn btn-info btn-sm"
+//                           data-toggle="tooltip"
+//                           title="Ver Usuario"
+//                           onClick={() =>
+//                             navigate(`/usuarios/ver/${usuario.id}`)
+//                           }
+//                         >
+//                           <i className="fas fa-eye"></i>
+//                         </button>
+//                         <button
+//                           className="btn btn-success btn-sm"
+//                           data-toggle="tooltip"
+//                           title="Editar Usuario"
+//                           onClick={() =>
+//                             navigate(`/usuarios/editar/${usuario.id}`)
+//                           }
+//                         >
+//                           <i className="fas fa-pencil-alt"></i>
+//                         </button>
+//                         {usuario.puede_eliminarse && usuario.id !== user?.id ? (
+//                           <button
+//                             className="btn btn-danger btn-sm"
+//                             data-toggle="tooltip"
+//                             title="Eliminar Usuario"
+//                             onClick={() => handleEliminar(usuario.id)}
+//                           >
+//                             <i className="fas fa-trash"></i>
+//                           </button>
+//                         ) : (
+//                           <button
+//                             className="btn btn-secondary btn-sm disabled"
+//                             style={{ cursor: "not-allowed", opacity: 0.6 }}
+//                           >
+//                             <i className="fas fa-lock"></i>
+//                           </button>
+//                         )}
+//                       </div>
+//                     </td>
+//                   </tr>
+//                 ))}
+//               </tbody>
+//             </table>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// export default ListadoUsuarios;
+
 /* eslint-disable react-hooks/exhaustive-deps */
+// src/pages/usuarios/ListadoUsuarios.jsx
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -29,6 +239,14 @@ const ListadoUsuarios = () => {
     },
   };
 
+  const navegarSinTooltips = (url) => {
+    if (window.$) {
+      window.$(".tooltip").remove();
+      window.$('[data-toggle="tooltip"]').tooltip("hide");
+    }
+    navigate(url);
+  };
+
   const fetchUsuarios = async () => {
     try {
       const response = await api.get("/users");
@@ -47,11 +265,14 @@ const ListadoUsuarios = () => {
   useEffect(() => {
     if (!loading && usuarios.length > 0) {
       const tableId = "#usuarios-table";
+      const $ = window.$;
+
       const timer = setTimeout(() => {
-        if (window.$.fn.DataTable.isDataTable(tableId)) {
-          window.$(tableId).DataTable().destroy();
+        if ($.fn.DataTable.isDataTable(tableId)) {
+          $(tableId).DataTable().destroy();
         }
-        window.$(tableId).DataTable({
+
+        $(tableId).DataTable({
           paging: true,
           ordering: true,
           info: true,
@@ -61,6 +282,18 @@ const ListadoUsuarios = () => {
           language: spanishLanguage,
           dom: "rtip",
           columnDefs: [{ targets: -1, orderable: false }],
+          // --- ESTA ES LA CLAVE: MISMA LÓGICA QUE EN ROLES ---
+          drawCallback: function () {
+            if ($ && $.fn.tooltip) {
+              $('[data-toggle="tooltip"]').tooltip("dispose");
+              $('[data-toggle="tooltip"]').tooltip({
+                trigger: "hover",
+                boundary: "window",
+                template:
+                  '<div class="tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner bg-dark text-white shadow-sm"></div></div>',
+              });
+            }
+          },
         });
       }, 100);
       return () => clearTimeout(timer);
@@ -89,8 +322,6 @@ const ListadoUsuarios = () => {
           timer: 1500,
           showConfirmButton: false,
         });
-
-        // --- LA SOLUCIÓN DEFINITIVA ---
         window.location.reload();
       } catch (error) {
         const mensaje = error.response?.data?.message || "No se pudo eliminar.";
@@ -114,7 +345,7 @@ const ListadoUsuarios = () => {
             <div className="card-tools">
               <button
                 className="btn btn-primary btn-sm"
-                onClick={() => navigate("/usuarios/crear")}
+                onClick={() => navegarSinTooltips("/usuarios/crear")}
               >
                 <i className="fa fa-plus"></i> Crear nuevo
               </button>
@@ -137,8 +368,8 @@ const ListadoUsuarios = () => {
               <tbody>
                 {usuarios.map((usuario, index) => (
                   <tr key={usuario.id}>
-                    <td className="text-center">{index + 1}</td>
-                    <td className="text-center">
+                    <td className="text-center align-middle">{index + 1}</td>
+                    <td className="text-center align-middle">
                       {usuario.roles?.map((r, i) => (
                         <span
                           key={i}
@@ -152,29 +383,36 @@ const ListadoUsuarios = () => {
                         </span>
                       ))}
                     </td>
-                    <td>{usuario.name}</td>
-                    <td>{usuario.email}</td>
-                    <td className="text-center">
+                    <td className="align-middle">{usuario.name}</td>
+                    <td className="align-middle">{usuario.email}</td>
+                    <td className="text-center align-middle">
                       <div className="btn-group">
                         <button
                           className="btn btn-info btn-sm"
+                          data-toggle="tooltip"
+                          title="Ver Usuario"
                           onClick={() =>
-                            navigate(`/usuarios/ver/${usuario.id}`)
+                            navegarSinTooltips(`/usuarios/ver/${usuario.id}`)
                           }
                         >
                           <i className="fas fa-eye"></i>
                         </button>
                         <button
                           className="btn btn-success btn-sm"
+                          data-toggle="tooltip"
+                          title="Editar Usuario"
                           onClick={() =>
-                            navigate(`/usuarios/editar/${usuario.id}`)
+                            navegarSinTooltips(`/usuarios/editar/${usuario.id}`)
                           }
                         >
                           <i className="fas fa-pencil-alt"></i>
                         </button>
+
                         {usuario.puede_eliminarse && usuario.id !== user?.id ? (
                           <button
                             className="btn btn-danger btn-sm"
+                            data-toggle="tooltip"
+                            title="Eliminar Usuario"
                             onClick={() => handleEliminar(usuario.id)}
                           >
                             <i className="fas fa-trash"></i>
@@ -182,6 +420,8 @@ const ListadoUsuarios = () => {
                         ) : (
                           <button
                             className="btn btn-secondary btn-sm disabled"
+                            data-toggle="tooltip"
+                            title="Protegido o con actividad"
                             style={{ cursor: "not-allowed", opacity: 0.6 }}
                           >
                             <i className="fas fa-lock"></i>

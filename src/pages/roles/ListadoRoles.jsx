@@ -324,6 +324,8 @@ const ListadoRoles = () => {
                           <button
                             type="button"
                             className="btn btn-danger btn-sm"
+                            data-toggle="tooltip"
+                            title="Eliminar Rol"
                             onClick={() => handleEliminar(rol.id, rol.name)}
                           >
                             <i className="fas fa-trash"></i>

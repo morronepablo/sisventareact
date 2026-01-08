@@ -89,7 +89,7 @@ const ListadoPermisos = () => {
   const handleEliminar = async (id, permissionName) => {
     const result = await Swal.fire({
       title: "¿Estás seguro?",
-      text: `¡Vas a eliminar el permiso "${permissionName}"!`,
+      text: `¡Vas a eliminar el permiso "${permissionName}" permanentemente!`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
@@ -101,14 +101,20 @@ const ListadoPermisos = () => {
     if (result.isConfirmed) {
       try {
         await api.delete(`/permissions/${id}`);
-        Swal.fire("¡Eliminado!", "El permiso ha sido eliminado.", "success");
-        fetchPermisos();
+        await Swal.fire({
+          title: "¡Eliminado!",
+          text: "El permiso ha sido eliminado.",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
+        // RECARGA TOTAL PARA SINCRONIZAR DATATABLES
+        window.location.reload();
       } catch (error) {
-        Swal.fire(
-          "Error",
-          error.response?.data?.message || "No se pudo eliminar el permiso.",
-          "error"
-        );
+        const mensaje =
+          error.response?.data?.message || "No se pudo eliminar el permiso.";
+        Swal.fire("Error", mensaje, "error");
       }
     }
   };
@@ -260,17 +266,29 @@ const ListadoPermisos = () => {
                         >
                           <i className="fas fa-pencil-alt"></i>
                         </button>
-                        <button
-                          type="button"
-                          className="btn btn-danger btn-sm"
-                          data-bs-toggle="tooltip"
-                          title="Eliminar Permiso"
-                          onClick={() =>
-                            handleEliminar(permiso.id, permiso.name)
-                          }
-                        >
-                          <i className="fas fa-trash"></i>
-                        </button>
+                        {/* BOTÓN ELIMINAR CONDICIONAL: Solo si roles_count es 0 */}
+                        {permiso.roles_count === 0 ? (
+                          <button
+                            type="button"
+                            className="btn btn-danger btn-sm"
+                            data-bs-toggle="tooltip"
+                            title="Eliminar Permiso"
+                            onClick={() =>
+                              handleEliminar(permiso.id, permiso.name)
+                            }
+                          >
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm disabled"
+                            style={{ cursor: "not-allowed", opacity: 0.6 }}
+                            title="Este permiso está asignado a uno o más roles y no puede borrarse"
+                          >
+                            <i className="fas fa-lock"></i>
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
