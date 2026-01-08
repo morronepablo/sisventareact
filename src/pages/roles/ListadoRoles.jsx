@@ -114,7 +114,8 @@ const ListadoRoles = () => {
   }, [loading, roles]);
 
   const handleEliminar = async (id, roleName) => {
-    if (roleName === "Administrador") {
+    // Protección extra en el frontend
+    if (roleName === "Administrador" || id === 1) {
       Swal.fire(
         "Acceso denegado",
         "No se puede eliminar el rol de Administrador",
@@ -122,23 +123,35 @@ const ListadoRoles = () => {
       );
       return;
     }
+
     const result = await Swal.fire({
       title: "¿Estás seguro?",
-      text: "¡No podrás revertir esto!",
+      text: "Se eliminará el rol permanentemente.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "¡Sí, bórralo!",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
       cancelButtonText: "Cancelar",
     });
+
     if (result.isConfirmed) {
       try {
         await api.delete(`/roles/${id}`);
-        Swal.fire("¡Eliminado!", "El rol ha sido eliminado.", "success");
-        fetchRoles();
+        await Swal.fire({
+          title: "¡Eliminado!",
+          text: "El rol ha sido borrado.",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+
+        // RECARGA TOTAL PARA EVITAR CONFLICTOS CON DATATABLES
+        window.location.reload();
       } catch (error) {
-        Swal.fire("Error", "No se pudo eliminar el rol.", "error");
+        const msg =
+          error.response?.data?.message || "No se pudo eliminar el rol.";
+        Swal.fire("Error", msg, "error");
       }
     }
   };
@@ -304,15 +317,25 @@ const ListadoRoles = () => {
                         >
                           <i className="fas fa-lock"></i>
                         </button>
-                        {rol.name !== "Administrador" && (
+                        {/* BOTÓN ELIMINAR CONDICIONAL: 
+            Solo si el nombre NO es Administrador Y no tiene usuarios asignados (user_count === 0) */}
+                        {rol.name !== "Administrador" &&
+                        rol.user_count === 0 ? (
                           <button
                             type="button"
                             className="btn btn-danger btn-sm"
-                            data-toggle="tooltip"
-                            title="Eliminar Rol"
                             onClick={() => handleEliminar(rol.id, rol.name)}
                           >
                             <i className="fas fa-trash"></i>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn btn-secondary btn-sm disabled"
+                            style={{ cursor: "not-allowed", opacity: 0.6 }}
+                            title="Rol protegido o en uso por usuarios"
+                          >
+                            <i className="fas fa-lock"></i>
                           </button>
                         )}
                       </div>
