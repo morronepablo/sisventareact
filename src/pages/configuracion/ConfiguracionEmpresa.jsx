@@ -1,4 +1,5 @@
 // src/pages/configuracion/ConfiguracionEmpresa.jsx
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
 import Swal from "sweetalert2";
@@ -100,6 +101,131 @@ const ConfiguracionEmpresa = () => {
         "error"
       );
     }
+  };
+
+  const handleResetSystem = async () => {
+    // 1. Primera confirmación
+    const firstConfirm = await Swal.fire({
+      title: "¿ESTÁ COMPLETAMENTE SEGURO?",
+      text: "Esta acción ELIMINARÁ todas las ventas, productos, compras y movimientos. El sistema quedará como nuevo. ¡No se puede deshacer!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      confirmButtonText: "Sí, deseo borrar todo",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!firstConfirm.isConfirmed) return;
+
+    // 2. Segunda confirmación (Palabra clave)
+    const { value: word } = await Swal.fire({
+      title: "Confirmación Final",
+      text: 'Escriba "ELIMINAR" para confirmar:',
+      input: "text",
+      showCancelButton: true,
+      confirmButtonText: "RESETEAR AHORA",
+      confirmButtonColor: "#d33",
+    });
+
+    if (word === "ELIMINAR") {
+      // --- AQUÍ EMPIEZA LA CARGA VISIBLE ---
+      Swal.fire({
+        title: "Reseteando Sistema...",
+        text: "Estamos limpiando las tablas y restaurando valores de fábrica. Por favor, no cierre el navegador.",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading(); // Muestra el spinner dentro del modal
+        },
+      });
+
+      try {
+        const res = await api.post("/backup/reset-system");
+
+        if (res.data.success) {
+          // Limpieza inmediata de sesión
+          localStorage.removeItem("token");
+
+          // Cerramos el cargador y mostramos éxito
+          Swal.close();
+
+          await Swal.fire({
+            title: "¡Reseteo Exitoso!",
+            text: "El sistema se ha reiniciado. Debe ingresar con las credenciales por defecto (admin@admin.com / admin).",
+            icon: "success",
+            confirmButtonText: "Entendido",
+          });
+
+          // Redirección forzada
+          window.location.href = "/login";
+        }
+      } catch (error) {
+        Swal.close();
+        console.error(error);
+        Swal.fire(
+          "Error",
+          "Ocurrió un fallo en el servidor al intentar resetear.",
+          "error"
+        );
+      }
+    } else if (word !== undefined) {
+      Swal.fire("Cancelado", "Palabra clave incorrecta.", "error");
+    }
+  };
+
+  const handleRestoreDatabase = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Confirmación de seguridad
+    const confirm = await Swal.fire({
+      title: "¿Restaurar Base de Datos?",
+      text: "Esto reemplazará TODOS los datos actuales por los del archivo seleccionado. Se cerrará la sesión por seguridad.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      confirmButtonText: "Sí, restaurar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (confirm.isConfirmed) {
+      Swal.fire({
+        title: "Restaurando...",
+        text: "Cargando datos históricos, por favor espere.",
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      const formData = new FormData();
+      formData.append("backup", file);
+
+      try {
+        const res = await api.post("/backup/restore", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        if (res.data.success) {
+          localStorage.removeItem("token");
+          Swal.close();
+          await Swal.fire(
+            "¡Éxito!",
+            "Base de datos restaurada. Inicie sesión nuevamente.",
+            "success"
+          );
+          window.location.href = "/login";
+        }
+      } catch (error) {
+        Swal.close();
+        Swal.fire(
+          "Error",
+          "El archivo no es válido o hubo un fallo en el servidor.",
+          "error"
+        );
+      }
+    }
+    // Limpiar el input para permitir subir el mismo archivo después si falla
+    e.target.value = "";
   };
 
   const handleInputChange = (e) => {
@@ -437,6 +563,64 @@ const ConfiguracionEmpresa = () => {
                   <i className="fas fa-database mr-1"></i> Descargar Copia de
                   Seguridad (.SQL)
                 </button>
+              </div>
+            </div>
+            {/* SECCIÓN RESETEO DE SISTEMA */}
+            <div className="card card-outline card-danger mt-4 shadow-sm border-danger">
+              <div className="card-header bg-danger text-white">
+                <h3 className="card-title text-bold">Zona de Peligro</h3>
+              </div>
+              <div className="card-body">
+                <div className="row align-items-center">
+                  <div className="col-md-9">
+                    <p className="text-danger mb-0">
+                      <b>Reseteo de Fábrica:</b> Esta acción vaciará todas las
+                      tablas de negocio (Ventas, Compras, Productos,
+                      Proveedores, Movimientos) y dejará solo los valores
+                      predeterminados.
+                    </p>
+                  </div>
+                  <div className="col-md-3 text-right">
+                    <button
+                      type="button"
+                      className="btn btn-danger shadow-sm"
+                      onClick={handleResetSystem}
+                    >
+                      <i className="fas fa-trash-alt mr-1"></i> Resetear Sistema
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* SECCIÓN RESTAURACION BASE DE DATOS */}
+            <div className="card card-outline card-info mt-4 shadow-sm">
+              <div className="card-header bg-info text-white">
+                <h3 className="card-title text-bold">
+                  Restaurar Copia de Seguridad
+                </h3>
+              </div>
+              <div className="card-body">
+                <p>
+                  Seleccione un archivo <b>.SQL</b> generado previamente para
+                  restaurar toda la información del sistema.
+                </p>
+                <div className="form-group">
+                  <div className="custom-file">
+                    <input
+                      type="file"
+                      className="custom-file-input"
+                      id="restoreBackup"
+                      accept=".sql"
+                      onChange={handleRestoreDatabase}
+                    />
+                    <label
+                      className="custom-file-label"
+                      htmlFor="restoreBackup"
+                    >
+                      Seleccionar archivo .SQL
+                    </label>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
