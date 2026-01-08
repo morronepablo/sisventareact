@@ -1,6 +1,5 @@
 // src/pages/categorias/ListadoCategorias.jsx
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
@@ -12,7 +11,6 @@ const ListadoCategorias = () => {
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // OBJETO DE IDIOMA LOCAL
   const spanishLanguage = {
     sProcessing: "Procesando...",
     sLengthMenu: "Mostrar _MENU_ registros",
@@ -30,7 +28,10 @@ const ListadoCategorias = () => {
   };
 
   const navegarSinTooltips = (url) => {
-    if (window.$) window.$(".tooltip").remove();
+    if (window.$) {
+      window.$(".tooltip").remove();
+      window.$('[data-toggle="tooltip"]').tooltip("hide");
+    }
     navigate(url);
   };
 
@@ -49,15 +50,18 @@ const ListadoCategorias = () => {
     fetchCategorias();
   }, []);
 
+  // --- INICIALIZACIÓN DE DATATABLES ---
   useEffect(() => {
-    if (!loading) {
+    if (!loading && categorias.length > 0) {
+      const tableId = "#categorias-table";
+      const $ = window.$;
+
       const timer = setTimeout(() => {
-        const tableId = "#categorias-table";
-        if (window.$.fn.DataTable.isDataTable(tableId)) {
-          window.$(tableId).DataTable().destroy();
+        if ($.fn.DataTable.isDataTable(tableId)) {
+          $(tableId).DataTable().destroy();
         }
 
-        window.$(tableId).DataTable({
+        $(tableId).DataTable({
           paging: true,
           ordering: true,
           info: true,
@@ -65,51 +69,54 @@ const ListadoCategorias = () => {
           responsive: true,
           pageLength: 10,
           language: spanishLanguage,
-          lengthChange: false, // Desactivar original para usar el manual
-          searching: false, // Desactivar original para usar el manual
-          dom: "rtip", // Ocultar controles duplicados de DataTables
+          dom: "rtip", // Para usar nuestros controles manuales
           columnDefs: [{ targets: -1, orderable: false }],
+          drawCallback: function () {
+            if ($ && $.fn.tooltip) {
+              $('[data-toggle="tooltip"]').tooltip("dispose");
+              $('[data-toggle="tooltip"]').tooltip({
+                trigger: "hover",
+                boundary: "window",
+                template:
+                  '<div class="tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner bg-dark text-white shadow-sm"></div></div>',
+              });
+            }
+          },
         });
-
-        // Inicializar tooltips de Bootstrap
-        if (window.$) window.$('[data-bs-toggle="tooltip"]').tooltip();
-      }, 150);
-
-      return () => {
-        clearTimeout(timer);
-        if (window.$) {
-          window.$(".tooltip").remove();
-          if (window.$.fn.DataTable.isDataTable("#categorias-table")) {
-            window.$("#categorias-table").DataTable().destroy();
-          }
-        }
-      };
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [loading, categorias]);
 
   const handleEliminar = async (id, nombre) => {
     const result = await Swal.fire({
       title: "¿Estás seguro?",
-      text: `¡Vas a eliminar la categoría "${nombre}"!`,
+      text: `Se eliminará la categoría "${nombre}".`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
-      confirmButtonText: "¡Sí, bórrala!",
-      cancelButtonText: "Cancelar",
+      confirmButtonText: "¡Sí, eliminar!",
     });
 
     if (result.isConfirmed) {
       try {
         await api.delete(`/categorias/${id}`);
-        Swal.fire("¡Eliminado!", "La categoría ha sido eliminada.", "success");
-        fetchCategorias();
+        await Swal.fire({
+          title: "¡Eliminado!",
+          icon: "success",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        window.location.reload();
       } catch (error) {
-        Swal.fire("Error", "No se pudo eliminar la categoría.", "error");
+        const msg = error.response?.data?.message || "Error al eliminar.";
+        Swal.fire("Error", msg, "error");
       }
     }
   };
 
+  // Función para los botones de exportación
   const handleExport = (type) => {
     const table = window.$("#categorias-table").DataTable();
     table.button(`.buttons-${type}`).trigger();
@@ -145,7 +152,7 @@ const ListadoCategorias = () => {
           </div>
 
           <div className="card-body">
-            {/* Barra superior de controles manuales */}
+            {/* CONTROLES MANUALES (Igual que en Usuarios) */}
             <div className="d-flex justify-content-between align-items-center mb-3">
               <div className="d-flex align-items-center">
                 <label className="mr-2 mb-0">Mostrar</label>
@@ -163,7 +170,6 @@ const ListadoCategorias = () => {
                   <option value="10">10</option>
                   <option value="25">25</option>
                   <option value="50">50</option>
-                  <option value="100">100</option>
                 </select>
                 <span className="mr-3">registros</span>
 
@@ -218,7 +224,6 @@ const ListadoCategorias = () => {
               </div>
             </div>
 
-            {/* Tabla */}
             <table
               id="categorias-table"
               className="table table-striped table-bordered table-hover table-sm"
@@ -228,6 +233,7 @@ const ListadoCategorias = () => {
                   <th style={{ width: "50px" }}>Nro.</th>
                   <th>Nombre</th>
                   <th>Descripción</th>
+                  <th>Productos</th>
                   <th style={{ width: "120px" }}>Acciones</th>
                 </tr>
               </thead>
@@ -235,14 +241,21 @@ const ListadoCategorias = () => {
                 {categorias.map((cat, i) => (
                   <tr key={cat.id}>
                     <td className="text-center align-middle">{i + 1}</td>
-                    <td className="align-middle">{cat.nombre}</td>
+                    <td className="align-middle">
+                      <b>{cat.nombre}</b>
+                    </td>
                     <td className="align-middle">{cat.descripcion || "–"}</td>
+                    <td className="text-center align-middle">
+                      <span className="badge badge-secondary">
+                        {cat.productos_count}
+                      </span>
+                    </td>
                     <td className="text-center align-middle">
                       <div className="btn-group">
                         <button
                           className="btn btn-info btn-sm"
-                          data-bs-toggle="tooltip"
-                          title="Ver Categoría"
+                          data-toggle="tooltip"
+                          title="Ver"
                           onClick={() =>
                             navegarSinTooltips(`/categorias/ver/${cat.id}`)
                           }
@@ -251,23 +264,33 @@ const ListadoCategorias = () => {
                         </button>
                         <button
                           className="btn btn-success btn-sm"
-                          data-bs-toggle="tooltip"
-                          title="Editar Categoría"
+                          data-toggle="tooltip"
+                          title="Editar"
                           onClick={() =>
                             navegarSinTooltips(`/categorias/editar/${cat.id}`)
                           }
                         >
                           <i className="fas fa-pencil-alt"></i>
                         </button>
-                        <button
-                          type="button"
-                          className="btn btn-danger btn-sm"
-                          data-bs-toggle="tooltip"
-                          title="Eliminar Categoría"
-                          onClick={() => handleEliminar(cat.id, cat.nombre)}
-                        >
-                          <i className="fas fa-trash"></i>
-                        </button>
+                        {cat.productos_count === 0 ? (
+                          <button
+                            className="btn btn-danger btn-sm"
+                            data-toggle="tooltip"
+                            title="Eliminar"
+                            onClick={() => handleEliminar(cat.id, cat.nombre)}
+                          >
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        ) : (
+                          <button
+                            className="btn btn-secondary btn-sm disabled"
+                            data-toggle="tooltip"
+                            title="Tiene productos asociados"
+                            style={{ cursor: "not-allowed", opacity: 0.6 }}
+                          >
+                            <i className="fas fa-lock"></i>
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
