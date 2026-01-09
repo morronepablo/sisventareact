@@ -50,7 +50,7 @@ const ListadoLogs = () => {
             info: true,
             responsive: true,
             // 1. CAMBIO: Paginación de 5 en 5
-            pageLength: 10,
+            pageLength: 5,
             lengthMenu: [
               [5, 10, 25, 50, -1],
               [5, 10, 25, 50, "Todos"],
