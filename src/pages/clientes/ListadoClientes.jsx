@@ -118,6 +118,7 @@ const ListadoClientes = () => {
           await api.delete(`/clientes/${id}`);
           Swal.fire("Eliminado", "El cliente ha sido eliminado.", "success");
           fetchClientes();
+          window.location.reload();
         } catch (error) {
           Swal.fire("Error", "No se pudo eliminar el cliente.", "error");
         }
