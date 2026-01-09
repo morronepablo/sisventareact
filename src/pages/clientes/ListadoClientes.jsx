@@ -14,6 +14,12 @@ const ListadoClientes = () => {
   const navigate = useNavigate();
   const { hasPermission } = useAuth();
 
+  // URL dinámica según el entorno
+  const API_URL =
+    window.location.hostname === "localhost"
+      ? "http://localhost:3001"
+      : "https://sistema-ventas-backend-3nn3.onrender.com";
+
   const spanishLanguage = {
     sProcessing: "Procesando...",
     sLengthMenu: "Mostrar _MENU_ registros",
@@ -31,8 +37,18 @@ const ListadoClientes = () => {
   };
 
   const navegarSinTooltips = (url) => {
-    if (window.$) window.$(".tooltip").remove();
+    if (window.$) {
+      window.$(".tooltip").remove();
+      window.$('[data-toggle="tooltip"]').tooltip("hide");
+    }
     navigate(url);
+  };
+
+  // FUNCIÓN PARA ABRIR REPORTES CON TOKEN
+  const abrirReporte = (path) => {
+    const token = localStorage.getItem("token");
+    const url = `${API_URL}${path}?token=${token}`;
+    window.open(url, "_blank");
   };
 
   const fetchClientes = async () => {
@@ -51,16 +67,13 @@ const ListadoClientes = () => {
   }, []);
 
   useEffect(() => {
-    if (!loading) {
+    if (!loading && clientes.length >= 0) {
       const timer = setTimeout(() => {
         const tableId = "#clientes-table";
-
-        // 1. Destruir instancia previa si existe
         if (window.$.fn.DataTable.isDataTable(tableId)) {
           window.$(tableId).DataTable().destroy();
         }
 
-        // 2. Inicializar con controles automáticos APAGADOS
         window.$(tableId).DataTable({
           paging: true,
           ordering: true,
@@ -69,21 +82,22 @@ const ListadoClientes = () => {
           responsive: true,
           pageLength: 10,
           language: spanishLanguage,
-
-          // 👇 ESTO APAGA LOS CONTROLES AUTOMÁTICOS QUE SE DUPLICAN
-          lengthChange: false, // Apaga el "Mostrar" automático
-          searching: false, // Apaga el "Buscar" automático
-
-          // 'rtip' significa: [r]ocessing, [t]able, [i]nfo, [p]agination.
-          // Al no incluir 'l' (length) ni 'f' (filter), no se dibujan.
+          lengthChange: false,
+          searching: false,
           dom: "rtip",
-
-          buttons: ["copy", "pdf", "csv", "excel", "print"],
           columnDefs: [{ targets: -1, orderable: false }],
+          drawCallback: function () {
+            if (window.$ && window.$.fn.tooltip) {
+              window.$('[data-toggle="tooltip"]').tooltip("dispose");
+              window.$('[data-toggle="tooltip"]').tooltip({
+                trigger: "hover",
+                boundary: "window",
+                template:
+                  '<div class="tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner bg-dark text-white shadow-sm"></div></div>',
+              });
+            }
+          },
         });
-
-        // Inicializar Tooltips
-        if (window.$) window.$('[data-bs-toggle="tooltip"]').tooltip();
       }, 150);
 
       return () => {
@@ -109,8 +123,8 @@ const ListadoClientes = () => {
       text: "¡No podrás revertir esto!",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
       confirmButtonText: "¡Sí, bórralo!",
     }).then(async (result) => {
       if (result.isConfirmed) {
@@ -118,7 +132,6 @@ const ListadoClientes = () => {
           await api.delete(`/clientes/${id}`);
           Swal.fire("Eliminado", "El cliente ha sido eliminado.", "success");
           fetchClientes();
-          window.location.reload();
         } catch (error) {
           Swal.fire("Error", "No se pudo eliminar el cliente.", "error");
         }
@@ -146,14 +159,10 @@ const ListadoClientes = () => {
           <div className="card-header">
             <h3 className="card-title my-1">Clientes registrados</h3>
             <div className="card-tools">
+              {/* BOTÓN REPORTE CORREGIDO */}
               <button
                 className="btn btn-secondary btn-sm mr-2"
-                onClick={() =>
-                  window.open(
-                    "http://localhost:3001/api/clientes/reporte",
-                    "_blank"
-                  )
-                }
+                onClick={() => abrirReporte("/api/clientes/reporte")}
               >
                 <i className="fa fa-file-pdf"></i> Reporte
               </button>
@@ -167,7 +176,6 @@ const ListadoClientes = () => {
           </div>
 
           <div className="card-body">
-            {/* BARRA MANUAL SUPERIOR (La que queremos conservar) */}
             <div className="d-flex justify-content-between align-items-center mb-3">
               <div className="d-flex align-items-center">
                 <label className="mr-2 mb-0">Mostrar</label>
@@ -256,25 +264,29 @@ const ListadoClientes = () => {
               <tbody>
                 {clientes.map((c, index) => (
                   <tr key={c.id}>
-                    <td className="text-center">{index + 1}</td>
-                    <td>{c.nombre_cliente}</td>
-                    <td className="text-center">{c.cuil_codigo}</td>
-                    <td className="text-center">{c.telefono}</td>
-                    <td>{c.email}</td>
-                    <td className="text-right">
+                    <td className="text-center align-middle">{index + 1}</td>
+                    <td className="align-middle">
+                      <b>{c.nombre_cliente}</b>
+                    </td>
+                    <td className="text-center align-middle">
+                      {c.cuil_codigo}
+                    </td>
+                    <td className="text-center align-middle">{c.telefono}</td>
+                    <td className="align-middle">{c.email}</td>
+                    <td className="text-right align-middle">
                       ${" "}
                       {parseFloat(c.deuda || 0).toLocaleString("es-AR", {
                         minimumFractionDigits: 2,
                       })}
                     </td>
-                    <td className="text-right">
+                    <td className="text-right align-middle">
                       ${" "}
                       {parseFloat(c.pagos || 0).toLocaleString("es-AR", {
                         minimumFractionDigits: 2,
                       })}
                     </td>
                     <td
-                      className={`text-right font-weight-bold ${
+                      className={`text-right align-middle font-weight-bold ${
                         parseFloat(c.saldo) === 0
                           ? "text-success"
                           : "text-danger"
@@ -285,20 +297,22 @@ const ListadoClientes = () => {
                         minimumFractionDigits: 2,
                       })}
                     </td>
-                    <td className="text-center">{c.cantidad_compras}</td>
-                    <td className="text-right">
+                    <td className="text-center align-middle">
+                      {c.cantidad_compras}
+                    </td>
+                    <td className="text-right align-middle font-weight-bold">
                       ${" "}
                       {parseFloat(c.monto_compras || 0).toLocaleString(
                         "es-AR",
                         { minimumFractionDigits: 2 }
                       )}
                     </td>
-                    <td className="text-center">
+                    <td className="text-center align-middle">
                       <div className="btn-group">
                         <button
                           className="btn btn-info btn-sm"
-                          data-bs-toggle="tooltip"
-                          title="Ver Cliente"
+                          data-toggle="tooltip"
+                          title="Ver"
                           onClick={() =>
                             navegarSinTooltips(`/clientes/ver/${c.id}`)
                           }
@@ -309,8 +323,8 @@ const ListadoClientes = () => {
                           <>
                             <button
                               className="btn btn-warning btn-sm"
-                              data-bs-toggle="tooltip"
-                              title="Gestionar Pagos"
+                              data-toggle="tooltip"
+                              title="Pagos"
                               onClick={() =>
                                 navegarSinTooltips(`/clientes/pagos/${c.id}`)
                               }
@@ -319,8 +333,8 @@ const ListadoClientes = () => {
                             </button>
                             <button
                               className="btn btn-primary btn-sm"
-                              data-bs-toggle="tooltip"
-                              title="Ver Compras"
+                              data-toggle="tooltip"
+                              title="Compras"
                               onClick={() =>
                                 navegarSinTooltips(`/clientes/compras/${c.id}`)
                               }
@@ -329,8 +343,8 @@ const ListadoClientes = () => {
                             </button>
                             <button
                               className="btn btn-secondary btn-sm"
-                              data-bs-toggle="tooltip"
-                              title="Ver Historial"
+                              data-toggle="tooltip"
+                              title="Historial"
                               onClick={() =>
                                 navegarSinTooltips(
                                   `/clientes/historial/${c.id}`
@@ -341,8 +355,8 @@ const ListadoClientes = () => {
                             </button>
                             <button
                               className="btn btn-success btn-sm"
-                              data-bs-toggle="tooltip"
-                              title="Editar Cliente"
+                              data-toggle="tooltip"
+                              title="Editar"
                               onClick={() =>
                                 navegarSinTooltips(`/clientes/editar/${c.id}`)
                               }
@@ -352,8 +366,8 @@ const ListadoClientes = () => {
                             {c.cantidad_compras === 0 && (
                               <button
                                 className="btn btn-danger btn-sm"
-                                data-bs-toggle="tooltip"
-                                title="Eliminar Cliente"
+                                data-toggle="tooltip"
+                                title="Eliminar"
                                 onClick={() => handleEliminar(c.id)}
                               >
                                 <i className="fas fa-trash"></i>

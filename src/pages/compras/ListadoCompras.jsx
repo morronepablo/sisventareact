@@ -1,18 +1,26 @@
 // src/pages/compras/ListadoCompras.jsx
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import { useAuth } from "../../context/AuthContext";
 
 const ListadoCompras = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [compras, setCompras] = useState([]);
   const [loading, setLoading] = useState(true);
   const [arqueoAbierto, setArqueoAbierto] = useState(false);
 
-  // OBJETO DE IDIOMA LOCAL (Evita errores de CORS)
+  // URL dinámica según el entorno (Local o Render)
+  const API_URL =
+    window.location.hostname === "localhost"
+      ? "http://localhost:3001"
+      : "https://sistema-ventas-backend-3nn3.onrender.com";
+
   const spanishLanguage = {
     sProcessing: "Procesando...",
     sLengthMenu: "Mostrar _MENU_ registros",
@@ -30,8 +38,17 @@ const ListadoCompras = () => {
   };
 
   const navegarSinTooltips = (url) => {
-    if (window.$) window.$(".tooltip").remove();
+    if (window.$) {
+      window.$(".tooltip").remove();
+      window.$('[data-toggle="tooltip"]').tooltip("hide");
+    }
     navigate(url);
+  };
+
+  // --- FUNCIÓN PARA ABRIR REPORTES CON TOKEN ---
+  const abrirReporte = (path) => {
+    const token = localStorage.getItem("token");
+    window.open(`${API_URL}${path}?token=${token}`, "_blank");
   };
 
   const fetchData = async () => {
@@ -79,64 +96,59 @@ const ListadoCompras = () => {
 
     const timer = setTimeout(() => {
       const tableId = "#compras-table";
-      if (window.$.fn.DataTable.isDataTable(tableId)) {
-        window.$(tableId).DataTable().destroy();
+      const $ = window.$;
+      if (!$) return;
+
+      if ($.fn.DataTable.isDataTable(tableId)) {
+        $(tableId).DataTable().destroy();
       }
 
-      const table = window.$(tableId).DataTable({
+      const table = $(tableId).DataTable({
         paging: true,
         ordering: true,
         info: true,
         responsive: true,
         pageLength: 10,
-        language: spanishLanguage, // APLICAR TRADUCCIÓN
-        lengthChange: false, // Desactivar original para usar el manual
-        searching: false, // Desactivar original para usar el manual
-        dom: "rtip", // Ocultar controles automáticos duplicados
-        buttons: ["copy", "pdf", "excel", "print"],
+        language: spanishLanguage,
+        lengthChange: false,
+        searching: false,
+        dom: "rtip",
         columnDefs: [
           { targets: 0, orderable: false },
           { targets: -1, orderable: false },
         ],
+        drawCallback: function () {
+          if ($ && $.fn.tooltip) {
+            $('[data-toggle="tooltip"]').tooltip("dispose");
+            $('[data-toggle="tooltip"]').tooltip({
+              trigger: "hover",
+              boundary: "window",
+              template:
+                '<div class="tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner bg-dark text-white shadow-sm"></div></div>',
+            });
+          }
+        },
       });
 
-      // Lógica de expansión de filas
-      window.$(`${tableId} tbody`).off("click", "td.details-control");
-      window
-        .$(`${tableId} tbody`)
-        .on("click", "td.details-control", function () {
-          var tr = window.$(this).closest("tr");
-          var row = table.row(tr);
-          var idx = tr.data("index");
-          if (row.child.isShown()) {
-            row.child.hide();
-            tr.removeClass("shown");
-            window
-              .$(this)
-              .find("i")
-              .attr("class", "fas fa-plus-circle text-primary");
-          } else {
-            row.child(formatDetails(compras[idx])).show();
-            tr.addClass("shown");
-            window
-              .$(this)
-              .find("i")
-              .attr("class", "fas fa-minus-circle text-danger");
-          }
-        });
-
-      if (window.$) window.$('[data-bs-toggle="tooltip"]').tooltip();
+      // Lógica de expansión de filas (Abanico)
+      $(`${tableId} tbody`).off("click", "td.details-control");
+      $(`${tableId} tbody`).on("click", "td.details-control", function () {
+        var tr = $(this).closest("tr");
+        var row = table.row(tr);
+        var idx = tr.data("index");
+        if (row.child.isShown()) {
+          row.child.hide();
+          tr.removeClass("shown");
+          $(this).find("i").attr("class", "fas fa-plus-circle text-primary");
+        } else {
+          row.child(formatDetails(compras[idx])).show();
+          tr.addClass("shown");
+          $(this).find("i").attr("class", "fas fa-minus-circle text-danger");
+        }
+      });
     }, 150);
 
-    return () => {
-      clearTimeout(timer);
-      if (window.$) {
-        window.$(".tooltip").remove();
-        if (window.$.fn.DataTable.isDataTable("#compras-table")) {
-          window.$("#compras-table").DataTable().destroy();
-        }
-      }
-    };
+    return () => clearTimeout(timer);
   }, [loading, compras]);
 
   const handleExport = (type) => {
@@ -151,7 +163,7 @@ const ListadoCompras = () => {
       <div className="container-fluid">
         <div className="row mb-2">
           <div className="col-sm-6">
-            <h1 className="m-0">
+            <h1>
               <b>Listado de Compras</b>
             </h1>
           </div>
@@ -164,14 +176,10 @@ const ListadoCompras = () => {
           <div className="card-header">
             <h3 className="card-title my-1">Compras registradas</h3>
             <div className="card-tools">
+              {/* CORREGIDO: Ahora usa abrirReporte con Token */}
               <button
                 className="btn btn-secondary btn-sm mr-2"
-                onClick={() =>
-                  window.open(
-                    "http://localhost:3001/api/compras/reporte",
-                    "_blank"
-                  )
-                }
+                onClick={() => abrirReporte("/api/compras/reporte")}
               >
                 <i className="fa fa-file-pdf"></i> Reporte
               </button>
@@ -194,7 +202,6 @@ const ListadoCompras = () => {
           </div>
 
           <div className="card-body">
-            {/* Barra superior manual corregida */}
             <div className="d-flex justify-content-between align-items-center mb-3">
               <div className="d-flex align-items-center">
                 <label className="mr-2 mb-0">Mostrar</label>
@@ -212,10 +219,8 @@ const ListadoCompras = () => {
                   <option value="10">10</option>
                   <option value="25">25</option>
                   <option value="50">50</option>
-                  <option value="100">100</option>
                 </select>
                 <span className="mr-3">registros</span>
-
                 <div className="dt-buttons btn-group">
                   <button
                     className="btn btn-secondary btn-sm"
@@ -243,7 +248,6 @@ const ListadoCompras = () => {
                   </button>
                 </div>
               </div>
-
               <div className="d-flex align-items-center">
                 <input
                   type="text"
@@ -272,9 +276,7 @@ const ListadoCompras = () => {
                   <th>Fecha</th>
                   <th>Comprobante</th>
                   <th>Proveedor</th>
-                  <th>Marca</th>
                   <th>Precio Total</th>
-                  <th>Deuda</th>
                   <th style={{ width: "120px" }}>Acciones</th>
                 </tr>
               </thead>
@@ -297,22 +299,9 @@ const ListadoCompras = () => {
                     <td className="align-middle">
                       {c.proveedor_nombre || "N/A"}
                     </td>
-                    <td className="align-middle">
-                      {c.proveedor_marca || "N/A"}
-                    </td>
-                    <td className="text-right align-middle">
+                    <td className="text-right align-middle font-weight-bold">
                       ${" "}
                       {parseFloat(c.precio_total).toLocaleString("es-AR", {
-                        minimumFractionDigits: 2,
-                      })}
-                    </td>
-                    <td
-                      className={`text-right align-middle font-weight-bold ${
-                        parseFloat(c.deuda) > 0 ? "text-danger" : "text-success"
-                      }`}
-                    >
-                      ${" "}
-                      {parseFloat(c.deuda).toLocaleString("es-AR", {
                         minimumFractionDigits: 2,
                       })}
                     </td>
@@ -320,7 +309,7 @@ const ListadoCompras = () => {
                       <div className="btn-group">
                         <button
                           className="btn btn-info btn-sm"
-                          data-bs-toggle="tooltip"
+                          data-toggle="tooltip"
                           title="Ver Compra"
                           onClick={() =>
                             navegarSinTooltips(`/compras/ver/${c.id}`)
@@ -330,7 +319,7 @@ const ListadoCompras = () => {
                         </button>
                         <button
                           className="btn btn-warning btn-sm"
-                          data-bs-toggle="tooltip"
+                          data-toggle="tooltip"
                           title="Gestionar Pagos"
                           onClick={() =>
                             navegarSinTooltips(

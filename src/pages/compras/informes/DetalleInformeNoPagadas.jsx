@@ -1,7 +1,9 @@
 // src/pages/compras/informes/DetalleInformeNoPagadas.jsx
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import api from "../../../services/api";
+import LoadingSpinner from "../../../components/LoadingSpinner";
 
 const DetalleInformeNoPagadas = () => {
   const [searchParams] = useSearchParams();
@@ -12,125 +14,111 @@ const DetalleInformeNoPagadas = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const API_URL =
+    window.location.hostname === "localhost"
+      ? "http://localhost:3001"
+      : "https://sistema-ventas-backend-3nn3.onrender.com";
+
   useEffect(() => {
     api
-      .get(
-        `/compras/informes/no-pagadas?fecha_inicio=${desde}&fecha_fin=${hasta}`
-      )
+      .get(`/compras/informes/no-pagadas`)
       .then((res) => {
         setData(res.data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, [desde, hasta]);
+  }, []);
 
-  const totalPrecio = data.reduce(
-    (acc, curr) => acc + parseFloat(curr.precio_total),
+  const totalFacturado = data.reduce(
+    (acc, curr) => acc + parseFloat(curr.precio_total || 0),
     0
   );
   const totalDeuda = data.reduce(
-    (acc, curr) => acc + parseFloat(curr.deuda),
+    (acc, curr) => acc + parseFloat(curr.deuda || 0),
     0
   );
 
-  if (loading)
-    return (
-      <div className="p-5 text-center">Buscando facturas pendientes...</div>
-    );
+  const handleGenerarPDF = () => {
+    const token = localStorage.getItem("token");
+    const url = `${API_URL}/api/compras/informes/no-pagadas-pdf?token=${token}`;
+    window.open(url, "_blank");
+  };
+
+  if (loading) return <LoadingSpinner />;
 
   return (
-    <div className="container bg-white p-4 mt-4 shadow-sm rounded border-top border-primary border-lg">
+    <div className="container bg-white p-4 mt-4 shadow rounded">
       <div className="text-center mb-4">
-        <h1 className="text-primary font-weight-bold">
-          Informe de Compras no Pagadas
-        </h1>
-        <p className="text-muted">
-          Período: {desde.split("-").reverse().join("/")} -{" "}
-          {hasta.split("-").reverse().join("/")}
-        </p>
+        <h1 className="text-danger">Informe de Compras no Pagadas</h1>
+        <p className="text-muted">Listado de facturas con saldo pendiente</p>
       </div>
 
-      <div className="table-responsive">
-        <table className="table table-bordered table-striped table-hover">
-          <thead className="table-primary text-center text-uppercase">
-            <tr>
-              <th>ID</th>
-              <th>Fecha</th>
-              <th>Proveedor</th>
-              <th>Comprobante</th>
-              <th className="text-right">Precio Total</th>
-              <th className="text-right">Deuda</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.length > 0 ? (
-              data.map((c) => (
-                <tr key={c.id}>
-                  <td className="text-center">{c.id}</td>
-                  <td className="text-center">
-                    {new Date(c.fecha).toLocaleDateString("es-AR")}
-                  </td>
-                  <td>{c.proveedor}</td>
-                  <td>{c.comprobante}</td>
-                  <td className="text-right">
-                    ${" "}
-                    {parseFloat(c.precio_total).toLocaleString("es-AR", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </td>
-                  <td className="text-right font-weight-bold text-danger">
-                    ${" "}
-                    {parseFloat(c.deuda).toLocaleString("es-AR", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className="text-center p-4">
-                  No hay deudas en el periodo seleccionado
+      <table className="table table-bordered table-striped">
+        <thead className="table-dark text-center">
+          <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Proveedor</th>
+            <th>Comprobante</th>
+            <th>Precio Total</th>
+            <th>Deuda</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.length > 0 ? (
+            data.map((item, i) => (
+              <tr key={i}>
+                <td className="text-center">{item.id}</td>
+                <td className="text-center">
+                  {new Date(item.fecha).toLocaleDateString("es-AR")}
+                </td>
+                <td>{item.proveedor}</td>
+                <td className="text-center">{item.comprobante}</td>
+                <td className="text-right">
+                  ${" "}
+                  {parseFloat(item.precio_total || 0).toLocaleString("es-AR", {
+                    minimumFractionDigits: 2,
+                  })}
+                </td>
+                <td className="text-right text-danger font-weight-bold">
+                  ${" "}
+                  {parseFloat(item.deuda || 0).toLocaleString("es-AR", {
+                    minimumFractionDigits: 2,
+                  })}
                 </td>
               </tr>
-            )}
-            <tr className="table-info font-weight-bold">
-              <td colSpan="4" className="text-center text-uppercase">
-                Total
-              </td>
-              <td className="text-right">
-                ${" "}
-                {totalPrecio.toLocaleString("es-AR", {
-                  minimumFractionDigits: 2,
-                })}
-              </td>
-              <td className="text-right text-danger">
-                ${" "}
-                {totalDeuda.toLocaleString("es-AR", {
-                  minimumFractionDigits: 2,
-                })}
+            ))
+          ) : (
+            <tr>
+              <td colSpan="6" className="text-center">
+                No hay facturas pendientes de pago.
               </td>
             </tr>
-          </tbody>
-        </table>
-      </div>
+          )}
+          <tr className="table-secondary font-weight-bold">
+            <td colSpan="4" className="text-right">
+              TOTALES
+            </td>
+            <td className="text-right">
+              ${" "}
+              {totalFacturado.toLocaleString("es-AR", {
+                minimumFractionDigits: 2,
+              })}
+            </td>
+            <td className="text-right text-danger">
+              ${" "}
+              {totalDeuda.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
       <div className="text-center mt-4">
-        <button
-          className="btn btn-primary btn-lg px-4"
-          onClick={() =>
-            window.open(
-              `http://localhost:3001/api/compras/informes/no-pagadas-pdf?fecha_inicio=${desde}&fecha_fin=${hasta}`,
-              "_blank"
-            )
-          }
-        >
+        <button className="btn btn-primary" onClick={handleGenerarPDF}>
           <i className="fas fa-file-pdf"></i> Generar PDF
         </button>
-        <button
-          className="btn btn-secondary btn-lg px-4 ml-3"
-          onClick={() => navigate(-1)}
-        >
-          <i className="fas fa-reply"></i> Volver
+        <button className="btn btn-secondary ml-2" onClick={() => navigate(-1)}>
+          Volver
         </button>
       </div>
     </div>
