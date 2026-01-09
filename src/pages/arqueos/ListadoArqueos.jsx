@@ -402,14 +402,6 @@ const ListadoArqueos = () => {
                           >
                             <i className="fas fa-lock"></i>
                           </button>
-
-                          <button
-                            className="btn btn-danger btn-sm"
-                            data-bs-toggle="tooltip"
-                            title="Eliminar Arqueo"
-                          >
-                            <i className="fas fa-trash"></i>
-                          </button>
                         </div>
                       </td>
                     </tr>
