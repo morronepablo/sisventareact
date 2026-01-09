@@ -108,8 +108,69 @@ const ListadoProveedores = () => {
 
   // Función para construir el detalle (la mantengo igual a tu original)
   const formatDetails = (d) => {
-    // ... tu lógica de HTML de facturas y pagos ...
-    return `<div class="p-3 bg-light border rounded shadow-sm m-2">Contenido de Facturas y Pagos de ${d.empresa}</div>`;
+    let html = '<div class="p-3 bg-light border rounded shadow-sm m-2">';
+
+    // --- SECCIÓN FACTURAS ADEUDADAS ---
+    html +=
+      '<h6><i class="fas fa-file-invoice-dollar mr-2"></i><strong>Facturas con Saldo Pendiente</strong></h6>';
+    if (d.facturasAdeudadas && d.facturasAdeudadas.length > 0) {
+      html +=
+        '<table class="table table-sm table-bordered bg-white shadow-sm"><thead>' +
+        '<tr class="bg-dark text-white text-center"><th>Fecha</th><th>Comprobante</th><th>Total</th><th>Pagado</th><th>Saldo</th></tr></thead><tbody>';
+
+      d.facturasAdeudadas.forEach((f) => {
+        html += `<tr>
+        <td class="text-center">${new Date(f.fecha).toLocaleDateString(
+          "es-AR"
+        )}</td>
+        <td class="text-center">${f.comprobante}</td>
+        <td class="text-right">$ ${parseFloat(f.precio_total).toLocaleString(
+          "es-AR",
+          { minimumFractionDigits: 2 }
+        )}</td>
+        <td class="text-right text-success">$ ${parseFloat(
+          f.total_pagado
+        ).toLocaleString("es-AR", { minimumFractionDigits: 2 })}</td>
+        <td class="text-right text-danger font-weight-bold">$ ${parseFloat(
+          f.saldo_pendiente
+        ).toLocaleString("es-AR", { minimumFractionDigits: 2 })}</td>
+      </tr>`;
+      });
+      html += "</tbody></table>";
+    } else {
+      html +=
+        '<p class="text-muted small ml-4">No hay facturas pendientes de pago.</p>';
+    }
+
+    // --- SECCIÓN PAGOS REALIZADOS ---
+    html +=
+      '<h6 class="mt-4"><i class="fas fa-history mr-2"></i><strong>Historial de Pagos Realizados</strong></h6>';
+    if (d.pagosRealizados && d.pagosRealizados.length > 0) {
+      html +=
+        '<table class="table table-sm table-bordered bg-white shadow-sm"><thead>' +
+        '<tr class="bg-secondary text-white text-center"><th>Fecha Pago</th><th>Comprobante Ref.</th><th>Monto</th><th>Método</th><th>Usuario</th></tr></thead><tbody>';
+
+      d.pagosRealizados.forEach((p) => {
+        html += `<tr>
+        <td class="text-center">${new Date(
+          p.fecha_pago || p.created_at
+        ).toLocaleDateString("es-AR")}</td>
+        <td class="text-center">${p.comprobante || "Pago General"}</td>
+        <td class="text-right font-weight-bold">$ ${parseFloat(
+          p.monto
+        ).toLocaleString("es-AR", { minimumFractionDigits: 2 })}</td>
+        <td class="text-center text-capitalize">${p.metodo_pago}</td>
+        <td class="text-center">${p.usuario_nombre || "Admin"}</td>
+      </tr>`;
+      });
+      html += "</tbody></table>";
+    } else {
+      html +=
+        '<p class="text-muted small ml-4">No se han registrado pagos aún.</p>';
+    }
+
+    html += "</div>";
+    return html;
   };
 
   const handleEliminar = async (id, nombre) => {
