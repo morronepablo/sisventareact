@@ -126,6 +126,9 @@ import VerGasto from "./pages/gastos/VerGasto";
 // Logs
 import ListadoLogs from "./pages/logs/ListadoLogs";
 
+// Whatsapp
+import WhatsAppConfig from "./pages/configuracion/WhatsAppConfig";
+
 // 👇 IMPORTACIÓN DE COMPONENTES DE RUTA
 import ProtectedRoute from "./utils/ProtectedRoute";
 import PublicRoute from "./utils/PublicRoute";
@@ -333,6 +336,9 @@ const App = () => {
 
         {/* Logs */}
         <Route path="/logs/listado" element={<ListadoLogs />} />
+
+        {/* Whatsapp */}
+        <Route path="/configuracion/whatsapp" element={<WhatsAppConfig />} />
 
         {/* 404 dentro del layout si la ruta no existe */}
         <Route path="*" element={<NotFound />} />

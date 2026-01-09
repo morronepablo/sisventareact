@@ -16,6 +16,13 @@
                 "icon": "far fa-circle",
                 "path": "/configuracion/empresa",
                 "permiso": "ver_empresa"
+            },
+            {
+                "id": "whatsapp",
+                "text": "WhatsApp",
+                "icon": "fab fa-whatsapp",
+                "path": "/configuracion/whatsapp",
+                "permiso": "ver_configuracion"
             }
         ]
     },
