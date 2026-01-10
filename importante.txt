@@ -1,3 +1,21 @@
 url-front-nube: https://sisventareact-nube.vercel.app/
 url-back-nube: https://sisventanode-nube.onrender.com
 bases de datos nube: https://console.aiven.io/account/a530181db205/projects
+
+
+¿Cómo administras esto de ahora en adelante?
+Si alguna vez quieres apagar los servidores o ver qué está pasando, usa estos comandos en la terminal:
+pm2 status: Para ver si están encendidos.
+pm2 logs: Para ver los errores o mensajes de la consola en tiempo real.
+pm2 restart all: Para reiniciar todo el sistema.
+pm2 stop all: Para apagar el sistema.
+
+guarda la lista para el reinicio de Windows:
+pm2 save
+
+
+arrancar back:
+pm2 start server.js
+
+arrancar Front:
+pm2 start node_modules/vite/bin/vite.js --name "sistema-frontend"
