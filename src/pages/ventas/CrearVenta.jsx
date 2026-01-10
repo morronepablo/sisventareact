@@ -14,6 +14,12 @@ const CrearVenta = () => {
   const { user } = useAuth();
   const { refreshAll, arqueoAbierto } = useNotifications();
 
+  // URL dinámica según el entorno
+  const API_URL =
+    window.location.hostname === "localhost"
+      ? "http://localhost:3001"
+      : "https://sistema-ventas-backend-3nn3.onrender.com";
+
   const spanishLanguage = {
     sProcessing: "Procesando...",
     sLengthMenu: "Mostrar _MENU_ registros",
@@ -141,18 +147,13 @@ const CrearVenta = () => {
 
   // --- ACCIONES ---
 
-  // Nueva función para subir/bajar cantidad
   const updateQty = async (id, currentQty, delta) => {
     const newQty = parseFloat(currentQty) + delta;
     if (newQty < 1) return;
-
     try {
       const res = await api.put(`/ventas/tmp/${id}`, { cantidad: newQty });
-      if (res.data.success) {
-        fetchData(); // Recalcula todo automáticamente
-      }
+      if (res.data.success) fetchData();
     } catch (e) {
-      console.error(e);
       Swal.fire("Error", "No se pudo actualizar la cantidad", "error");
     }
   };
@@ -217,7 +218,7 @@ const CrearVenta = () => {
       };
       const res = await api.post("/ventas", payload);
       if (res.data.success) {
-        refreshAll();
+        if (refreshAll) await refreshAll();
         window.dispatchEvent(new Event("forceRefreshNotifications"));
         window.$("#modal-pagos").modal("hide");
         await Swal.fire({
@@ -227,11 +228,12 @@ const CrearVenta = () => {
           text: "Venta registrada satisfactoriamente",
           showConfirmButton: false,
           timer: 2500,
-          timerProgressBar: true,
         });
         if (res.data.venta_id)
           window.open(
-            `http://localhost:3001/api/ventas/ticket/${res.data.venta_id}`,
+            `${API_URL}/api/ventas/ticket/${
+              res.data.venta_id
+            }?token=${localStorage.getItem("token")}`,
             "_blank"
           );
         navigate("/ventas/listado");
@@ -255,7 +257,6 @@ const CrearVenta = () => {
           title: "Cliente registrado",
           showConfirmButton: false,
           timer: 1500,
-          timerProgressBar: true,
         });
       }
     } catch (e) {
@@ -382,9 +383,8 @@ const CrearVenta = () => {
                             <td className="text-center align-middle">
                               {it.codigo || it.combo_codigo}
                             </td>
-                            {/* COLUMNA CANTIDAD CON BOTONES + / - */}
                             <td className="text-center align-middle">
-                              <div className="btn-group btn-group-sm d-flex justify-content-center">
+                              <div className="btn-group btn-group-sm">
                                 <button
                                   className="btn btn-outline-secondary btn-xs"
                                   onClick={() =>
@@ -394,10 +394,7 @@ const CrearVenta = () => {
                                 >
                                   <i className="fas fa-minus"></i>
                                 </button>
-                                <span
-                                  className="px-2 font-weight-bold align-self-center"
-                                  style={{ minWidth: "30px" }}
-                                >
+                                <span className="px-2 font-weight-bold align-self-center">
                                   {it.cantidad}
                                 </span>
                                 <button
@@ -442,16 +439,6 @@ const CrearVenta = () => {
                           </tr>
                         );
                       })}
-                      {tmpVentas.length === 0 && (
-                        <tr>
-                          <td
-                            colSpan="8"
-                            className="text-center text-muted py-3 italic"
-                          >
-                            No hay productos en el carrito
-                          </td>
-                        </tr>
-                      )}
                     </tbody>
                     <tfoot className="bg-light">
                       <tr className="text-bold">
@@ -645,9 +632,7 @@ const CrearVenta = () => {
         </div>
       </div>
 
-      {/* --- MODALES --- */}
-
-      {/* MODAL PAGOS */}
+      {/* --- MODAL PAGOS (ORIGINAL RE-INSTALADO) --- */}
       <div className="modal fade" id="modal-pagos" tabIndex="-1">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content shadow-lg">
@@ -765,13 +750,13 @@ const CrearVenta = () => {
         </div>
       </div>
 
-      {/* MODAL BUSCADOR PRODUCTOS */}
+      {/* --- MODAL PRODUCTOS (ACTUALIZADO CON IMAGEN) --- */}
       <div className="modal fade" id="modal-productos" tabIndex="-1">
-        <div className="modal-dialog modal-xl">
+        <div className="modal-dialog modal-xl modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header bg-info text-white">
               <h5>Listado de Ítems</h5>
-              <button className="close" data-dismiss="modal">
+              <button className="close text-white" data-dismiss="modal">
                 ×
               </button>
             </div>
@@ -784,6 +769,7 @@ const CrearVenta = () => {
                 <thead>
                   <tr className="text-center">
                     <th>Acción</th>
+                    <th>Imagen</th>
                     <th>Código</th>
                     <th>Nombre</th>
                     <th>Stock</th>
@@ -794,7 +780,7 @@ const CrearVenta = () => {
                 <tbody>
                   {productos.map((p) => (
                     <tr key={`p-${p.id}`}>
-                      <td className="text-center">
+                      <td className="text-center align-middle">
                         <button
                           className="btn btn-secondary btn-sm"
                           onClick={() => {
@@ -805,20 +791,40 @@ const CrearVenta = () => {
                           <i className="fas fa-check"></i>
                         </button>
                       </td>
-                      <td className="text-center">{p.codigo}</td>
-                      <td>{p.nombre}</td>
-                      <td className="text-center">{p.stock}</td>
-                      <td className="text-right">
-                        $ {parseFloat(p.precio_venta).toLocaleString("es-AR")}
+                      <td className="text-center align-middle">
+                        {p.imagen ? (
+                          <img
+                            src={
+                              p.imagen.startsWith("http")
+                                ? p.imagen
+                                : `${API_URL}${p.imagen}`
+                            }
+                            width="40px"
+                            height="40px"
+                            className="rounded shadow-sm"
+                            style={{ objectFit: "cover" }}
+                          />
+                        ) : (
+                          <small className="text-muted">N/A</small>
+                        )}
                       </td>
-                      <td className="text-center">
+                      <td className="text-center align-middle">{p.codigo}</td>
+                      <td className="align-middle">{p.nombre}</td>
+                      <td className="text-center align-middle">{p.stock}</td>
+                      <td className="text-right align-middle">
+                        ${" "}
+                        {parseFloat(p.precio_venta).toLocaleString("es-AR", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </td>
+                      <td className="text-center align-middle">
                         <span className="badge badge-primary">Producto</span>
                       </td>
                     </tr>
                   ))}
                   {combos.map((c) => (
                     <tr key={`c-${c.id}`}>
-                      <td className="text-center">
+                      <td className="text-center align-middle">
                         <button
                           className="btn btn-secondary btn-sm"
                           onClick={() => {
@@ -829,13 +835,19 @@ const CrearVenta = () => {
                           <i className="fas fa-check"></i>
                         </button>
                       </td>
-                      <td className="text-center">{c.codigo}</td>
-                      <td>{c.nombre}</td>
-                      <td className="text-center">N/A</td>
-                      <td className="text-right">
-                        $ {parseFloat(c.precio_venta).toLocaleString("es-AR")}
+                      <td className="text-center align-middle">
+                        <small className="text-muted">Combo</small>
                       </td>
-                      <td className="text-center">
+                      <td className="text-center align-middle">{c.codigo}</td>
+                      <td className="align-middle">{c.nombre}</td>
+                      <td className="text-center align-middle">N/A</td>
+                      <td className="text-right align-middle">
+                        ${" "}
+                        {parseFloat(c.precio_venta).toLocaleString("es-AR", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </td>
+                      <td className="text-center align-middle">
                         <span className="badge badge-warning">Combo</span>
                       </td>
                     </tr>
@@ -847,13 +859,13 @@ const CrearVenta = () => {
         </div>
       </div>
 
-      {/* MODAL BUSCAR CLIENTE */}
+      {/* --- MODAL CLIENTES --- */}
       <div className="modal fade" id="modal-clientes" tabIndex="-1">
         <div className="modal-dialog modal-lg">
           <div className="modal-content">
             <div className="modal-header bg-info text-white">
               <h5>Seleccionar Cliente</h5>
-              <button className="close" data-dismiss="modal">
+              <button className="close text-white" data-dismiss="modal">
                 ×
               </button>
             </div>
@@ -896,7 +908,7 @@ const CrearVenta = () => {
         </div>
       </div>
 
-      {/* MODAL CREAR CLIENTE */}
+      {/* --- MODAL CREAR CLIENTE --- */}
       <div className="modal fade" id="modal-crear-cliente" tabIndex="-1">
         <div className="modal-dialog modal-lg modal-dialog-centered">
           <div className="modal-content shadow-lg">

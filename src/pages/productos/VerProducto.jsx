@@ -1,15 +1,20 @@
 // src/pages/productos/VerProducto.jsx
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 const VerProducto = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [producto, setProducto] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // URL del backend para las imágenes
-  const API_URL = "http://localhost:3001";
+  // URL dinámica: Si detecta que estás en Vercel, usa Render. Si no, localhost.
+  const API_URL =
+    window.location.hostname === "localhost"
+      ? "http://localhost:3001"
+      : "https://sistema-ventas-backend-3nn3.onrender.com";
 
   useEffect(() => {
     const fetch = async () => {
@@ -25,17 +30,13 @@ const VerProducto = () => {
     fetch();
   }, [id]);
 
-  if (loading)
-    return (
-      <div className="content-header">
-        <div className="container-fluid">Cargando...</div>
-      </div>
-    );
+  if (loading) return <LoadingSpinner />;
+  if (!producto) return <div className="p-3">Producto no encontrado.</div>;
 
-  // FUNCIÓN PARA FORMATEAR LA FECHA A YYYY-MM-DD
+  // FUNCIÓN PARA FORMATEAR LA FECHA
   const formatFecha = (fecha) => {
-    if (!fecha || fecha === "0000-00-00") return "";
-    return fecha.split("T")[0]; // Toma solo la parte de la fecha si viene con hora
+    if (!fecha || fecha === "0000-00-00") return "Sin fecha";
+    return fecha.split("T")[0];
   };
 
   const getColorForStock = (stock, stockMinimo) => {
@@ -61,189 +62,156 @@ const VerProducto = () => {
   return (
     <div className="content-header">
       <div className="container-fluid">
-        <div className="row mb-2">
-          <div className="col-sm-6">
-            <h1 className="m-0">Detalle del Producto</h1>
+        <h1 className="mb-3">Detalle del Producto</h1>
+        <div className="card card-outline card-info shadow-sm">
+          <div className="card-header">
+            <h3 className="card-title text-info text-bold">
+              Datos Registrados
+            </h3>
           </div>
-        </div>
-        <div className="row">
-          <div className="col-lg-12">
-            <div className="callout callout-info shadow">
-              <div className="card-header">
-                <h3 className="card-title text-info text-bold">
-                  Datos Registrados
-                </h3>
+          <div className="card-body">
+            <div className="row">
+              <div className="col-md-9">
+                <div className="row">
+                  <div className="col-md-4 form-group">
+                    <label>Categoría</label>
+                    <input
+                      type="text"
+                      className="form-control bg-light"
+                      value={producto.categoria_nombre}
+                      disabled
+                    />
+                  </div>
+                  <div className="col-md-4 form-group">
+                    <label>Código</label>
+                    <input
+                      type="text"
+                      className="form-control bg-light"
+                      value={producto.codigo}
+                      disabled
+                    />
+                  </div>
+                  <div className="col-md-4 form-group">
+                    <label>Producto</label>
+                    <input
+                      type="text"
+                      className="form-control bg-light"
+                      value={producto.nombre}
+                      disabled
+                    />
+                  </div>
+                </div>
+
+                <div className="row">
+                  <div className="col-md-3 form-group">
+                    <label>Nombre Corto</label>
+                    <input
+                      type="text"
+                      className="form-control bg-light"
+                      value={producto.nombre_corto || ""}
+                      disabled
+                    />
+                  </div>
+                  <div className="col-md-3 form-group">
+                    <label>Unidad Medida</label>
+                    <input
+                      type="text"
+                      className="form-control bg-light"
+                      value={producto.unidad_nombre}
+                      disabled
+                    />
+                  </div>
+                  <div className="col-md-6 form-group">
+                    <label>Descripción</label>
+                    <textarea
+                      className="form-control bg-light"
+                      rows="1"
+                      value={producto.descripcion || ""}
+                      disabled
+                    ></textarea>
+                  </div>
+                </div>
+
+                <div className="row">
+                  <div className="col-md-2 form-group">
+                    <label>Stock Actual</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={producto.stock}
+                      disabled
+                      style={{
+                        ...getColorForStock(
+                          producto.stock,
+                          producto.stock_minimo
+                        ),
+                        fontWeight: "bold",
+                      }}
+                    />
+                  </div>
+                  <div className="col-md-3 form-group">
+                    <label>Precio Compra</label>
+                    <input
+                      type="text"
+                      className="form-control bg-light"
+                      value={`$ ${parseFloat(
+                        producto.precio_compra
+                      ).toLocaleString("es-AR", { minimumFractionDigits: 2 })}`}
+                      disabled
+                    />
+                  </div>
+                  <div className="col-md-3 form-group">
+                    <label>Precio Venta</label>
+                    <input
+                      type="text"
+                      className="form-control bg-light font-weight-bold text-primary"
+                      value={`$ ${parseFloat(
+                        producto.precio_venta
+                      ).toLocaleString("es-AR", { minimumFractionDigits: 2 })}`}
+                      disabled
+                    />
+                  </div>
+                  <div className="col-md-3 form-group">
+                    <label>Fecha Ingreso</label>
+                    <input
+                      type="text"
+                      className="form-control bg-light"
+                      value={formatFecha(producto.fecha_ingreso)}
+                      disabled
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-md-9">
-                    {/* ... (Categoría, Código, Producto igual) */}
-                    <div className="row">
-                      <div className="col-md-4">
-                        <div className="form-group">
-                          <label>Categoría</label>
-                          <input
-                            type="text"
-                            className="form-control bg-white"
-                            value={producto.categoria_nombre}
-                            disabled
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="form-group">
-                          <label>Código</label>
-                          <input
-                            type="text"
-                            className="form-control bg-white"
-                            value={producto.codigo}
-                            disabled
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="form-group">
-                          <label>Producto</label>
-                          <input
-                            type="text"
-                            className="form-control bg-white"
-                            value={producto.nombre}
-                            disabled
-                          />
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="row">
-                      <div className="col-md-2">
-                        <div className="form-group">
-                          <label>Nombre Corto</label>
-                          <input
-                            type="text"
-                            className="form-control bg-white"
-                            value={producto.nombre_corto || ""}
-                            disabled
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-4">
-                        <div className="form-group">
-                          <label>Unidad Medida</label>
-                          <input
-                            type="text"
-                            className="form-control bg-white"
-                            value={producto.unidad_nombre}
-                            disabled
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-6">
-                        <div className="form-group">
-                          <label>Descripción</label>
-                          <textarea
-                            className="form-control bg-white"
-                            rows="2"
-                            value={producto.descripcion || ""}
-                            disabled
-                          ></textarea>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="row">
-                      {/* ... Stock y Precios igual ... */}
-                      <div className="col-md-2">
-                        <div className="form-group">
-                          <label>Stock</label>
-                          <input
-                            type="text"
-                            className="form-control"
-                            value={producto.stock}
-                            disabled
-                            style={{
-                              ...getColorForStock(
-                                producto.stock,
-                                producto.stock_minimo
-                              ),
-                              fontWeight: "bold",
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-2">
-                        <div className="form-group">
-                          <label>Precio Compra</label>
-                          <input
-                            type="text"
-                            className="form-control bg-white text-right"
-                            value={`$${parseFloat(
-                              producto.precio_compra
-                            ).toFixed(2)}`}
-                            disabled
-                          />
-                        </div>
-                      </div>
-                      <div className="col-md-2">
-                        <div className="form-group">
-                          <label>Precio Venta</label>
-                          <input
-                            type="text"
-                            className="form-control bg-white text-right"
-                            value={`$${parseFloat(
-                              producto.precio_venta
-                            ).toFixed(2)}`}
-                            disabled
-                          />
-                        </div>
-                      </div>
-
-                      {/* FECHA DE INGRESO CORREGIDA */}
-                      <div className="col-md-3">
-                        <div className="form-group">
-                          <label>Fecha Ingreso</label>
-                          <input
-                            type="date"
-                            className="form-control border-info bg-white"
-                            value={formatFecha(producto.fecha_ingreso)} // <-- Limpieza aquí
-                            disabled
-                          />
-                        </div>
-                      </div>
-                    </div>
+              {/* LÓGICA DE IMAGEN COMPATIBLE CON CLOUDINARY 👇 */}
+              <div className="col-md-3 text-center border-left">
+                <label className="d-block">Imagen del Producto</label>
+                {producto.imagen ? (
+                  <img
+                    src={
+                      producto.imagen.startsWith("http")
+                        ? producto.imagen
+                        : `${API_URL}${producto.imagen}`
+                    }
+                    alt={producto.nombre}
+                    className="img-fluid rounded shadow-sm border"
+                    style={{ maxHeight: "200px", objectFit: "contain" }}
+                  />
+                ) : (
+                  <div
+                    className="border d-flex align-items-center justify-content-center bg-light rounded"
+                    style={{ height: "180px" }}
+                  >
+                    <span className="text-muted">SIN IMAGEN</span>
                   </div>
-
-                  {/* IMAGEN CORREGIDA CON API_URL */}
-                  <div className="col-md-3 text-center">
-                    <div className="form-group">
-                      <label className="d-block">Imagen del Producto</label>
-                      {producto.imagen ? (
-                        <img
-                          src={`${API_URL}${producto.imagen}`} // <-- CONCATENAR AQUÍ
-                          alt={producto.nombre}
-                          className="img-fluid rounded shadow-sm border"
-                          style={{ maxHeight: "250px" }}
-                        />
-                      ) : (
-                        <div className="p-5 border bg-light rounded text-muted">
-                          Sin imagen
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <hr />
-                <div className="row">
-                  <div className="col-md-12 d-flex justify-content-end">
-                    <button
-                      onClick={() => window.history.back()}
-                      className="btn btn-secondary"
-                    >
-                      <i className="fas fa-reply"></i> Volver
-                    </button>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
+          </div>
+          <div className="card-footer">
+            <button onClick={() => navigate(-1)} className="btn btn-secondary">
+              <i className="fas fa-reply"></i> Volver
+            </button>
           </div>
         </div>
       </div>

@@ -14,6 +14,12 @@ const CrearCompra = () => {
   const { user } = useAuth();
   const { refreshAll, arqueoAbierto } = useNotifications();
 
+  // URL dinámica según el entorno
+  const API_URL =
+    window.location.hostname === "localhost"
+      ? "http://localhost:3001"
+      : "https://sistema-ventas-backend-3nn3.onrender.com";
+
   const spanishLanguage = {
     sProcessing: "Procesando...",
     sLengthMenu: "Mostrar _MENU_ registros",
@@ -40,7 +46,6 @@ const CrearCompra = () => {
   const [codigo, setCodigo] = useState("");
   const [proveedorSeleccionado, setProveedorSeleccionado] = useState(null);
 
-  // Fecha ajustada para Buenos Aires, Argentina
   const [formData, setFormData] = useState({
     fecha: (() => {
       const hoy = new Date();
@@ -111,15 +116,14 @@ const CrearCompra = () => {
 
   // --- ACCIONES ---
 
-  // --- NUEVA FUNCIÓN PARA ACTUALIZAR CANTIDAD (+ / -) ---
   const updateQty = async (id, currentQty, delta) => {
     const newQty = parseFloat(currentQty) + delta;
-    if (newQty < 1) return; // Validación: No permitir menos de 1
+    if (newQty < 1) return;
 
     try {
       const res = await api.put(`/compras/tmp/${id}`, { cantidad: newQty });
       if (res.data.success) {
-        fetchTmp(); // Recarga la tabla y recalcula totales
+        fetchTmp();
       }
     } catch (e) {
       console.error(e);
@@ -138,7 +142,7 @@ const CrearCompra = () => {
         });
         if (res.data.success) {
           setCodigo("");
-          setCantidad(1); // Resetear cantidad a 1 después de agregar
+          setCantidad(1);
           fetchTmp();
         }
       } else {
@@ -169,11 +173,10 @@ const CrearCompra = () => {
       };
       const response = await api.post("/compras", payload);
       if (response.data.success) {
-        refreshAll();
+        if (refreshAll) await refreshAll();
         window.dispatchEvent(new Event("forceRefreshNotifications"));
         window.$("#modal-pagos").modal("hide");
         await Swal.fire({
-          position: "center",
           icon: "success",
           title: "¡Éxito!",
           text: "Compra registrada correctamente",
@@ -187,13 +190,6 @@ const CrearCompra = () => {
     }
   };
 
-  const importeAbonar = Object.values(pagos).reduce(
-    (acc, val) => acc + parseFloat(val || 0),
-    0
-  );
-
-  // --- 5. DATATABLES ---
-
   useEffect(() => {
     if (!loadingData && productos.length > 0) {
       const timer = setTimeout(() => {
@@ -204,6 +200,7 @@ const CrearCompra = () => {
             paging: true,
             pageLength: 5,
             language: spanishLanguage,
+            autoWidth: false,
           });
         });
       }, 400);
@@ -211,9 +208,7 @@ const CrearCompra = () => {
     }
   }, [loadingData, productos]);
 
-  if (arqueoAbierto === null || loadingData) {
-    return <LoadingSpinner />;
-  }
+  if (arqueoAbierto === null || loadingData) return <LoadingSpinner />;
 
   return (
     <div className="content-header">
@@ -230,7 +225,7 @@ const CrearCompra = () => {
               </div>
               <div className="card-body">
                 <div className="row">
-                  {/* SECCIÓN IZQUIERDA: ITEMS */}
+                  {/* SECCIÓN IZQUIERDA: CARRITO */}
                   <div className="col-md-8">
                     <div className="row">
                       <div className="col-md-2">
@@ -246,11 +241,6 @@ const CrearCompra = () => {
                       <div className="col-md-7">
                         <label>Código / Nombre</label>
                         <div className="input-group">
-                          <div className="input-group-prepend">
-                            <span className="input-group-text">
-                              <i className="fas fa-barcode"></i>
-                            </span>
-                          </div>
                           <input
                             type="text"
                             className="form-control"
@@ -271,7 +261,6 @@ const CrearCompra = () => {
                             <button
                               className="btn btn-success"
                               onClick={() => navigate("/productos/crear")}
-                              title="Nuevo Producto"
                             >
                               <i className="fas fa-plus"></i>
                             </button>
@@ -300,9 +289,8 @@ const CrearCompra = () => {
                             <td className="text-center align-middle">
                               {it.codigo}
                             </td>
-                            {/* COLUMNA CANTIDAD CON BOTONES + / - */}
                             <td className="text-center align-middle">
-                              <div className="btn-group btn-group-sm d-flex justify-content-center">
+                              <div className="btn-group btn-group-sm">
                                 <button
                                   className="btn btn-outline-secondary btn-xs"
                                   onClick={() =>
@@ -312,10 +300,7 @@ const CrearCompra = () => {
                                 >
                                   <i className="fas fa-minus"></i>
                                 </button>
-                                <span
-                                  className="px-2 font-weight-bold align-self-center"
-                                  style={{ minWidth: "30px" }}
-                                >
+                                <span className="px-2 font-weight-bold">
                                   {it.cantidad}
                                 </span>
                                 <button
@@ -382,6 +367,7 @@ const CrearCompra = () => {
                     </button>
                   </div>
 
+                  {/* SECCIÓN DERECHA: PROVEEDOR Y PAGO */}
                   <div className="col-md-4">
                     <div className="row mb-3">
                       <div className="col-md-6">
@@ -468,14 +454,13 @@ const CrearCompra = () => {
         </div>
       </div>
 
-      {/* --- MODALES --- */}
-
+      {/* --- MODAL PAGO --- */}
       <div className="modal fade" id="modal-pagos" tabIndex="-1">
         <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content shadow-lg">
+          <div className="modal-content">
             <div className="modal-header bg-primary text-white">
               <h5>Registrar Pago Inicial</h5>
-              <button className="close" data-dismiss="modal">
+              <button className="close text-white" data-dismiss="modal">
                 ×
               </button>
             </div>
@@ -527,12 +512,13 @@ const CrearCompra = () => {
         </div>
       </div>
 
+      {/* --- MODAL BÚSQUEDA PRODUCTOS (CORREGIDO CON IMAGEN) --- */}
       <div className="modal fade" id="modal-productos" tabIndex="-1">
         <div className="modal-dialog modal-xl modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header bg-info text-white">
               <h5>Listado de Productos</h5>
-              <button className="close" data-dismiss="modal">
+              <button className="close text-white" data-dismiss="modal">
                 ×
               </button>
             </div>
@@ -544,18 +530,17 @@ const CrearCompra = () => {
               >
                 <thead className="text-center">
                   <tr>
-                    <th>Nro.</th>
                     <th>Acción</th>
+                    <th>Imagen</th>
                     <th>Código</th>
                     <th>Nombre</th>
                     <th>Stock</th>
-                    <th>Precio</th>
+                    <th>Costo</th>
                   </tr>
                 </thead>
                 <tbody>
                   {productos.map((p, i) => (
                     <tr key={p.id}>
-                      <td className="text-center align-middle">{i + 1}</td>
                       <td className="text-center align-middle">
                         <button
                           className="btn btn-secondary btn-sm"
@@ -567,11 +552,34 @@ const CrearCompra = () => {
                           <i className="fas fa-check"></i>
                         </button>
                       </td>
+
+                      {/* COLUMNA IMAGEN INTELIGENTE 👇 */}
+                      <td className="text-center align-middle">
+                        {p.imagen ? (
+                          <img
+                            src={
+                              p.imagen.startsWith("http")
+                                ? p.imagen
+                                : `${API_URL}${p.imagen}`
+                            }
+                            width="40px"
+                            height="40px"
+                            className="rounded shadow-sm"
+                            style={{ objectFit: "cover" }}
+                          />
+                        ) : (
+                          <small className="text-muted">N/A</small>
+                        )}
+                      </td>
+
                       <td className="text-center align-middle">{p.codigo}</td>
                       <td className="align-middle">{p.nombre}</td>
-                      <td className="text-right align-middle">{p.stock}</td>
+                      <td className="text-center align-middle">{p.stock}</td>
                       <td className="text-right align-middle">
-                        $ {parseFloat(p.precio_compra).toLocaleString("es-AR")}
+                        ${" "}
+                        {parseFloat(p.precio_compra).toLocaleString("es-AR", {
+                          minimumFractionDigits: 2,
+                        })}
                       </td>
                     </tr>
                   ))}
@@ -582,12 +590,13 @@ const CrearCompra = () => {
         </div>
       </div>
 
+      {/* --- MODAL PROVEEDORES --- */}
       <div className="modal fade" id="modal-proveedores" tabIndex="-1">
         <div className="modal-dialog modal-xl modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header bg-info text-white">
               <h5>Listado de Proveedores</h5>
-              <button className="close" data-dismiss="modal">
+              <button className="close text-white" data-dismiss="modal">
                 ×
               </button>
             </div>
@@ -599,7 +608,6 @@ const CrearCompra = () => {
               >
                 <thead className="text-center">
                   <tr>
-                    <th>Nro.</th>
                     <th>Acción</th>
                     <th>Empresa</th>
                     <th>Marca</th>
@@ -607,9 +615,8 @@ const CrearCompra = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {proveedores.map((pr, i) => (
+                  {proveedores.map((pr) => (
                     <tr key={pr.id}>
-                      <td className="text-center align-middle">{i + 1}</td>
                       <td className="text-center align-middle">
                         <button
                           className="btn btn-secondary btn-sm"

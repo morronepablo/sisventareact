@@ -12,14 +12,10 @@ const ListadoProductos = () => {
   const [productos, setProductos] = useState([]);
   const [productosBajoStock, setProductosBajoStock] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showImportModal, setShowImportModal] = useState(false);
-  const [importFile, setImportFile] = useState(null);
-  const [importing, setImporting] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // URL dinámica: Si detecta que estás en Vercel, usa Render. Si no, localhost.
+  // URL dinámica según el entorno
   const API_URL =
     window.location.hostname === "localhost"
       ? "http://localhost:3001"
@@ -113,7 +109,6 @@ const ListadoProductos = () => {
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
     });
 
     if (result.isConfirmed) {
@@ -127,9 +122,7 @@ const ListadoProductos = () => {
         });
         window.location.reload();
       } catch (error) {
-        const msg =
-          error.response?.data?.message || "No se pudo eliminar el producto.";
-        Swal.fire("Error", msg, "error");
+        Swal.fire("Error", "No se pudo eliminar.", "error");
       }
     }
   };
@@ -204,7 +197,12 @@ const ListadoProductos = () => {
               <button
                 className="btn btn-secondary btn-sm"
                 onClick={() =>
-                  window.open(`${API_URL}/api/productos/reporte`, "_blank")
+                  window.open(
+                    `${API_URL}/api/productos/reporte?token=${localStorage.getItem(
+                      "token"
+                    )}`,
+                    "_blank"
+                  )
                 }
               >
                 <i className="fa fa-file-pdf"></i> Reporte
@@ -242,19 +240,19 @@ const ListadoProductos = () => {
                     className="btn btn-secondary btn-sm"
                     onClick={() => handleExport("copy")}
                   >
-                    <i className="fas fa-copy"></i> Copiar
+                    <i className="fas fa-copy"></i>
                   </button>
                   <button
                     className="btn btn-danger btn-sm"
                     onClick={() => handleExport("pdf")}
                   >
-                    <i className="fas fa-file-pdf"></i> PDF
+                    <i className="fas fa-file-pdf"></i>
                   </button>
                   <button
                     className="btn btn-success btn-sm"
                     onClick={() => handleExport("excel")}
                   >
-                    <i className="fas fa-file-excel"></i> Excel
+                    <i className="fas fa-file-excel"></i>
                   </button>
                 </div>
               </div>
@@ -308,23 +306,33 @@ const ListadoProductos = () => {
                     >
                       {prod.stock}
                     </td>
-                    <td className="text-right align-middle">
+                    <td className="text-right align-middle font-weight-bold">
                       ${" "}
                       {parseFloat(prod.precio_venta).toLocaleString("es-AR", {
                         minimumFractionDigits: 2,
                       })}
                     </td>
+
+                    {/* LA LÓGICA DE LA IMAGEN CORREGIDA AQUÍ 👇 */}
                     <td className="text-center align-middle">
                       {prod.imagen ? (
                         <img
-                          src={`${API_URL}${prod.imagen}`}
-                          width="30px"
+                          src={
+                            prod.imagen.startsWith("http")
+                              ? prod.imagen
+                              : `${API_URL}${prod.imagen}`
+                          }
+                          width="35px"
+                          height="35px"
+                          style={{ objectFit: "cover" }}
                           className="rounded shadow-sm"
+                          alt="Producto"
                         />
                       ) : (
                         "–"
                       )}
                     </td>
+
                     <td className="text-center align-middle">
                       <div className="btn-group">
                         <button
@@ -347,7 +355,6 @@ const ListadoProductos = () => {
                         >
                           <i className="fas fa-pencil-alt"></i>
                         </button>
-
                         {prod.puede_eliminarse ? (
                           <button
                             className="btn btn-danger btn-sm"
@@ -361,7 +368,7 @@ const ListadoProductos = () => {
                           <button
                             className="btn btn-secondary btn-sm disabled"
                             data-toggle="tooltip"
-                            title="Producto con actividad (Ventas/Compras)"
+                            title="Producto con actividad"
                             style={{ cursor: "not-allowed", opacity: 0.6 }}
                           >
                             <i className="fas fa-lock"></i>
