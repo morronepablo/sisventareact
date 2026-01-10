@@ -73,6 +73,41 @@ const CrearVenta = () => {
     email: "",
   });
 
+  // --- CÁLCULOS (Declarados antes para evitar ReferenceError) ---
+  const totalCantidad = tmpVentas.reduce(
+    (acc, it) => acc + parseFloat(it.cantidad),
+    0
+  );
+
+  const subtotalBruto = tmpVentas.reduce((acc, it) => {
+    let precio = parseFloat(it.precio_venta || it.combo_precio || 0);
+    if (it.aplicar_porcentaje)
+      precio =
+        parseFloat(it.precio_compra) *
+        (1 + parseFloat(it.valor_porcentaje) / 100);
+    return acc + parseFloat(it.cantidad) * precio;
+  }, 0);
+
+  const totalDescuento =
+    subtotalBruto * (parseFloat(descPorcentaje || 0) / 100) +
+    parseFloat(descMonto || 0);
+  const totalFinal = Math.max(subtotalBruto - totalDescuento, 0);
+  const totalDolares = totalFinal / dolar;
+
+  const totalPagado = Object.values(pagos).reduce(
+    (a, b) => parseFloat(a || 0) + parseFloat(b || 0),
+    0
+  );
+  const montoSaldar = Math.max(totalFinal - totalPagado, 0);
+  const otrosMedios =
+    parseFloat(pagos.tarjeta || 0) +
+    parseFloat(pagos.mercadopago || 0) +
+    parseFloat(pagos.transferencia || 0);
+  const restoParaEfectivo = totalFinal - otrosMedios;
+  const vuelto =
+    pagos.efectivo > restoParaEfectivo ? pagos.efectivo - restoParaEfectivo : 0;
+
+  // --- CARGA DE DATOS ---
   const fetchData = async () => {
     if (!user) return;
     try {
@@ -112,40 +147,95 @@ const CrearVenta = () => {
     fetchData();
   }, [arqueoAbierto, user]);
 
-  // --- CÁLCULOS ---
-  const totalCantidad = tmpVentas.reduce(
-    (acc, it) => acc + parseFloat(it.cantidad),
-    0
-  );
-  const subtotalBruto = tmpVentas.reduce((acc, it) => {
-    let precio = parseFloat(it.precio_venta || it.combo_precio || 0);
-    if (it.aplicar_porcentaje)
-      precio =
-        parseFloat(it.precio_compra) *
-        (1 + parseFloat(it.valor_porcentaje) / 100);
-    return acc + parseFloat(it.cantidad) * precio;
-  }, 0);
+  // --- RESETEO ---
+  const resetForm = () => {
+    setPagos({ efectivo: 0, tarjeta: 0, mercadopago: 0, transferencia: 0 });
+    setClienteSel({
+      id: 1,
+      nombre_cliente: "Consumidor Final",
+      cuil_codigo: "00000000000",
+    });
+    setDescPorcentaje(0);
+    setDescMonto(0);
+    setEsCtaCte(false);
+    setCodigo("");
+    setCantidad(1);
+    setDeudaInfo({ deuda_total: 0, dias_mora: 0 });
+  };
 
-  const totalDescuento =
-    subtotalBruto * (parseFloat(descPorcentaje || 0) / 100) +
-    parseFloat(descMonto || 0);
-  const totalFinal = Math.max(subtotalBruto - totalDescuento, 0);
-  const totalDolares = totalFinal / dolar;
+  // --- FUNCIONES DE ACCIÓN ---
 
-  const totalPagado = Object.values(pagos).reduce(
-    (a, b) => parseFloat(a || 0) + parseFloat(b || 0),
-    0
-  );
-  const montoSaldar = Math.max(totalFinal - totalPagado, 0);
-  const otrosMedios =
-    parseFloat(pagos.tarjeta || 0) +
-    parseFloat(pagos.mercadopago || 0) +
-    parseFloat(pagos.transferencia || 0);
-  const restoParaEfectivo = totalFinal - otrosMedios;
-  const vuelto =
-    pagos.efectivo > restoParaEfectivo ? pagos.efectivo - restoParaEfectivo : 0;
+  const handleConfirmarVenta = async () => {
+    if (!esCtaCte && totalPagado < totalFinal)
+      return Swal.fire("Error", "Monto insuficiente", "error");
+    try {
+      const payload = {
+        cliente_id: clienteSel.id,
+        fecha,
+        precio_total: totalFinal,
+        pagos,
+        es_cuenta_corriente: esCtaCte,
+        usuario_id: user.id,
+        empresa_id: user.empresa_id,
+        items: tmpVentas,
+        descuento_porcentaje: descPorcentaje,
+        descuento_monto: descMonto,
+      };
+      const res = await api.post("/ventas", payload);
+      if (res.data.success) {
+        if (refreshAll) await refreshAll();
+        window.dispatchEvent(new Event("forceRefreshNotifications"));
+        window.$("#modal-pagos").modal("hide");
+        await Swal.fire({
+          position: "center",
+          icon: "success",
+          title: "¡Éxito!",
+          text: "Venta registrada satisfactoriamente",
+          showConfirmButton: false,
+          timer: 2500,
+        });
+        if (res.data.venta_id)
+          window.open(
+            `${API_URL}/api/ventas/ticket/${
+              res.data.venta_id
+            }?token=${localStorage.getItem("token")}`,
+            "_blank"
+          );
+        resetForm();
+        fetchData();
+      }
+    } catch (e) {
+      Swal.fire("Error", "Fallo al registrar", "error");
+    }
+  };
 
-  // --- ACCIONES ---
+  // --- LÓGICA DE ATAJOS (F5) ---
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "F5") {
+        e.preventDefault();
+        if (tmpVentas.length > 0) {
+          const modalPagos = document.getElementById("modal-pagos");
+          // Si el modal NO está abierto, lo abrimos
+          if (modalPagos && !modalPagos.classList.contains("show")) {
+            window.$("#modal-pagos").modal("show");
+          } else {
+            // Si el modal YA está abierto, ejecutamos la confirmación
+            handleConfirmarVenta();
+          }
+        } else {
+          // RESTAURADO: Alerta si el carrito está vacío al presionar F5
+          Swal.fire(
+            "Carrito vacío",
+            "Agregue productos antes de registrar la venta",
+            "info"
+          );
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [tmpVentas, totalPagado, totalFinal, esCtaCte, clienteSel]);
 
   const updateQty = async (id, currentQty, delta) => {
     const newQty = parseFloat(currentQty) + delta;
@@ -200,49 +290,6 @@ const CrearVenta = () => {
     });
   };
 
-  const handleConfirmarVenta = async () => {
-    if (!esCtaCte && totalPagado < totalFinal)
-      return Swal.fire("Error", "Monto insuficiente", "error");
-    try {
-      const payload = {
-        cliente_id: clienteSel.id,
-        fecha,
-        precio_total: totalFinal,
-        pagos,
-        es_cuenta_corriente: esCtaCte,
-        usuario_id: user.id,
-        empresa_id: user.empresa_id,
-        items: tmpVentas,
-        descuento_porcentaje: descPorcentaje,
-        descuento_monto: descMonto,
-      };
-      const res = await api.post("/ventas", payload);
-      if (res.data.success) {
-        if (refreshAll) await refreshAll();
-        window.dispatchEvent(new Event("forceRefreshNotifications"));
-        window.$("#modal-pagos").modal("hide");
-        await Swal.fire({
-          position: "center",
-          icon: "success",
-          title: "¡Éxito!",
-          text: "Venta registrada satisfactoriamente",
-          showConfirmButton: false,
-          timer: 2500,
-        });
-        if (res.data.venta_id)
-          window.open(
-            `${API_URL}/api/ventas/ticket/${
-              res.data.venta_id
-            }?token=${localStorage.getItem("token")}`,
-            "_blank"
-          );
-        navigate("/ventas/listado");
-      }
-    } catch (e) {
-      Swal.fire("Error", "Fallo al registrar", "error");
-    }
-  };
-
   const handleGuardarNuevoCliente = async () => {
     try {
       const res = await api.post("/clientes", {
@@ -270,11 +317,14 @@ const CrearVenta = () => {
         ["#prod-table", "#clie-table"].forEach((id) => {
           if (window.$.fn.DataTable.isDataTable(id))
             window.$(id).DataTable().destroy();
-          window.$(id).DataTable({
-            paging: true,
-            pageLength: 5,
-            language: spanishLanguage,
-          });
+          window
+            .$(id)
+            .DataTable({
+              paging: true,
+              pageLength: 5,
+              language: spanishLanguage,
+              autoWidth: false,
+            });
         });
       }, 400);
       return () => clearTimeout(timer);
@@ -291,6 +341,17 @@ const CrearVenta = () => {
             <h1>
               <b>Registro de una nueva venta</b>
             </h1>
+          </div>
+          <div className="col-sm-6 text-right">
+            <span className="badge badge-secondary p-2 ml-1">
+              F1: Listado Ventas
+            </span>
+            <span className="badge badge-secondary p-2 ml-1">
+              F2: Listado Compras
+            </span>
+            <span className="badge badge-danger p-2 ml-1">
+              F5: Registrar Venta
+            </span>
           </div>
         </div>
         <hr />
@@ -361,7 +422,7 @@ const CrearVenta = () => {
                         <th style={{ width: "120px" }}>Cantidad</th>
                         <th>Producto/Combo</th>
                         <th>Unidad</th>
-                        <th>Costo</th>
+                        <th>Precio</th>
                         <th>Total</th>
                         <th>Acción</th>
                       </tr>
@@ -394,7 +455,10 @@ const CrearVenta = () => {
                                 >
                                   <i className="fas fa-minus"></i>
                                 </button>
-                                <span className="px-2 font-weight-bold align-self-center">
+                                <span
+                                  className="px-2 font-weight-bold align-self-center"
+                                  style={{ minWidth: "30px" }}
+                                >
                                   {it.cantidad}
                                 </span>
                                 <button
@@ -439,6 +503,16 @@ const CrearVenta = () => {
                           </tr>
                         );
                       })}
+                      {tmpVentas.length === 0 && (
+                        <tr>
+                          <td
+                            colSpan="8"
+                            className="text-center text-muted py-3 italic"
+                          >
+                            No hay productos en el carrito
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                     <tfoot className="bg-light">
                       <tr className="text-bold">
@@ -624,7 +698,7 @@ const CrearVenta = () => {
                   data-toggle="modal"
                   data-target="#modal-pagos"
                 >
-                  <i className="fas fa-cash-register"></i> Registrar Venta
+                  <i className="fas fa-cash-register"></i> Registrar Venta (F5)
                 </button>
               </div>
             </div>
@@ -632,7 +706,7 @@ const CrearVenta = () => {
         </div>
       </div>
 
-      {/* --- MODAL PAGOS (ORIGINAL RE-INSTALADO) --- */}
+      {/* MODAL PAGOS */}
       <div className="modal fade" id="modal-pagos" tabIndex="-1">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content shadow-lg">
@@ -743,14 +817,14 @@ const CrearVenta = () => {
                 className="btn btn-primary"
                 onClick={handleConfirmarVenta}
               >
-                Finalizar Venta
+                Finalizar Venta (F5)
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* --- MODAL PRODUCTOS (ACTUALIZADO CON IMAGEN) --- */}
+      {/* MODAL PRODUCTOS CON IMAGEN */}
       <div className="modal fade" id="modal-productos" tabIndex="-1">
         <div className="modal-dialog modal-xl modal-dialog-centered">
           <div className="modal-content">
@@ -859,7 +933,7 @@ const CrearVenta = () => {
         </div>
       </div>
 
-      {/* --- MODAL CLIENTES --- */}
+      {/* MODAL BUSCAR CLIENTE */}
       <div className="modal fade" id="modal-clientes" tabIndex="-1">
         <div className="modal-dialog modal-lg">
           <div className="modal-content">
@@ -908,7 +982,7 @@ const CrearVenta = () => {
         </div>
       </div>
 
-      {/* --- MODAL CREAR CLIENTE --- */}
+      {/* MODAL CREAR CLIENTE */}
       <div className="modal fade" id="modal-crear-cliente" tabIndex="-1">
         <div className="modal-dialog modal-lg modal-dialog-centered">
           <div className="modal-content shadow-lg">
