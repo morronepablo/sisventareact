@@ -56,6 +56,7 @@ import VerProveedor from "./pages/proveedores/VerProveedor";
 import EditarProveedor from "./pages/proveedores/EditarProveedor";
 import GestionPagos from "./pages/proveedores/GestionPagos";
 import MovimientosProveedor from "./pages/proveedores/MovimientosProveedor";
+import InformeCuentasPorPagar from "./pages/proveedores/informes/InformeCuentasPorPagar";
 
 // Compras
 import ListadoCompras from "./pages/compras/ListadoCompras";
@@ -76,6 +77,7 @@ import GestionarPagosClientes from "./pages/clientes/GestionPagosClientes";
 import VerComprasCliente from "./pages/clientes/VerComprasCliente";
 import HistorialCliente from "./pages/clientes/HistorialCliente";
 import EditarCliente from "./pages/clientes/EditarCliente";
+import InformeCobranzas from "./pages/clientes/informes/InformeCobranzas";
 
 // Ventas
 import ListadoVentas from "./pages/ventas/ListadoVentas";
@@ -216,6 +218,10 @@ const App = () => {
           path="/proveedores/movimientos/:id"
           element={<MovimientosProveedor />}
         />
+        <Route
+          path="/proveedores/informes/cuentas-por-pagar"
+          element={<InformeCuentasPorPagar />}
+        />
 
         {/* Compras */}
         <Route path="/compras/listado" element={<ListadoCompras />} />
@@ -257,6 +263,10 @@ const App = () => {
         <Route path="/clientes/compras/:id" element={<VerComprasCliente />} />
         <Route path="/clientes/historial/:id" element={<HistorialCliente />} />
         <Route path="/clientes/editar/:id" element={<EditarCliente />} />
+        <Route
+          path="/clientes/informes/cobranzas"
+          element={<InformeCobranzas />}
+        />
 
         {/* Ventas */}
         <Route path="/ventas/listado" element={<ListadoVentas />} />

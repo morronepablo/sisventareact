@@ -29,6 +29,18 @@ const ListadoArqueos = () => {
     },
   };
 
+  // 1. URL Dinámica
+  const API_URL =
+    window.location.hostname === "localhost"
+      ? "http://localhost:3001"
+      : "https://sistema-ventas-backend-3nn3.onrender.com";
+
+  // 2. Función para abrir reporte con TOKEN
+  const abrirReporte = (path) => {
+    const token = localStorage.getItem("token");
+    window.open(`${API_URL}${path}?token=${token}`, "_blank");
+  };
+
   const navegarSinTooltips = (url) => {
     if (window.$) window.$(".tooltip").remove();
     navigate(url);
@@ -179,12 +191,7 @@ const ListadoArqueos = () => {
             <div className="card-tools">
               <button
                 className="btn btn-secondary btn-sm mr-2"
-                onClick={() =>
-                  window.open(
-                    "http://localhost:3001/api/arqueos/reporte",
-                    "_blank"
-                  )
-                }
+                onClick={() => abrirReporte("/api/arqueos/reporte")}
               >
                 <i className="fa fa-file-pdf"></i> Reporte
               </button>

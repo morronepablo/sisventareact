@@ -354,6 +354,18 @@ const ListadoClientes = () => {
                               <i className="fas fa-history"></i>
                             </button>
                             <button
+                              className="btn btn-dark btn-sm"
+                              data-toggle="tooltip"
+                              title="Imprimir Estado de Cuenta"
+                              onClick={() =>
+                                abrirReporte(
+                                  `/api/clientes/${c.id}/estado-cuenta-pdf`
+                                )
+                              }
+                            >
+                              <i className="fas fa-print"></i>
+                            </button>
+                            <button
                               className="btn btn-success btn-sm"
                               data-toggle="tooltip"
                               title="Editar"

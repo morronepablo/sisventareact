@@ -171,6 +171,22 @@
                 "icon": "fas fa-fw fa-list",
                 "path": "/proveedores/listado",
                 "permiso": "ver_proveedores"
+            },
+            {
+                "id": "informes_proveedores",
+                "text": "Informes",
+                "icon": "fas fa-chart-line",
+                "path": "/proveedores/informes",
+                "permiso": "ver_proveedores",
+                "children": [
+                    {
+                        "id": "cuentas_por_pagar",
+                        "text": "Cuentas por Pagar",
+                        "icon": "fas fa-file-invoice-dollar",
+                        "path": "/proveedores/informes/cuentas-por-pagar",
+                        "permiso": "ver_proveedores"
+                    }
+                ]
             }
         ]
     },
@@ -233,6 +249,22 @@
                 "icon": "fas fa-fw fa-list",
                 "path": "/clientes/listado",
                 "permiso": "ver_clientes"
+            },
+            {
+                "id": "informes_clientes",
+                "text": "Informes",
+                "icon": "fas fa-chart-pie",
+                "path": "/clientes/informes",
+                "permiso": "ver_clientes",
+                "children": [
+                    {
+                        "id": "cobranzas",
+                        "text": "Cuentas por Cobrar",
+                        "icon": "fas fa-hand-holding-usd",
+                        "path": "/clientes/informes/cobranzas",
+                        "permiso": "ver_clientes"
+                    }
+                ]
             }
         ]
     },
