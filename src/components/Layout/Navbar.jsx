@@ -172,6 +172,7 @@ const Navbar = () => {
           <span className="badge badge-danger p-2 ml-1">F7: Devolución</span>
           <span className="badge badge-dark p-2 ml-1">F9: Proveedores</span>
           <span className="badge badge-secondary p-2 ml-1">F10: Clientes</span>
+          <span className="badge badge-primary p-2 ml-1">F11: Dashboard</span>
         </li>
       </ul>
 

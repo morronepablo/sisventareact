@@ -323,6 +323,13 @@
                         "icon": "fas fa-fw fa-exchange-alt",
                         "path": "/ventas/informes/movimiento-stock",
                         "permiso": "ver_ventas"
+                    },
+                    {
+                        "id": "rentabilidad",
+                        "text": "Rentabilidad Real",
+                        "icon": "fas fa-funnel-dollar",
+                        "path": "/ventas/informes/rentabilidad",
+                        "permiso": "ver_ventas"
                     }
                 ]
             }

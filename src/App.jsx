@@ -92,6 +92,7 @@ import InformeMetodosPagoVentas from "./pages/ventas/informes/InformeMetodosPago
 import DetalleInformeMetodosPagoVentas from "./pages/ventas/informes/DetalleInformeMetodosPagoVentas";
 import InformeMovimientoStock from "./pages/ventas/informes/InformeMovimientoStock";
 import DetalleInformeMovimientoStock from "./pages/ventas/informes/DetalleInformeMovimientoStock";
+import Rentabilidad from "./pages/ventas/informes/Rentabilidad";
 
 // Arqueos
 import ListadoArqueos from "./pages/arqueos/ListadoArqueos";
@@ -308,6 +309,10 @@ const App = () => {
         <Route
           path="/ventas/informes/movimiento-stock/detalle"
           element={<DetalleInformeMovimientoStock />}
+        />
+        <Route
+          path="/ventas/informes/rentabilidad"
+          element={<Rentabilidad />}
         />
 
         {/* Arqueos */}

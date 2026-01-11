@@ -50,6 +50,11 @@ const MainLayout = () => {
         e.preventDefault();
         navigate("/clientes/listado");
       }
+      // F11: Acceso directo a Dashboard
+      if (e.key === "F11") {
+        e.preventDefault();
+        navigate("/dashboard");
+      }
     };
 
     // Agregamos el escuchador al objeto window (global)
