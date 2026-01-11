@@ -317,14 +317,12 @@ const CrearVenta = () => {
         ["#prod-table", "#clie-table"].forEach((id) => {
           if (window.$.fn.DataTable.isDataTable(id))
             window.$(id).DataTable().destroy();
-          window
-            .$(id)
-            .DataTable({
-              paging: true,
-              pageLength: 5,
-              language: spanishLanguage,
-              autoWidth: false,
-            });
+          window.$(id).DataTable({
+            paging: true,
+            pageLength: 5,
+            language: spanishLanguage,
+            autoWidth: false,
+          });
         });
       }, 400);
       return () => clearTimeout(timer);
@@ -344,10 +342,7 @@ const CrearVenta = () => {
           </div>
           <div className="col-sm-6 text-right">
             <span className="badge badge-secondary p-2 ml-1">
-              F1: Listado Ventas
-            </span>
-            <span className="badge badge-secondary p-2 ml-1">
-              F2: Listado Compras
+              F3: Listado Ventas
             </span>
             <span className="badge badge-danger p-2 ml-1">
               F5: Registrar Venta

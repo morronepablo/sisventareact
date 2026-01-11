@@ -25,6 +25,16 @@ const MainLayout = () => {
         e.preventDefault();
         navigate("/compras/crear");
       }
+      // F3: Acceso directo a Listado de Ventas
+      if (e.key === "F3") {
+        e.preventDefault();
+        navigate("/ventas/listado");
+      }
+      // F4: Acceso directo a Listado de Productos
+      if (e.key === "F4") {
+        e.preventDefault();
+        navigate("/productos/listado");
+      }
     };
 
     // Agregamos el escuchador al objeto window (global)

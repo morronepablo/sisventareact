@@ -48,6 +48,7 @@ import ListadoProductos from "./pages/productos/ListadoProductos";
 import CrearProducto from "./pages/productos/CrearProducto";
 import VerProducto from "./pages/productos/VerProducto";
 import EditarProducto from "./pages/productos/EditarProducto";
+import ActualizacionMasiva from "./pages/productos/ActualizacionMasiva";
 
 // Proveedores
 import ListadoProveedores from "./pages/proveedores/ListadoProveedores";
@@ -207,6 +208,10 @@ const App = () => {
         <Route path="/productos/crear" element={<CrearProducto />} />
         <Route path="/productos/ver/:id" element={<VerProducto />} />
         <Route path="/productos/editar/:id" element={<EditarProducto />} />
+        <Route
+          path="/productos/actualizacion-masiva"
+          element={<ActualizacionMasiva />}
+        />
 
         {/* Proveedores */}
         <Route path="/proveedores/listado" element={<ListadoProveedores />} />

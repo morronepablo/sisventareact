@@ -164,6 +164,11 @@ const Navbar = () => {
             </button>
           </li>
         )}
+        <li className="nav-item d-none d-sm-inline-block ml-2 mt-1">
+          <span className="badge badge-primary p-2 ml-1">F1: Ventas</span>
+          <span className="badge badge-info p-2 ml-1">F2: Compras</span>
+          <span className="badge badge-success p-2 ml-1">F4: Productos</span>
+        </li>
       </ul>
 
       <ul className="navbar-nav ml-auto">
