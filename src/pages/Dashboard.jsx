@@ -580,7 +580,7 @@ const Dashboard = () => {
           link="/compras/listado"
         />
         <SmallBox
-          permission="ver_productos"
+          permission="ver_compras"
           color="bg-pink"
           title="Inventario Valorizado"
           value={formatARS(counts.total_inventario)}

@@ -113,13 +113,16 @@ const CrearAjuste = () => {
     try {
       await api.post("/ajustes", formData);
       Swal.fire({
+        position: "center",
         icon: "success",
         title: "¡Éxito!",
         text: "Ajuste registrado y stock actualizado",
-        timer: 2000,
         showConfirmButton: false,
+        timer: 1500,
+        timerProgressBar: true,
+      }).then(() => {
+        window.location.href = "/ajustes/listado";
       });
-      navigate("/ajustes/listado");
     } catch (error) {
       Swal.fire("Error", "No se pudo registrar el ajuste", "error");
     }

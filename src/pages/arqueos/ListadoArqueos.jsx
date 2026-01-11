@@ -6,12 +6,17 @@ import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import Swal from "sweetalert2";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import { useAuth } from "../../context/AuthContext"; // 👈 1. IMPORTAMOS AUTH
 
 const ListadoArqueos = () => {
   const [arqueos, setArqueos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [arqueoAbierto, setArqueoAbierto] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth(); // 👈 2. OBTENEMOS EL USUARIO
+
+  // 🕵️ 3. Lógica de seguridad (Solo ID 1 puede ver lo sensible)
+  const isAdmin = user?.id === 1;
 
   const spanishLanguage = {
     sProcessing: "Procesando...",
@@ -29,13 +34,11 @@ const ListadoArqueos = () => {
     },
   };
 
-  // 1. URL Dinámica
   const API_URL =
     window.location.hostname === "localhost"
       ? "http://localhost:3001"
       : "https://sistema-ventas-backend-3nn3.onrender.com";
 
-  // 2. Función para abrir reporte con TOKEN
   const abrirReporte = (path) => {
     const token = localStorage.getItem("token");
     window.open(`${API_URL}${path}?token=${token}`, "_blank");
@@ -75,6 +78,11 @@ const ListadoArqueos = () => {
   };
 
   const formatDetails = (d) => {
+    // 🔒 4. Bloqueo en el acordeón para el cajero
+    if (!isAdmin) {
+      return '<div class="p-3 bg-light border rounded m-2 text-center text-muted"><i class="fas fa-lock mr-2"></i>Detalle de movimientos restringido al administrador.</div>';
+    }
+
     let html = '<div class="p-3 bg-light border rounded shadow-sm m-2">';
     html +=
       '<h6 class="mb-2"><strong>Detalle de Movimientos de Caja</strong></h6>';
@@ -146,7 +154,6 @@ const ListadoArqueos = () => {
                   .attr("class", "fas fa-minus-circle text-danger");
               }
             });
-
           window.$('[data-bs-toggle="tooltip"]').tooltip();
         }
       }, 150);
@@ -159,7 +166,7 @@ const ListadoArqueos = () => {
         }
       };
     }
-  }, [loading, arqueos]);
+  }, [loading, arqueos, isAdmin]);
 
   const handleExport = (type) => {
     window.$("#arqueos-table").DataTable().button(`.buttons-${type}`).trigger();
@@ -282,7 +289,8 @@ const ListadoArqueos = () => {
                   <th>Tarjetas</th>
                   <th>M. Pago</th>
                   <th>Descripción</th>
-                  <th>Movimientos</th>
+                  {/* 🔒 5. CABECERA PROTEGIDA */}
+                  {isAdmin && <th>Movimientos</th>}
                   <th>Usuario</th>
                   <th style={{ width: "180px" }}>Acciones</th>
                 </tr>
@@ -327,28 +335,35 @@ const ListadoArqueos = () => {
                         {formatMoney(arq.ventas_mercadopago)}
                       </td>
                       <td>{arq.descripcion}</td>
-                      <td style={{ minWidth: "200px" }}>
-                        <div
-                          className="row text-center m-0"
-                          style={{ fontSize: "0.72rem" }}
-                        >
-                          <div className="col-4 p-0 text-success">
-                            <b>Ingresos</b>
-                            <br />
-                            {formatMoney(ing)}
+
+                      {/* 🔒 6. CELDA PROTEGIDA (CON TU DISEÑO ORIGINAL) */}
+                      {isAdmin && (
+                        <td style={{ minWidth: "200px" }}>
+                          <div
+                            className="row text-center m-0"
+                            style={{ fontSize: "0.72rem" }}
+                          >
+                            <div className="col-4 p-0 text-success">
+                              <b>Ingresos</b>
+                              <br />
+                              {formatMoney(ing)}
+                            </div>
+                            <div className="col-4 p-0 text-danger">
+                              <b>Egresos</b>
+                              <br />
+                              {formatMoney(egr)}
+                            </div>
+                            <div className="col-4 p-0 text-warning">
+                              <b>Dif.</b>
+                              <br />
+                              {formatMoney(
+                                isClosed ? teorico - m_fin : teorico
+                              )}
+                            </div>
                           </div>
-                          <div className="col-4 p-0 text-danger">
-                            <b>Egresos</b>
-                            <br />
-                            {formatMoney(egr)}
-                          </div>
-                          <div className="col-4 p-0 text-warning">
-                            <b>Dif.</b>
-                            <br />
-                            {formatMoney(isClosed ? teorico - m_fin : teorico)}
-                          </div>
-                        </div>
-                      </td>
+                        </td>
+                      )}
+
                       <td className="text-center">
                         {arq.usuario_nombre || "Admin"}
                       </td>
@@ -356,22 +371,16 @@ const ListadoArqueos = () => {
                         <div className="btn-group">
                           <button
                             className="btn btn-info btn-sm"
-                            data-bs-toggle="tooltip"
-                            title="Ver Arqueo"
                             onClick={() =>
                               navegarSinTooltips(`/arqueos/ver/${arq.id}`)
                             }
                           >
                             <i className="fas fa-eye"></i>
                           </button>
-
-                          {/* BOTONES CON LÓGICA DE DESHABILITADO */}
                           <button
                             className={`btn btn-success btn-sm ${
                               isClosed ? "disabled" : ""
                             }`}
-                            data-bs-toggle="tooltip"
-                            title="Editar Arqueo"
                             onClick={() =>
                               !isClosed &&
                               navegarSinTooltips(`/arqueos/editar/${arq.id}`)
@@ -379,13 +388,10 @@ const ListadoArqueos = () => {
                           >
                             <i className="fas fa-pencil-alt"></i>
                           </button>
-
                           <button
                             className={`btn btn-warning btn-sm ${
                               isClosed ? "disabled" : ""
                             }`}
-                            data-bs-toggle="tooltip"
-                            title="Registrar Movimiento"
                             onClick={() =>
                               !isClosed &&
                               navegarSinTooltips(
@@ -395,13 +401,10 @@ const ListadoArqueos = () => {
                           >
                             <i className="fas fa-cash-register"></i>
                           </button>
-
                           <button
                             className={`btn btn-secondary btn-sm ${
                               isClosed ? "disabled" : ""
                             }`}
-                            data-bs-toggle="tooltip"
-                            title="Cerrar Arqueo"
                             onClick={() =>
                               !isClosed &&
                               navegarSinTooltips(`/arqueos/cierre/${arq.id}`)

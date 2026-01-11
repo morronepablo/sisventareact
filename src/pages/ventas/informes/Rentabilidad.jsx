@@ -200,6 +200,7 @@ const Rentabilidad = () => {
                     <th className="text-center">Vendidos</th>
                     <th className="text-right">Total Ventas</th>
                     <th className="text-right">Ganancia</th>
+                    <th className="text-center">Aporte %</th>
                     <th className="text-center" style={{ width: "150px" }}>
                       Margen de Oferta
                     </th>
@@ -240,6 +241,12 @@ const Rentabilidad = () => {
                             style={{ fontSize: "1rem" }}
                           >
                             {p.cantidad}
+                            <small
+                              className="ml-1"
+                              style={{ fontSize: "0.7rem", opacity: 0.8 }}
+                            >
+                              {p.unidad}
+                            </small>
                           </span>
                         </td>
                         <td className="text-right">
@@ -254,6 +261,12 @@ const Rentabilidad = () => {
                             minimumFractionDigits: 2,
                           })}
                         </td>
+                        <td className="text-center">
+                          <span className="badge badge-secondary">
+                            {parseFloat(p.participacion).toFixed(1)}%
+                          </span>
+                        </td>
+
                         <td className="text-center">
                           {/* Si no hay ventas, mostramos la barra vacía y en rojo */}
                           <div

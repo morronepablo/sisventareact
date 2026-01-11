@@ -148,8 +148,7 @@ const Navbar = () => {
             style={{ padding: "5px 10px", fontSize: "0.875rem" }}
             onClick={handleRebuildMovimientos}
           >
-            <i className="fas fa-sync-alt"></i> Limpiar y Reconstruir
-            Movimientos
+            <i className="fas fa-sync-alt"></i> Limp. y Reconst. Movim.
           </button>
         </li>
         {arqueoAbierto && (
@@ -160,7 +159,12 @@ const Navbar = () => {
               style={{ padding: "5px 10px", fontSize: "0.875rem" }}
               onClick={handleCierreArqueo}
             >
-              <i className="fas fa-lock"></i> Cierre Arqueo
+              <small>CTRL</small> +{" "}
+              <i
+                className="fas fa-arrow-up mr-1"
+                style={{ fontSize: "0.7rem" }}
+              ></i>{" "}
+              + S: Cerrar Caja
             </button>
           </li>
         )}

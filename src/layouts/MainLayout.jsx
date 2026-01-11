@@ -1,87 +1,96 @@
 // src/layouts/MainLayout.jsx
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom"; // 👈 Importamos useNavigate
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useLayout } from "../context/LayoutContext";
 import Navbar from "../components/Layout/Navbar";
 import Sidebar from "../components/Layout/Sidebar";
 import Footer from "../components/Layout/Footer";
+import { useNotifications } from "../context/NotificationContext"; // 👈 IMPORTADO
+import Swal from "sweetalert2";
 
 const MainLayout = () => {
   const { isDesktopCollapsed, isMobileOpen, closeMobileSidebar } = useLayout();
-  const location = useLocation();
-  const navigate = useNavigate(); // 👈 Inicializamos el navegador
 
-  // --- LÓGICA DE ATAJOS GLOBALES (F1 y F2) ---
+  // 📥 Extraemos arqueoId y arqueoAbierto (nombres idénticos al contexto)
+  const { arqueoId, arqueoAbierto, refreshAll } = useNotifications();
+
+  const location = useLocation();
+  const navigate = useNavigate();
+
   useEffect(() => {
     const handleGlobalKeys = (e) => {
-      // F1: Acceso directo a Nueva Venta
       if (e.key === "F1") {
-        e.preventDefault(); // Evita abrir la ayuda de Windows
+        e.preventDefault();
         navigate("/ventas/crear");
       }
-      // F2: Acceso directo a Nueva Compra
       if (e.key === "F2") {
         e.preventDefault();
         navigate("/compras/crear");
       }
-      // F4: Acceso directo a Listado de Productos
       if (e.key === "F4") {
         e.preventDefault();
         navigate("/productos/listado");
       }
-      // F6: Acceso directo a Arqueos
       if (e.key === "F6") {
         e.preventDefault();
         navigate("/arqueos/listado");
       }
-      // F7: Acceso directo a Devoluciones
       if (e.key === "F7") {
         e.preventDefault();
         navigate("/devoluciones/crear");
       }
-      // F9: Acceso directo a Listado de Proveedores
       if (e.key === "F9") {
         e.preventDefault();
         navigate("/proveedores/listado");
       }
-      // F10: Acceso directo a Listado de Clientes
       if (e.key === "F10") {
         e.preventDefault();
         navigate("/clientes/listado");
       }
-      // F11: Acceso directo a Dashboard
       if (e.key === "F11") {
         e.preventDefault();
         navigate("/dashboard");
       }
+
+      // ✨ ATAJO SEGURO: CTRL + SHIFT + A
+      if (e.ctrlKey && e.shiftKey && (e.key === "S" || e.key === "s")) {
+        e.preventDefault();
+
+        if (arqueoAbierto && arqueoId) {
+          navigate(`/arqueos/cierre/${arqueoId}`);
+        } else {
+          Swal.fire({
+            toast: true,
+            position: "top-end",
+            icon: "warning",
+            title: "Atención",
+            text: "No hay un arqueo abierto actualmente",
+            showConfirmButton: false,
+            timer: 3000,
+          });
+        }
+      }
     };
 
-    // Agregamos el escuchador al objeto window (global)
     window.addEventListener("keydown", handleGlobalKeys);
-
-    // Limpiamos el escuchador cuando el componente se destruye
-    return () => {
-      window.removeEventListener("keydown", handleGlobalKeys);
-    };
-  }, []);
+    return () => window.removeEventListener("keydown", handleGlobalKeys);
+  }, [arqueoId, arqueoAbierto]); // 👈 Dependencias sincronizadas
 
   useEffect(() => {
     closeMobileSidebar();
   }, [location.pathname]);
 
   useEffect(() => {
-    // Añadimos estas clases para que AdminLTE sepa que queremos todo fijo
     document.body.classList.add(
       "sidebar-mini",
       "layout-fixed",
       "layout-navbar-fixed",
       "layout-footer-fixed"
     );
-
     if (isDesktopCollapsed) document.body.classList.add("sidebar-collapse");
     else document.body.classList.remove("sidebar-collapse");
-
     if (isMobileOpen) document.body.classList.add("sidebar-open");
     else document.body.classList.remove("sidebar-open");
 
@@ -104,7 +113,7 @@ const MainLayout = () => {
         <Navbar />
         <Sidebar />
         <div className="content-wrapper">
-          <Outlet /> {/* ← Aquí se renderizan todas las páginas del sistema */}
+          <Outlet />
         </div>
         <Footer />
       </div>

@@ -1,10 +1,10 @@
 // src/components/auth/Login.jsx
 /* eslint-disable no-unused-vars */
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../services/api";
+import Swal from "sweetalert2";
 import logo from "../../assets/img/logoventas.jpg";
 
 const Login = () => {
@@ -12,18 +12,17 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
-  const { login } = useAuth();
+  const { login } = useAuth(); // 👈 Función que guarda el token
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Aplicamos clases y estilos al body para centrado absoluto
     document.body.classList.add("login-page");
     document.body.style.backgroundColor = "#ffffff";
     document.body.style.display = "flex";
     document.body.style.flexDirection = "column";
-    document.body.style.justifyContent = "center"; // Centrado vertical
-    document.body.style.alignItems = "center"; // Centrado horizontal
-    document.body.style.height = "100vh"; // Ocupa toda la pantalla
+    document.body.style.justifyContent = "center";
+    document.body.style.alignItems = "center";
+    document.body.style.height = "100vh";
     document.body.style.margin = "0";
 
     return () => {
@@ -40,19 +39,40 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setError(""); // Limpiar errores previos
+
     try {
+      // 1. Enviamos los datos al servidor
       const res = await api.post("/auth/login", { email, password });
-      login(res.data.token);
-      navigate("/dashboard");
-    } catch (err) {
-      setError("Credenciales inválidas");
+
+      // 2. 🟢 ¡ESTO ES LO QUE FALTABA! 🟢
+      // Guardamos el token en el contexto y localStorage
+      if (res.data.token) {
+        login(res.data.token);
+        // 3. Redirigimos al Dashboard
+        navigate("/dashboard");
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 403) {
+        // Alerta de Arqueo Bloqueado
+        Swal.fire({
+          icon: "error",
+          title: "Acceso Denegado",
+          text: error.response.data.message,
+          confirmButtonText: "Entendido",
+          footer:
+            '<span class="text-danger">Política de Seguridad: Una caja por turno.</span>',
+        });
+      } else if (error.response && error.response.status === 401) {
+        Swal.fire("Error", "Usuario o contraseña incorrectos", "error");
+      } else {
+        Swal.fire("Error", "No se pudo conectar con el servidor", "error");
+      }
     }
   };
 
   return (
     <div className="login-box" style={{ width: "400px", marginTop: "20px" }}>
-      {/* Logo superior con un poco más de margen inferior para despegarlo del card */}
       <div className="login-logo" style={{ marginBottom: "25px" }}>
         <img
           src={logo}
@@ -61,7 +81,6 @@ const Login = () => {
         />
       </div>
 
-      {/* Card con sombra y borde azul superior */}
       <div
         className="card card-outline card-primary"
         style={{ boxShadow: "5px 5px 5px 0px #cccccccc" }}
@@ -73,15 +92,6 @@ const Login = () => {
         </div>
 
         <div className="card-body login-card-body">
-          {error && (
-            <div
-              className="alert alert-danger p-2"
-              style={{ fontSize: "0.85rem" }}
-            >
-              {error}
-            </div>
-          )}
-
           <form onSubmit={handleSubmit}>
             <div className="input-group mb-3">
               <input

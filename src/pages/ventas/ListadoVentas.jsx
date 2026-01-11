@@ -16,7 +16,6 @@ const ListadoVentas = () => {
   const [ventas, setVentas] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // URL dinámica para Reportes
   const API_URL =
     window.location.hostname === "localhost"
       ? "http://localhost:3001"
@@ -46,7 +45,6 @@ const ListadoVentas = () => {
     navigate(url);
   };
 
-  // Función para abrir reportes con TOKEN
   const abrirReporte = (path) => {
     const token = localStorage.getItem("token");
     window.open(`${API_URL}${path}?token=${token}`, "_blank");
@@ -68,23 +66,39 @@ const ListadoVentas = () => {
     refreshArqueoStatus();
   }, [refreshArqueoStatus]);
 
+  // --- FUNCIÓN DEL ABANICO ACTUALIZADA CON IMPORTES ---
   const formatDetails = (venta) => {
     let html = '<div class="p-3 bg-light border rounded shadow-sm m-2">';
     html +=
-      '<table class="table table-sm table-bordered bg-white" style="width:100%; font-size: 0.85rem;">';
+      '<table class="table table-sm table-bordered bg-white shadow-sm" style="width:100%; font-size: 0.85rem;">';
+    html += '<thead class="thead-dark text-center">';
     html +=
-      '<thead class="thead-dark text-center"><tr><th>Código</th><th>Producto/Combo</th><th class="text-center">Cantidad</th></tr></thead><tbody>';
+      '<tr><th>Código</th><th>Producto/Combo</th><th class="text-center">Cant.</th><th class="text-center">P. Unitario</th><th class="text-center">Subtotal</th></tr></thead><tbody>';
 
     if (venta.detalles && venta.detalles.length > 0) {
       venta.detalles.forEach((d) => {
         const codigo = d.producto_codigo || d.combo_codigo || "(Sin código)";
         const nombre = d.producto_nombre || d.combo_nombre || "(Sin nombre)";
         const unidad = d.unidad_nombre || (d.combo_id ? "Combo" : "Unid.");
-        html += `<tr><td class="text-center">${codigo}</td><td>${nombre}</td><td class="text-right">${d.cantidad} ${unidad}</td></tr>`;
+        const precio = parseFloat(d.precio_venta || 0);
+        const subtotal = d.cantidad * precio;
+
+        html += `<tr>
+            <td class="text-center">${codigo}</td>
+            <td>${nombre}</td>
+            <td class="text-right">${d.cantidad} ${unidad}</td>
+            <td class="text-right">$ ${precio.toLocaleString("es-AR", {
+              minimumFractionDigits: 2,
+            })}</td>
+            <td class="text-right font-weight-bold">$ ${subtotal.toLocaleString(
+              "es-AR",
+              { minimumFractionDigits: 2 }
+            )}</td>
+        </tr>`;
       });
     } else {
       html +=
-        '<tr><td colspan="3" class="text-center">No hay productos.</td></tr>';
+        '<tr><td colspan="5" class="text-center">No hay productos.</td></tr>';
     }
     html += "</tbody></table></div>";
     return html;
@@ -92,15 +106,11 @@ const ListadoVentas = () => {
 
   useEffect(() => {
     if (loading) return;
-
     const timer = setTimeout(() => {
       const tableId = "#ventas-table";
       const $ = window.$;
       if (!$) return;
-
-      if ($.fn.DataTable.isDataTable(tableId)) {
-        $(tableId).DataTable().destroy();
-      }
+      if ($.fn.DataTable.isDataTable(tableId)) $(tableId).DataTable().destroy();
 
       const table = $(tableId).DataTable({
         paging: true,
@@ -122,14 +132,11 @@ const ListadoVentas = () => {
             $('[data-toggle="tooltip"]').tooltip({
               trigger: "hover",
               boundary: "window",
-              template:
-                '<div class="tooltip" role="tooltip"><div class="arrow"></div><div class="tooltip-inner bg-dark text-white shadow-sm"></div></div>',
             });
           }
         },
       });
 
-      // LÓGICA DEL ABANICO (DETALLES)
       $(`${tableId} tbody`).off("click", "td.details-control");
       $(`${tableId} tbody`).on("click", "td.details-control", function () {
         var tr = $(this).closest("tr");
@@ -147,7 +154,6 @@ const ListadoVentas = () => {
         }
       });
     }, 150);
-
     return () => clearTimeout(timer);
   }, [loading, ventas]);
 
@@ -165,7 +171,6 @@ const ListadoVentas = () => {
         Swal.showLoading();
       },
     });
-
     try {
       const token = localStorage.getItem("token");
       await api.post(`/ventas/${ventaId}/enviar-whatsapp?token=${token}`);
@@ -349,7 +354,6 @@ const ListadoVentas = () => {
                         >
                           <i className="fas fa-print"></i>
                         </button>
-                        {/* 👇 BOTÓN WHATSAPP CONDICIONAL */}
                         {v.cliente_id !== 1 ? (
                           <button
                             className="btn btn-success btn-sm"
