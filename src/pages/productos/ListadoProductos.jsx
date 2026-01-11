@@ -100,6 +100,18 @@ const ListadoProductos = () => {
     }
   }, [loading, productos]);
 
+  // --- LÓGICA DE ATAJOS (F8) ---
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "F8") {
+        e.preventDefault(); // Evita abrir la ayuda de Windows
+        navigate("/productos/crear");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const handleEliminar = async (id) => {
     const result = await Swal.fire({
       title: "¿Estás seguro?",
@@ -211,7 +223,7 @@ const ListadoProductos = () => {
                 className="btn btn-primary btn-sm ml-2"
                 onClick={() => navegarSinTooltips("/productos/crear")}
               >
-                <i className="fa fa-plus"></i> Crear nuevo
+                <i className="fa fa-plus"></i> F8: Crear nuevo
               </button>
             </div>
           </div>

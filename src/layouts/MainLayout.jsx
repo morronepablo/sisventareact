@@ -25,15 +25,30 @@ const MainLayout = () => {
         e.preventDefault();
         navigate("/compras/crear");
       }
-      // F3: Acceso directo a Listado de Ventas
-      if (e.key === "F3") {
-        e.preventDefault();
-        navigate("/ventas/listado");
-      }
       // F4: Acceso directo a Listado de Productos
       if (e.key === "F4") {
         e.preventDefault();
         navigate("/productos/listado");
+      }
+      // F6: Acceso directo a Arqueos
+      if (e.key === "F6") {
+        e.preventDefault();
+        navigate("/arqueos/listado");
+      }
+      // F7: Acceso directo a Devoluciones
+      if (e.key === "F7") {
+        e.preventDefault();
+        navigate("/devoluciones/crear");
+      }
+      // F9: Acceso directo a Listado de Proveedores
+      if (e.key === "F9") {
+        e.preventDefault();
+        navigate("/proveedores/listado");
+      }
+      // F10: Acceso directo a Listado de Clientes
+      if (e.key === "F10") {
+        e.preventDefault();
+        navigate("/clientes/listado");
       }
     };
 

@@ -168,6 +168,10 @@ const Navbar = () => {
           <span className="badge badge-primary p-2 ml-1">F1: Ventas</span>
           <span className="badge badge-info p-2 ml-1">F2: Compras</span>
           <span className="badge badge-success p-2 ml-1">F4: Productos</span>
+          <span className="badge badge-warning p-2 ml-1">F6: Arqueos</span>
+          <span className="badge badge-danger p-2 ml-1">F7: Devolución</span>
+          <span className="badge badge-dark p-2 ml-1">F9: Proveedores</span>
+          <span className="badge badge-secondary p-2 ml-1">F10: Clientes</span>
         </li>
       </ul>
 
