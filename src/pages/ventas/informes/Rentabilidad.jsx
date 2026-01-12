@@ -10,7 +10,6 @@ const Rentabilidad = () => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
   const [fechas, setFechas] = useState({
-    // Genera: Año Actual - 01 (Enero) - 01 (Día)
     desde: `${new Date().getFullYear()}-01-01`,
     hasta: new Date().toISOString().split("T")[0],
   });
@@ -52,11 +51,11 @@ const Rentabilidad = () => {
           window.$(tableId).DataTable().destroy();
         window.$(tableId).DataTable({
           paging: true,
-          pageLength: 5, // Mostramos más por página para análisis masivo
+          pageLength: 10,
           language: spanishLanguage,
           responsive: true,
           autoWidth: false,
-          order: [[1, "asc"]], // Ordenar por Cantidad Vendida (ASC) para ver los que NO se venden arriba
+          order: [[3, "desc"]],
         });
       }, 300);
       return () => clearTimeout(timer);
@@ -123,13 +122,13 @@ const Rentabilidad = () => {
           </div>
         </div>
 
-        {/* INDICADORES */}
+        {/* INDICADORES CUÁDRUPLES */}
         <div className="row">
-          <div className="col-lg-4 col-6">
+          <div className="col-lg-3 col-6">
             <div className="small-box bg-gradient-primary shadow">
               <div className="inner">
                 <h3>
-                  ${" "}
+                  $
                   {data?.totalVentas.toLocaleString("es-AR", {
                     minimumFractionDigits: 2,
                   })}
@@ -141,32 +140,48 @@ const Rentabilidad = () => {
               </div>
             </div>
           </div>
-          <div className="col-lg-4 col-6">
+          <div className="col-lg-3 col-6">
             <div className="small-box bg-gradient-danger shadow">
               <div className="inner">
                 <h3>
-                  ${" "}
+                  $
                   {data?.totalCosto.toLocaleString("es-AR", {
                     minimumFractionDigits: 2,
                   })}
                 </h3>
-                <p>Inversión en Mercadería (CMV)</p>
+                <p>Costo Mercadería (CMV)</p>
               </div>
               <div className="icon">
                 <i className="fas fa-hand-holding-usd"></i>
               </div>
             </div>
           </div>
-          <div className="col-lg-4 col-12">
-            <div className="small-box bg-gradient-success shadow">
+          <div className="col-lg-3 col-6">
+            <div className="small-box bg-gradient-warning shadow">
               <div className="inner">
-                <h3>
-                  ${" "}
-                  {data?.gananciaNeta.toLocaleString("es-AR", {
+                <h3 className="text-white">
+                  $
+                  {data?.totalGastos.toLocaleString("es-AR", {
                     minimumFractionDigits: 2,
                   })}
                 </h3>
-                <p>Ganancia Real Acumulada</p>
+                <p className="text-white">Gastos Operativos</p>
+              </div>
+              <div className="icon">
+                <i className="fas fa-file-invoice-dollar"></i>
+              </div>
+            </div>
+          </div>
+          <div className="col-lg-3 col-6">
+            <div className="small-box bg-gradient-success shadow">
+              <div className="inner">
+                <h3>
+                  $
+                  {data?.gananciaNetaReal.toLocaleString("es-AR", {
+                    minimumFractionDigits: 2,
+                  })}
+                </h3>
+                <p>Utilidad Neta Real</p>
               </div>
               <div className="icon">
                 <i className="fas fa-money-check-alt"></i>
@@ -178,14 +193,7 @@ const Rentabilidad = () => {
         {/* TABLA DE ANÁLISIS */}
         <div className="card shadow">
           <div className="card-header bg-dark d-flex justify-content-between align-items-center">
-            <h3 className="card-title">
-              Listado Maestro de Productos y Desempeño
-            </h3>
-            <div className="card-tools">
-              <span className="badge badge-warning">
-                Tip: Ordena por 'Cant' para ver productos sin movimiento
-              </span>
-            </div>
+            <h3 className="card-title">Desempeño de Productos</h3>
           </div>
           <div className="card-body">
             <div className="table-responsive">
@@ -198,11 +206,15 @@ const Rentabilidad = () => {
                   <tr>
                     <th>Producto</th>
                     <th className="text-center">Vendidos</th>
-                    <th className="text-right">Total Ventas</th>
                     <th className="text-right">Ganancia</th>
-                    <th className="text-center">Aporte %</th>
+                    <th
+                      className="text-center"
+                      style={{ backgroundColor: "#f0f7ff" }}
+                    >
+                      Aporte %
+                    </th>
                     <th className="text-center" style={{ width: "150px" }}>
-                      Margen de Oferta
+                      Margen Real
                     </th>
                   </tr>
                 </thead>
@@ -211,11 +223,6 @@ const Rentabilidad = () => {
                     const margen = parseFloat(p.margen || 0);
                     const cantidad = parseFloat(p.cantidad || 0);
                     const sinVentas = cantidad === 0;
-
-                    // Lógica de colores solicitada:
-                    // 0 o menor a 10 -> ROJO (Peligro o Sin Ventas)
-                    // 10 a 30 -> AMARILLO (Alerta)
-                    // Mayor a 30 -> VERDE (Saludable)
                     let colorBarra = "bg-success";
                     if (margen <= 10) colorBarra = "bg-danger";
                     else if (margen <= 30) colorBarra = "bg-warning";
@@ -223,13 +230,17 @@ const Rentabilidad = () => {
                     return (
                       <tr
                         key={i}
-                        className={sinVentas ? "bg-light-danger" : ""}
+                        style={
+                          sinVentas
+                            ? { backgroundColor: "rgba(255,0,0,0.05)" }
+                            : {}
+                        }
                       >
                         <td className="font-weight-bold">
-                          {p.nombre}
+                          {p.nombre}{" "}
                           {sinVentas && (
                             <span className="badge badge-danger ml-2">
-                              STOCKED (SIN SALIDA)
+                              STOCKED
                             </span>
                           )}
                         </td>
@@ -240,7 +251,7 @@ const Rentabilidad = () => {
                             }`}
                             style={{ fontSize: "1rem" }}
                           >
-                            {p.cantidad}
+                            {p.cantidad}{" "}
                             <small
                               className="ml-1"
                               style={{ fontSize: "0.7rem", opacity: 0.8 }}
@@ -249,12 +260,6 @@ const Rentabilidad = () => {
                             </small>
                           </span>
                         </td>
-                        <td className="text-right">
-                          ${" "}
-                          {parseFloat(p.total_venta).toLocaleString("es-AR", {
-                            minimumFractionDigits: 2,
-                          })}
-                        </td>
                         <td className="text-right font-weight-bold text-success">
                           ${" "}
                           {parseFloat(p.ganancia).toLocaleString("es-AR", {
@@ -262,13 +267,14 @@ const Rentabilidad = () => {
                           })}
                         </td>
                         <td className="text-center">
-                          <span className="badge badge-secondary">
+                          <span
+                            className="badge badge-secondary"
+                            style={{ fontSize: "0.9rem" }}
+                          >
                             {parseFloat(p.participacion).toFixed(1)}%
                           </span>
                         </td>
-
                         <td className="text-center">
-                          {/* Si no hay ventas, mostramos la barra vacía y en rojo */}
                           <div
                             className="progress shadow-sm"
                             style={{
@@ -295,7 +301,7 @@ const Rentabilidad = () => {
                             }`}
                           >
                             {margen.toFixed(1)}%{" "}
-                            {sinVentas ? "(SIN GANANCIA)" : ""}
+                            {sinVentas ? "(SIN VENTA)" : ""}
                           </small>
                         </td>
                       </tr>
@@ -306,32 +312,14 @@ const Rentabilidad = () => {
             </div>
           </div>
           <div className="card-footer">
-            <div className="row">
-              <div className="col-md-6">
-                <p className="small text-muted mb-0">
-                  <b>Colores de Margen:</b> <br />
-                  <i className="fas fa-circle text-danger mr-1"></i> Crítico
-                  (0-10%) |<i className="fas fa-circle text-warning mr-1"></i>{" "}
-                  Alerta (10-30%) |
-                  <i className="fas fa-circle text-success mr-1"></i> Óptimo
-                  (+30%)
-                </p>
-              </div>
-              <div className="col-md-6 text-right">
-                <small className="text-muted italic">
-                  * El margen en productos "Sin Movimiento" es teórico basado en
-                  precios actuales. Úselo para calcular cuánto descuento puede
-                  ofrecer.
-                </small>
-              </div>
-            </div>
+            <small className="text-muted">
+              <b>Utilidad Neta Real:</b> Ganancia de productos menos gastos
+              cargados en el sistema para este periodo.
+            </small>
           </div>
         </div>
       </div>
-      <style>{`
-        .table-warning-light { background-color: rgba(255, 0, 0, 0.03); }
-        .border-left-primary { border-left: 5px solid #007bff; }
-      `}</style>
+      <style>{` .border-left-primary { border-left: 5px solid #007bff; } `}</style>
     </div>
   );
 };

@@ -49,6 +49,7 @@ import CrearProducto from "./pages/productos/CrearProducto";
 import VerProducto from "./pages/productos/VerProducto";
 import EditarProducto from "./pages/productos/EditarProducto";
 import ActualizacionMasiva from "./pages/productos/ActualizacionMasiva";
+import MonitorReposicion from "./pages/productos/MonitorReposicion";
 
 // Proveedores
 import ListadoProveedores from "./pages/proveedores/ListadoProveedores";
@@ -213,6 +214,7 @@ const App = () => {
           path="/productos/actualizacion-masiva"
           element={<ActualizacionMasiva />}
         />
+        <Route path="/productos/reposicion" element={<MonitorReposicion />} />
 
         {/* Proveedores */}
         <Route path="/proveedores/listado" element={<ListadoProveedores />} />

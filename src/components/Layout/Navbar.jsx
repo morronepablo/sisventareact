@@ -114,32 +114,24 @@ const Navbar = () => {
             Home
           </Link>
         </li>
-        <li className="nav-item d-none d-sm-inline-block ml-2">
-          <Link
-            to="/ventas/crear"
-            className="nav-link btn btn-primary text-white"
-            style={{ padding: "5px 10px", fontSize: "0.875rem" }}
+        {/* INDICADOR DE CAJA ACTUAL - CENTRADO PERFECTO */}
+        <li className="nav-item d-none d-sm-flex align-items-center ml-2">
+          <div
+            className="badge badge-dark shadow-sm"
+            style={{
+              padding: "6px 12px",
+              fontSize: "0.85rem",
+              display: "flex",
+              alignItems: "center",
+              border: "1px solid #444",
+              height: "32px", // Altura estándar para alinear con los otros botones
+            }}
           >
-            <i className="fas fa-cash-register"></i> Vender
-          </Link>
-        </li>
-        <li className="nav-item d-none d-sm-inline-block ml-2">
-          <Link
-            to="/compras/crear"
-            className="nav-link btn btn-info text-white"
-            style={{ padding: "5px 10px", fontSize: "0.875rem" }}
-          >
-            <i className="fas fa-shopping-cart"></i> Comprar
-          </Link>
-        </li>
-        <li className="nav-item d-none d-sm-inline-block ml-2">
-          <Link
-            to="/devoluciones/crear"
-            className="nav-link btn btn-danger text-white"
-            style={{ padding: "5px 10px", fontSize: "0.875rem" }}
-          >
-            <i className="fas fa-rotate-left"></i> Devolver
-          </Link>
+            <i className="fas fa-cash-register mr-2 text-warning"></i>
+            <span style={{ fontWeight: "600" }}>
+              CAJA N° {user?.caja_id || "1"}
+            </span>
+          </div>
         </li>
         <li className="nav-item d-none d-sm-inline-block ml-2">
           <button

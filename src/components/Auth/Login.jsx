@@ -37,36 +37,77 @@ const Login = () => {
     };
   }, []);
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setError(""); // Limpiar errores previos
+
+  //   try {
+  //     // 1a. Leemos el ID de caja desde el .env del Frontend
+  //     const cajaId = import.meta.env.VITE_CAJA_ID || 1;
+  //     // 1b. Enviamos los datos al servidor
+  //     const res = await api.post("/auth/login", {
+  //       email,
+  //       password,
+  //       caja_id: Number(cajaId),
+  //     });
+
+  //     // 2. 🟢 ¡ESTO ES LO QUE FALTABA! 🟢
+  //     // Guardamos el token en el contexto y localStorage
+  //     if (res.data.token) {
+  //       login(res.data.token);
+  //       // 3. Redirigimos al Dashboard
+  //       navigate("/dashboard");
+  //     }
+  //   } catch (error) {
+  //     if (error.response && error.response.status === 403) {
+  //       // Alerta de Arqueo Bloqueado
+  //       Swal.fire({
+  //         icon: "error",
+  //         title: "Acceso Denegado",
+  //         text: error.response.data.message,
+  //         confirmButtonText: "Entendido",
+  //         footer:
+  //           '<span class="text-danger">Política de Seguridad: Una caja por turno.</span>',
+  //       });
+  //     } else if (error.response && error.response.status === 401) {
+  //       Swal.fire("Error", "Usuario o contraseña incorrectos", "error");
+  //     } else {
+  //       Swal.fire("Error", "No se pudo conectar con el servidor", "error");
+  //     }
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(""); // Limpiar errores previos
+    setError("");
 
     try {
-      // 1. Enviamos los datos al servidor
-      const res = await api.post("/auth/login", { email, password });
+      // 1. Vite lee la variable con VITE_ prefix
+      const cajaIdDesdeEnv = import.meta.env.VITE_CAJA_ID || 1;
 
-      // 2. 🟢 ¡ESTO ES LO QUE FALTABA! 🟢
-      // Guardamos el token en el contexto y localStorage
+      // 2. Enviamos el login con el número de caja de esta PC
+      const res = await api.post("/auth/login", {
+        email,
+        password,
+        caja_id: Number(cajaIdDesdeEnv),
+      });
+
       if (res.data.token) {
         login(res.data.token);
-        // 3. Redirigimos al Dashboard
         navigate("/dashboard");
       }
     } catch (error) {
       if (error.response && error.response.status === 403) {
-        // Alerta de Arqueo Bloqueado
         Swal.fire({
           icon: "error",
-          title: "Acceso Denegado",
+          title: "Caja Ocupada",
           text: error.response.data.message,
           confirmButtonText: "Entendido",
           footer:
-            '<span class="text-danger">Política de Seguridad: Una caja por turno.</span>',
+            '<small class="text-danger">Cada cajero debe cerrar su caja al finalizar el turno.</small>',
         });
-      } else if (error.response && error.response.status === 401) {
-        Swal.fire("Error", "Usuario o contraseña incorrectos", "error");
       } else {
-        Swal.fire("Error", "No se pudo conectar con el servidor", "error");
+        Swal.fire("Error", "Usuario o contraseña incorrectos", "error");
       }
     }
   };
