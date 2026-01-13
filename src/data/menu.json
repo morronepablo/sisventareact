@@ -164,6 +164,13 @@
                 "permiso": "ver_productos"
             },
             {
+                "id": "liquidador",
+                "text": "Liquidador Inteligente",
+                "icon": "fas fa-hourglass-end",
+                "path": "/productos/liquidador",
+                "permiso": "ver_productos"
+            },
+            {
                 "id": "asistente_compra",
                 "text": "Asistente de Compra BI",
                 "icon": "fas fa-robot",

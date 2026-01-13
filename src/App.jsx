@@ -53,6 +53,7 @@ import MonitorReposicion from "./pages/productos/MonitorReposicion";
 import Promociones from "./pages/productos/Promociones";
 import AsistenteCompra from "./pages/productos/AsistenteCompra";
 import GuardianMargenes from "./pages/productos/GuardianMargenes";
+import LiquidadorInteligente from "./pages/productos/LiquidadorInteligente";
 
 // Proveedores
 import ListadoProveedores from "./pages/proveedores/ListadoProveedores";
@@ -226,6 +227,10 @@ const App = () => {
         <Route
           path="/productos/guardian-margenes"
           element={<GuardianMargenes />}
+        />
+        <Route
+          path="/productos/liquidador"
+          element={<LiquidadorInteligente />}
         />
 
         {/* Proveedores */}
