@@ -348,6 +348,101 @@ const Dashboard = () => {
     })),
   };
 
+  // --- LÓGICA DEL PODIO CAJERO PRO ---
+  const renderPodio = () => {
+    if (!charts.rankingEficiencia || charts.rankingEficiencia.length === 0)
+      return null;
+
+    const vendedores = [...charts.rankingEficiencia].sort(
+      (a, b) => b.facturacion - a.facturacion
+    );
+    const masRapidos = [...charts.rankingEficiencia].sort(
+      (a, b) => b.items_por_ticket - a.items_por_ticket
+    );
+
+    return (
+      <div className="row mt-2">
+        <div className="col-md-6">
+          <div className="card card-outline card-warning shadow-sm">
+            <div className="card-header">
+              <h3 className="card-title text-bold">
+                <i className="fas fa-trophy text-warning mr-2"></i> Podio: Más
+                Ventas (Mes)
+              </h3>
+            </div>
+            <div className="card-body p-0">
+              <ul className="products-list product-list-in-card pl-2 pr-2">
+                {vendedores.slice(0, 3).map((v, i) => (
+                  <li className="item" key={i}>
+                    <div className="product-img text-center pt-2">
+                      {i === 0 && (
+                        <i className="fas fa-medal fa-2x text-warning"></i>
+                      )}
+                      {i === 1 && (
+                        <i className="fas fa-medal fa-2x text-secondary"></i>
+                      )}
+                      {i === 2 && (
+                        <i className="fas fa-medal fa-2x text-orange"></i>
+                      )}
+                    </div>
+                    <div className="product-info">
+                      <span className="product-title text-bold">
+                        {v.usuario}{" "}
+                        <span className="badge badge-warning float-right">
+                          {formatARS(v.facturacion)}
+                        </span>
+                      </span>
+                      <span className="product-description small">
+                        Total Tickets: {v.total_tickets} | Prom:{" "}
+                        {formatARS(v.facturacion / v.total_tickets)}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-6">
+          <div className="card card-outline card-success shadow-sm">
+            <div className="card-header">
+              <h3 className="card-title text-bold">
+                <i className="fas fa-bolt text-success mr-2"></i> Podio:
+                Eficiencia (Items/Ticket)
+              </h3>
+            </div>
+            <div className="card-body p-0">
+              <ul className="products-list product-list-in-card pl-2 pr-2">
+                {masRapidos.slice(0, 3).map((v, i) => (
+                  <li className="item" key={i}>
+                    <div className="product-img text-center pt-2">
+                      <i
+                        className={`fas fa-stopwatch fa-2x ${
+                          i === 0 ? "text-success" : "text-muted"
+                        }`}
+                      ></i>
+                    </div>
+                    <div className="product-info">
+                      <span className="product-title text-bold">
+                        {v.usuario}{" "}
+                        <span className="badge badge-success float-right">
+                          {parseFloat(v.items_por_ticket).toFixed(2)} items/cli
+                        </span>
+                      </span>
+                      <span className="product-description small">
+                        Items totales pasados: {v.total_items} productos.
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="container-fluid pt-3 pb-5">
       <style>{`
@@ -357,7 +452,7 @@ const Dashboard = () => {
         .bg-fuchsia { background-color: #f012be !important; } .bg-teal { background-color: #39cccc !important; }
         .small-box { min-height: 140px; margin-bottom: 20px; } .small-box > .inner { padding: 10px; height: 105px; }
         
-        /* 🚀 SCROLLBAR ESTILO SLIM RECUPERADO 🚀 */
+        /* 🚀 SCROLLBAR ESTILO SLIM RESTAURADO 🚀 */
         .productos-scroll { height: 80px; overflow-y: auto; padding-right: 5px; margin-top: 5px; }
         .productos-scroll::-webkit-scrollbar { width: 3px; } 
         .productos-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
@@ -599,7 +694,7 @@ const Dashboard = () => {
         <div className="col-lg-3 col-6">
           <div className="small-box bg-navy shadow-sm">
             <div className="inner text-white">
-              <div className="productos-scroll">
+              <div className="productos-scroll text-sm">
                 {counts.topProductos?.map((p, i) => (
                   <div
                     key={i}
@@ -607,7 +702,6 @@ const Dashboard = () => {
                   >
                     <span
                       style={{
-                        fontSize: "0.7rem",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
@@ -617,9 +711,7 @@ const Dashboard = () => {
                       {p.nombre}
                     </span>
                     <span
-                      className={`product-badge ${
-                        i === 0 ? "bg-info" : "bg-danger"
-                      }`}
+                      className={`badge ${i === 0 ? "bg-info" : "bg-danger"}`}
                     >
                       {p.veces_vendido}
                     </span>
@@ -849,6 +941,9 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* 🏆 PODIO CAJERO PRO 🏆 */}
+      {renderPodio()}
 
       <div className="row">
         <div className="col-md-6 mb-4">
