@@ -1,0 +1,12 @@
+1. El "Guardián de Márgenes" (Inflación Controlada) 🛡️
+Qué es: Un sistema donde el dueño define el Margen de Ganancia Deseado por Categoría (ej: Almacén 35%, Limpieza 40%).
+La Magia: Cuando se carga una nueva Compra, el sistema compara el nuevo precio de costo contra el de venta actual. Si el margen cayó por debajo de lo definido, el sistema te marca en rojo el producto y te dice: "Sugerencia: Subir a $X para mantener tu 35%".
+Impacto: En países con inflación, esto evita que el dueño "venda para perder". Protege la rentabilidad automáticamente.
+2. El "Liquidador Inteligente" (Productos Muertos) 📉
+Qué es: Un informe que detecta productos que tienen stock pero Cero ventas en los últimos 60 días.
+La Magia: El sistema los etiqueta como "Dinero Dormido" y te sugiere una promoción automática (ej: "Este producto no se mueve, ponelo al 2x1 o bajale un 20% para recuperar el capital").
+Impacto: Mejora el flujo de caja liberando dinero atrapado en estanterías.
+3. El "Monitor de Arqueo en Tiempo Real" (Seguridad Total) 👮‍♂️
+Qué es: Una vista ultra-privada para el dueño que muestra cuánto dinero físico hay en cada caja en este preciso instante, desglosado por: Efectivo, Tarjeta y MP.
+La Magia: No espera al cierre. Si el dueño ve que la Caja 1 ya tiene $200.000 en efectivo, puede ir y hacer un "Retiro parcial" para mayor seguridad. El sistema genera un comprobante de retiro y ajusta el monto esperado para el arqueo ciego.
+Impacto: Reduce el riesgo de robos y le da control total al dueño sin estar presente en el local.
