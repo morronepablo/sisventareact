@@ -379,6 +379,13 @@
                         "icon": "fas fa-funnel-dollar",
                         "path": "/ventas/informes/rentabilidad",
                         "permiso": "ver_ventas"
+                    },
+                    {
+                        "id": "estado_resultados",
+                        "text": "Estado de Resultados",
+                        "icon": "fas fa-file-invoice-dollar",
+                        "path": "/ventas/informes/estado-resultados",
+                        "permiso": "ver_ventas"
                     }
                 ]
             }
