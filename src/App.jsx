@@ -55,6 +55,7 @@ import AsistenteCompra from "./pages/productos/AsistenteCompra";
 import GuardianMargenes from "./pages/productos/GuardianMargenes";
 import LiquidadorInteligente from "./pages/productos/LiquidadorInteligente";
 import SimuladorImpacto from "./pages/productos/SimuladorImpacto";
+import AuditorFugas from "./pages/productos/AuditorFugas";
 
 // Proveedores
 import ListadoProveedores from "./pages/proveedores/ListadoProveedores";
@@ -236,6 +237,7 @@ const App = () => {
           element={<LiquidadorInteligente />}
         />
         <Route path="/productos/simulador" element={<SimuladorImpacto />} />
+        <Route path="/productos/auditor-fugas" element={<AuditorFugas />} />
 
         {/* Proveedores */}
         <Route path="/proveedores/listado" element={<ListadoProveedores />} />

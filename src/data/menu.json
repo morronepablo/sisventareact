@@ -164,6 +164,13 @@
                 "permiso": "ver_productos"
             },
             {
+                "id": "auditor_fugas",
+                "text": "Auditor de Fugas",
+                "icon": "fas fa-user-secret",
+                "path": "/productos/auditor-fugas",
+                "permiso": "ver_productos"
+            },
+            {
                 "id": "guardian_margenes",
                 "text": "Guardián de Márgenes",
                 "icon": "fas fa-shield-alt",
