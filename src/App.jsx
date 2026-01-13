@@ -52,6 +52,7 @@ import ActualizacionMasiva from "./pages/productos/ActualizacionMasiva";
 import MonitorReposicion from "./pages/productos/MonitorReposicion";
 import Promociones from "./pages/productos/Promociones";
 import AsistenteCompra from "./pages/productos/AsistenteCompra";
+import GuardianMargenes from "./pages/productos/GuardianMargenes";
 
 // Proveedores
 import ListadoProveedores from "./pages/proveedores/ListadoProveedores";
@@ -221,6 +222,10 @@ const App = () => {
         <Route
           path="/productos/asistente-compra"
           element={<AsistenteCompra />}
+        />
+        <Route
+          path="/productos/guardian-margenes"
+          element={<GuardianMargenes />}
         />
 
         {/* Proveedores */}

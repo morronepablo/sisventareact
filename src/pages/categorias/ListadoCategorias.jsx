@@ -50,7 +50,6 @@ const ListadoCategorias = () => {
     fetchCategorias();
   }, []);
 
-  // --- INICIALIZACIÓN DE DATATABLES ---
   useEffect(() => {
     if (!loading && categorias.length > 0) {
       const tableId = "#categorias-table";
@@ -69,7 +68,7 @@ const ListadoCategorias = () => {
           responsive: true,
           pageLength: 10,
           language: spanishLanguage,
-          dom: "rtip", // Para usar nuestros controles manuales
+          dom: "rtip",
           columnDefs: [{ targets: -1, orderable: false }],
           drawCallback: function () {
             if ($ && $.fn.tooltip) {
@@ -116,7 +115,6 @@ const ListadoCategorias = () => {
     }
   };
 
-  // Función para los botones de exportación
   const handleExport = (type) => {
     const table = window.$("#categorias-table").DataTable();
     table.button(`.buttons-${type}`).trigger();
@@ -143,7 +141,7 @@ const ListadoCategorias = () => {
             <h3 className="card-title my-1">Listado de categorías</h3>
             <div className="card-tools">
               <button
-                className="btn btn-primary btn-sm"
+                className="btn btn-primary btn-sm shadow-sm"
                 onClick={() => navegarSinTooltips("/categorias/crear")}
               >
                 <i className="fa fa-plus"></i> Crear categoría
@@ -152,12 +150,11 @@ const ListadoCategorias = () => {
           </div>
 
           <div className="card-body">
-            {/* CONTROLES MANUALES (Igual que en Usuarios) */}
             <div className="d-flex justify-content-between align-items-center mb-3">
               <div className="d-flex align-items-center">
-                <label className="mr-2 mb-0">Mostrar</label>
+                <label className="mr-2 mb-0 text-sm">Mostrar</label>
                 <select
-                  className="form-control form-control-sm mr-2"
+                  className="form-control form-control-sm mr-2 shadow-sm"
                   style={{ width: "65px" }}
                   onChange={(e) =>
                     window
@@ -171,56 +168,59 @@ const ListadoCategorias = () => {
                   <option value="25">25</option>
                   <option value="50">50</option>
                 </select>
-                <span className="mr-3">registros</span>
+                <span className="mr-3 text-sm text-muted">registros</span>
 
                 <div className="dt-buttons btn-group">
                   <button
-                    className="btn btn-secondary btn-sm"
+                    className="btn btn-secondary btn-sm shadow-sm"
                     onClick={() => handleExport("copy")}
                   >
-                    <i className="fas fa-copy"></i> Copiar
+                    <i className="fas fa-copy"></i>
                   </button>
                   <button
-                    className="btn btn-danger btn-sm"
+                    className="btn btn-danger btn-sm shadow-sm"
                     onClick={() => handleExport("pdf")}
                   >
-                    <i className="fas fa-file-pdf"></i> PDF
+                    <i className="fas fa-file-pdf"></i>
                   </button>
                   <button
-                    className="btn btn-info btn-sm"
-                    onClick={() => handleExport("csv")}
-                  >
-                    <i className="fas fa-file-csv"></i> CSV
-                  </button>
-                  <button
-                    className="btn btn-success btn-sm"
+                    className="btn btn-success btn-sm shadow-sm"
                     onClick={() => handleExport("excel")}
                   >
-                    <i className="fas fa-file-excel"></i> Excel
+                    <i className="fas fa-file-excel"></i>
                   </button>
                   <button
-                    className="btn btn-warning btn-sm"
+                    className="btn btn-warning btn-sm shadow-sm text-white"
                     onClick={() => handleExport("print")}
                   >
-                    <i className="fas fa-print"></i> Imprimir
+                    <i className="fas fa-print"></i>
                   </button>
                 </div>
               </div>
 
               <div className="d-flex align-items-center">
-                <input
-                  type="text"
-                  className="form-control form-control-sm"
-                  placeholder="Buscar..."
-                  style={{ width: "200px" }}
-                  onChange={(e) =>
-                    window
-                      .$("#categorias-table")
-                      .DataTable()
-                      .search(e.target.value)
-                      .draw()
-                  }
-                />
+                <div
+                  className="input-group input-group-sm shadow-sm"
+                  style={{ width: "220px" }}
+                >
+                  <div className="input-group-prepend">
+                    <span className="input-group-text">
+                      <i className="fas fa-search"></i>
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Buscar categoría..."
+                    onChange={(e) =>
+                      window
+                        .$("#categorias-table")
+                        .DataTable()
+                        .search(e.target.value)
+                        .draw()
+                    }
+                  />
+                </div>
               </div>
             </div>
 
@@ -233,7 +233,9 @@ const ListadoCategorias = () => {
                   <th style={{ width: "50px" }}>Nro.</th>
                   <th>Nombre</th>
                   <th>Descripción</th>
-                  <th>Productos</th>
+                  <th style={{ width: "100px" }}>Margen (%)</th>{" "}
+                  {/* 👈 NUEVA COLUMNA */}
+                  <th style={{ width: "80px" }}>Productos</th>
                   <th style={{ width: "120px" }}>Acciones</th>
                 </tr>
               </thead>
@@ -241,21 +243,30 @@ const ListadoCategorias = () => {
                 {categorias.map((cat, i) => (
                   <tr key={cat.id}>
                     <td className="text-center align-middle">{i + 1}</td>
-                    <td className="align-middle">
-                      <b>{cat.nombre}</b>
+                    <td className="align-middle text-bold">{cat.nombre}</td>
+                    <td className="align-middle text-muted small">
+                      {cat.descripcion || "Sin descripción"}
                     </td>
-                    <td className="align-middle">{cat.descripcion || "–"}</td>
+                    {/* INDICADOR DE MARGEN OBJETIVO */}
+                    <td className="text-center align-middle">
+                      <span
+                        className="badge badge-info shadow-sm"
+                        style={{ fontSize: "0.85rem", width: "70px" }}
+                      >
+                        {parseFloat(cat.margen_objetivo || 0).toFixed(2)} %
+                      </span>
+                    </td>
                     <td className="text-center align-middle">
                       <span className="badge badge-secondary">
                         {cat.productos_count}
                       </span>
                     </td>
                     <td className="text-center align-middle">
-                      <div className="btn-group">
+                      <div className="btn-group shadow-sm">
                         <button
                           className="btn btn-info btn-sm"
                           data-toggle="tooltip"
-                          title="Ver"
+                          title="Ver detalle"
                           onClick={() =>
                             navegarSinTooltips(`/categorias/ver/${cat.id}`)
                           }
@@ -265,7 +276,7 @@ const ListadoCategorias = () => {
                         <button
                           className="btn btn-success btn-sm"
                           data-toggle="tooltip"
-                          title="Editar"
+                          title="Editar margen y datos"
                           onClick={() =>
                             navegarSinTooltips(`/categorias/editar/${cat.id}`)
                           }
@@ -285,7 +296,7 @@ const ListadoCategorias = () => {
                           <button
                             className="btn btn-secondary btn-sm disabled"
                             data-toggle="tooltip"
-                            title="Tiene productos asociados"
+                            title="No se puede eliminar: tiene productos"
                             style={{ cursor: "not-allowed", opacity: 0.6 }}
                           >
                             <i className="fas fa-lock"></i>

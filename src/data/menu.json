@@ -157,6 +157,13 @@
                 "permiso": "ver_productos"
             },
             {
+                "id": "guardian_margenes",
+                "text": "Guardián de Márgenes",
+                "icon": "fas fa-shield-alt",
+                "path": "/productos/guardian-margenes",
+                "permiso": "ver_productos"
+            },
+            {
                 "id": "asistente_compra",
                 "text": "Asistente de Compra BI",
                 "icon": "fas fa-robot",
