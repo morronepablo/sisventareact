@@ -1,5 +1,4 @@
 // src/pages/Dashboard.jsx
-
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
@@ -74,7 +73,7 @@ const Dashboard = () => {
       setCounts(countsRes);
       setCharts(chartsRes);
     } catch (error) {
-      console.error(error);
+      console.error("Error Dashboard:", error);
     } finally {
       setLoading(false);
     }
@@ -83,16 +82,22 @@ const Dashboard = () => {
   useEffect(() => {
     loadDashboardData();
   }, [selectedMonth]);
+
   useEffect(() => {
     const socket = io(API_URL);
-    socket.on("update-dashboard", () => loadDashboardData());
-    return () => socket.disconnect();
+    socket.on("update-dashboard", () => {
+      loadDashboardData();
+    });
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   const formatARS = (val) =>
     `$ ${parseFloat(val || 0).toLocaleString("es-AR", {
       minimumFractionDigits: 2,
     })}`;
+
   const generateColors = (count) => {
     const colors = [
       "#f56954",
@@ -192,7 +197,8 @@ const Dashboard = () => {
 
   if (loading || !charts) return <LoadingSpinner />;
 
-  // --- CONFIGURACIÓN DE GRÁFICOS ---
+  // --- 📊 DEFINICIÓN DE TODOS LOS OBJETOS DE DATOS PARA GRÁFICOS 📊 ---
+
   const dataComparativa = {
     labels: charts.comparativaDiaria.map((d) => d.dia),
     datasets: [
@@ -217,7 +223,20 @@ const Dashboard = () => {
   };
 
   const dataUtilidadNeta = {
-    labels: mesesLabels.map((m) => m.substring(0, 3)),
+    labels: [
+      "Ene",
+      "Feb",
+      "Mar",
+      "Abr",
+      "May",
+      "Jun",
+      "Jul",
+      "Ago",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dic",
+    ],
     datasets: [
       {
         label: "Utilidad Neta Real",
@@ -230,6 +249,84 @@ const Dashboard = () => {
         tension: 0.4,
       },
     ],
+  };
+
+  const dataVentasHora = {
+    labels: Array.from({ length: 24 }, (_, i) => `${i}hs`),
+    datasets: [
+      {
+        label: "Facturación por Hora ($)",
+        data: Array.from({ length: 24 }, (_, i) => {
+          const item = charts.ventasPorHora.find(
+            (vh) => parseInt(vh.hora) === i
+          );
+          return item ? parseFloat(item.total) : 0;
+        }),
+        backgroundColor: "rgba(255, 193, 7, 0.7)",
+        borderColor: "#ffc107",
+        borderWidth: 1,
+        borderRadius: 5,
+      },
+    ],
+  };
+
+  const dataBalance = {
+    labels: [
+      "Ene",
+      "Feb",
+      "Mar",
+      "Abr",
+      "May",
+      "Jun",
+      "Jul",
+      "Ago",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dic",
+    ],
+    datasets: [
+      {
+        label: "Ventas",
+        data: charts.balanceMensual.map((b) => b.v_total),
+        backgroundColor: "#007bff",
+      },
+      {
+        label: "Compras + Gastos",
+        data: charts.balanceMensual.map(
+          (b) => parseFloat(b.c_total) + parseFloat(b.g_total)
+        ),
+        backgroundColor: "#dc3545",
+      },
+    ],
+  };
+
+  const dataGananciaCat = {
+    labels: [
+      "Ene",
+      "Feb",
+      "Mar",
+      "Abr",
+      "May",
+      "Jun",
+      "Jul",
+      "Ago",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dic",
+    ],
+    datasets: charts.categoriasLista.map((cat, idx) => ({
+      label: cat,
+      data: Array.from(
+        { length: 12 },
+        (_, i) =>
+          charts.gananciasRaw.find(
+            (r) => r.mes === i + 1 && r.categoria === cat
+          )?.ganancia || 0
+      ),
+      backgroundColor: generateColors(charts.categoriasLista.length)[idx],
+    })),
   };
 
   return (
@@ -251,7 +348,7 @@ const Dashboard = () => {
       </h1>
       <hr />
 
-      {/* FILA INFOBOXES (MANTENIDAS) */}
+      {/* FILAS INFOBOXES (LAS 13 ORIGINALES) */}
       <div className="row">
         <InfoBox
           permission="ver_roles"
@@ -324,7 +421,7 @@ const Dashboard = () => {
           label="compras"
           extraInfo={
             <span className="text-success font-weight-bold small">
-              {counts.comprasAnio} año
+              {counts.comprasAnio} este año
             </span>
           }
         />
@@ -354,7 +451,7 @@ const Dashboard = () => {
           label="ventas"
           extraInfo={
             <span className="text-success font-weight-bold small">
-              {counts.ventasAnio} año
+              {counts.ventasAnio} este año
             </span>
           }
         />
@@ -368,7 +465,7 @@ const Dashboard = () => {
           label="arqueos"
           extraInfo={
             <span className="text-success font-weight-bold small">
-              {counts.arqueosAnio} año
+              {counts.arqueosAnio} este año
             </span>
           }
         />
@@ -405,7 +502,7 @@ const Dashboard = () => {
 
       <hr />
 
-      {/* FILA SMALLBOXES FINANZAS (MANTENIDAS) */}
+      {/* FILAS SMALLBOXES FINANZAS (LAS 16 ORIGINALES) */}
       <div className="row">
         <SmallBox
           permission="ver_ventas"
@@ -603,7 +700,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* FILA GRÁFICOS 1: RENDIMIENTO Y GASTOS */}
+      {/* BLOQUE GRÁFICOS 1 */}
       <div className="row">
         <div className="col-md-8 mb-4">
           <div className="card card-outline card-primary shadow-sm h-100">
@@ -647,14 +744,32 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* ✨ FILA GRÁFICOS 2: GUERRA DE CAJAS VS UTILIDAD NETA ✨ */}
+      {/* MAPA DE CALOR HORARIO */}
+      <div className="row">
+        <div className="col-md-12 mb-4">
+          <div className="card card-outline card-warning shadow-sm border-warning">
+            <div className="card-header">
+              <h3 className="card-title text-bold">
+                <i className="fas fa-bolt text-warning mr-2"></i>Mapa de Flujo:
+                Ventas por Hora
+              </h3>
+            </div>
+            <div className="card-body" style={{ height: "300px" }}>
+              <Bar
+                data={dataVentasHora}
+                options={{ responsive: true, maintainAspectRatio: false }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* BLOQUE GRÁFICOS 2: CAJAS Y UTILIDAD */}
       <div className="row">
         <div className="col-md-6 mb-4">
           <div className="card card-outline card-navy shadow-sm h-100">
             <div className="card-header">
-              <h3 className="card-title text-bold">
-                Ventas por Caja (Guerra de Cajas)
-              </h3>
+              <h3 className="card-title text-bold">Guerra de Cajas</h3>
             </div>
             <div className="card-body">
               <div style={{ height: "300px" }}>
@@ -665,7 +780,7 @@ const Dashboard = () => {
                     ),
                     datasets: [
                       {
-                        label: "Ventas Totales",
+                        label: "Total Ventas",
                         data: charts.ventasPorCaja.map((c) => c.total),
                         backgroundColor: "#605ca8",
                       },
@@ -696,7 +811,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* FILA GRÁFICOS 3: CATEGORÍAS */}
+      {/* BLOQUE GRÁFICOS 3: CATEGORÍAS */}
       <div className="row">
         <div className="col-md-6 mb-4">
           <div className="card card-outline card-primary shadow-sm h-100">
@@ -733,22 +848,7 @@ const Dashboard = () => {
             <div className="card-body">
               <div style={{ height: "350px" }}>
                 <Bar
-                  data={{
-                    labels: mesesLabels.map((m) => m.substring(0, 3)),
-                    datasets: charts.categoriasLista.map((cat, idx) => ({
-                      label: cat,
-                      data: Array.from(
-                        { length: 12 },
-                        (_, i) =>
-                          charts.gananciasRaw.find(
-                            (r) => r.mes === i + 1 && r.categoria === cat
-                          )?.ganancia || 0
-                      ),
-                      backgroundColor: generateColors(
-                        charts.categoriasLista.length
-                      )[idx],
-                    })),
-                  }}
+                  data={dataGananciaCat}
                   options={{
                     responsive: true,
                     maintainAspectRatio: false,
@@ -761,7 +861,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* BALANCE ANUAL AL FINAL */}
+      {/* BALANCE ANUAL FINAL */}
       <div className="row">
         <div className="col-md-12 mb-4">
           <div className="card card-outline card-success shadow-sm">
@@ -772,23 +872,7 @@ const Dashboard = () => {
             </div>
             <div className="card-body" style={{ height: "320px" }}>
               <Bar
-                data={{
-                  labels: mesesLabels.map((m) => m.substring(0, 3)),
-                  datasets: [
-                    {
-                      label: "Ventas",
-                      data: charts.balanceMensual.map((b) => b.v_total),
-                      backgroundColor: "#007bff",
-                    },
-                    {
-                      label: "Compras + Gastos",
-                      data: charts.balanceMensual.map(
-                        (b) => parseFloat(b.c_total) + parseFloat(b.g_total)
-                      ),
-                      backgroundColor: "#dc3545",
-                    },
-                  ],
-                }}
+                data={dataBalance}
                 options={{ responsive: true, maintainAspectRatio: false }}
               />
             </div>
