@@ -157,6 +157,13 @@
                 "permiso": "ver_productos"
             },
             {
+                "id": "simulador_precios",
+                "text": "Simulador de Precios",
+                "icon": "fas fa-vial",
+                "path": "/productos/simulador",
+                "permiso": "ver_productos"
+            },
+            {
                 "id": "guardian_margenes",
                 "text": "Guardián de Márgenes",
                 "icon": "fas fa-shield-alt",
