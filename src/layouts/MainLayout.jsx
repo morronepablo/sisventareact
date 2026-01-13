@@ -72,6 +72,11 @@ const MainLayout = () => {
           });
         }
       }
+      // ✨ ATAJO SEGURO: CTRL + SHIFT + A
+      if (e.shiftKey && e.key === "F6") {
+        e.preventDefault();
+        navigate("/arqueos/crear");
+      }
     };
 
     window.addEventListener("keydown", handleGlobalKeys);

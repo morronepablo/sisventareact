@@ -7,7 +7,7 @@ import {
   fetchCounts,
   fetchChartData,
   fetchPredictionBI,
-} from "../services/dashboardService"; // 👈 Importada
+} from "../services/dashboardService";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { io } from "socket.io-client";
 
@@ -45,7 +45,7 @@ const Dashboard = () => {
   const { user, hasPermission } = useAuth();
   const [counts, setCounts] = useState({ topProductos: [] });
   const [charts, setCharts] = useState(null);
-  const [prediction, setPrediction] = useState(null); // 👈 Nuevo Estado
+  const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
 
@@ -53,6 +53,7 @@ const Dashboard = () => {
     window.location.hostname === "localhost"
       ? "http://localhost:3001"
       : "https://sistema-ventas-backend-3nn3.onrender.com";
+
   const mesesLabels = [
     "Enero",
     "Febrero",
@@ -74,11 +75,11 @@ const Dashboard = () => {
       const [countsRes, chartsRes, predictionRes] = await Promise.all([
         fetchCounts(),
         fetchChartData(selectedMonth),
-        fetchPredictionBI(), // 👈 Nueva Carga
+        fetchPredictionBI(),
       ]);
       setCounts(countsRes);
       setCharts(chartsRes);
-      setPrediction(predictionRes); // 👈 Guardar Predicción
+      setPrediction(predictionRes);
     } catch (error) {
       console.error("Error Dashboard:", error);
     } finally {
@@ -204,7 +205,8 @@ const Dashboard = () => {
 
   if (loading || !charts) return <LoadingSpinner />;
 
-  // --- 📊 DATOS GRÁFICOS ---
+  const commonOptions = { responsive: true, maintainAspectRatio: false };
+
   const dataComparativa = {
     labels: charts.comparativaDiaria.map((d) => d.dia),
     datasets: [
@@ -224,6 +226,17 @@ const Dashboard = () => {
         backgroundColor: "transparent",
         fill: false,
         tension: 0.3,
+      },
+    ],
+  };
+
+  const dataGuerraUsuarios = {
+    labels: charts.ventasPorUsuario?.map((u) => u.usuario) || [],
+    datasets: [
+      {
+        label: "Total Ventas ($)",
+        data: charts.ventasPorUsuario?.map((u) => u.total) || [],
+        backgroundColor: "#28a745",
       },
     ],
   };
@@ -343,9 +356,13 @@ const Dashboard = () => {
         .bg-indigo { background-color: #6610f2 !important; } .bg-pink { background-color: #e83e8c !important; }
         .bg-fuchsia { background-color: #f012be !important; } .bg-teal { background-color: #39cccc !important; }
         .small-box { min-height: 140px; margin-bottom: 20px; } .small-box > .inner { padding: 10px; height: 105px; }
-        .productos-scroll { height: 75px; overflow-y: auto; padding-right: 5px; margin-top: 5px; }
-        .productos-scroll::-webkit-scrollbar { width: 3px; } .productos-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); }
-        .product-badge { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: bold; }
+        
+        /* 🚀 SCROLLBAR ESTILO SLIM RECUPERADO 🚀 */
+        .productos-scroll { height: 80px; overflow-y: auto; padding-right: 5px; margin-top: 5px; }
+        .productos-scroll::-webkit-scrollbar { width: 3px; } 
+        .productos-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
+        
+        .product-badge { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: bold; }
         .zoomP { transition: transform .2s; } .zoomP:hover { transform: scale(1.01); }
         .card-bi { background: linear-gradient(60deg, #29323c 0%, #485563 100%); color: #fff; border: none; }
       `}</style>
@@ -509,70 +526,43 @@ const Dashboard = () => {
 
       <hr />
 
-      {/* 🧠 WIDGET DE INTELIGENCIA DE NEGOCIO (PROYECCIÓN) */}
+      {/* BI PROYECCIÓN */}
       {prediction && (
         <div className="row mb-4">
           <div className="col-12">
-            <div className="card card-bi shadow-lg">
-              <div className="card-body p-4">
-                <div className="row align-items-center">
-                  <div className="col-md-7">
-                    <h5
-                      className="text-uppercase font-weight-bold opacity-7"
-                      style={{
-                        letterSpacing: "2px",
-                        fontSize: "0.9rem",
-                        color: "#39CCCC",
-                      }}
-                    >
-                      <i className="fas fa-brain mr-2"></i> Inteligencia de
-                      Negocio
-                    </h5>
-                    <h2 className="display-4 font-weight-bold mb-0">
-                      {formatARS(prediction.prediccionCierre)}
-                    </h2>
-                    <p className="lead mb-0 mt-1">
-                      Proyección de <b>Utilidad Neta Real</b> al cierre del mes
-                    </p>
-                  </div>
-                  <div className="col-md-5 text-md-right mt-3 mt-md-0">
-                    <div className="mb-3">
-                      <span
-                        className="badge badge-teal p-2"
-                        style={{
-                          fontSize: "1rem",
-                          backgroundColor: "#39CCCC",
-                          color: "#001f3f",
-                        }}
-                      >
-                        <i className="fas fa-history mr-2"></i> Ritual de
-                        Cierre: {prediction.diasRestantes} días restantes
-                      </span>
-                    </div>
+            <div className="card card-bi shadow-lg p-4">
+              <div className="row align-items-center">
+                <div className="col-md-7">
+                  <h5 className="text-uppercase font-weight-bold opacity-7 mb-2">
+                    BI: Proyección Mensual
+                  </h5>
+                  <h2 className="display-4 font-weight-bold mb-0">
+                    {formatARS(prediction.prediccionCierre)}
+                  </h2>
+                  <p className="lead mb-0 mt-1">Utilidad Neta Real Estimada</p>
+                </div>
+                <div className="col-md-5 text-md-right mt-3">
+                  <span
+                    className="badge badge-teal p-2 mb-2"
+                    style={{ backgroundColor: "#39CCCC", color: "#001f3f" }}
+                  >
+                    {prediction.diasRestantes} días restantes
+                  </span>
+                  <div
+                    className="progress mb-2"
+                    style={{
+                      height: "12px",
+                      backgroundColor: "rgba(255,255,255,0.1)",
+                    }}
+                  >
                     <div
-                      className="progress mb-2"
-                      style={{
-                        height: "12px",
-                        backgroundColor: "rgba(255,255,255,0.1)",
-                        borderRadius: "10px",
-                      }}
-                    >
-                      <div
-                        className="progress-bar progress-bar-striped progress-bar-animated bg-teal"
-                        role="progressbar"
-                        style={{
-                          width: `${prediction.porcentajeMes}%`,
-                          backgroundColor: "#39CCCC",
-                        }}
-                      ></div>
-                    </div>
-                    <div className="d-flex justify-content-between text-sm opacity-7">
-                      <span>Progreso del Mes: {prediction.porcentajeMes}%</span>
-                      <span>
-                        Ritmo Diario: {formatARS(prediction.promedioDiario)}
-                      </span>
-                    </div>
+                      className="progress-bar bg-teal"
+                      style={{ width: `${prediction.porcentajeMes}%` }}
+                    ></div>
                   </div>
+                  <small>
+                    Ritmo: {formatARS(prediction.promedioDiario)}/día
+                  </small>
                 </div>
               </div>
             </div>
@@ -580,7 +570,7 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* SMALLBOXES FINANZAS */}
+      {/* FILAS DE SMALLBOXES */}
       <div className="row">
         <SmallBox
           permission="ver_ventas"
@@ -617,22 +607,18 @@ const Dashboard = () => {
                   >
                     <span
                       style={{
-                        fontSize: "0.75rem",
-                        whiteSpace: "nowrap",
+                        fontSize: "0.7rem",
                         overflow: "hidden",
                         textOverflow: "ellipsis",
-                        maxWidth: "80%",
+                        whiteSpace: "nowrap",
+                        maxWidth: "75%",
                       }}
                     >
                       {p.nombre}
                     </span>
                     <span
                       className={`product-badge ${
-                        i === 0
-                          ? "bg-info"
-                          : i === 1
-                          ? "bg-success"
-                          : "bg-danger"
+                        i === 0 ? "bg-info" : "bg-danger"
                       }`}
                     >
                       {p.veces_vendido}
@@ -645,8 +631,8 @@ const Dashboard = () => {
               <i className="fas fa-boxes-stacked"></i>
             </div>
             <div
-              className="small-box-footer text-bold"
-              style={{ fontSize: "0.7rem" }}
+              className="small-box-footer"
+              style={{ fontSize: "0.7rem", fontWeight: "bold" }}
             >
               TOP MAS VENDIDOS
             </div>
@@ -758,14 +744,13 @@ const Dashboard = () => {
 
       <hr />
 
-      {/* SELECTOR DE MES */}
-      <div className="row mt-4 mb-3 align-items-center">
+      <div className="row mb-3 align-items-center">
         <div className="col-md-3">
           <label>
             <b>Analizar Mes:</b>
           </label>
           <select
-            className="form-control shadow-sm"
+            className="form-control"
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
           >
@@ -778,45 +763,35 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* GRÁFICOS */}
       <div className="row">
         <div className="col-md-8 mb-4">
-          <div className="card card-outline card-primary shadow-sm h-100">
+          <div className="card card-outline card-primary h-100 shadow-sm">
             <div className="card-header">
               <h3 className="card-title text-bold">Rendimiento Diario</h3>
             </div>
-            <div className="card-body">
-              <div style={{ height: "300px" }}>
-                <Line
-                  data={dataComparativa}
-                  options={{ responsive: true, maintainAspectRatio: false }}
-                />
-              </div>
+            <div className="card-body" style={{ height: "300px" }}>
+              <Line data={dataComparativa} options={commonOptions} />
             </div>
           </div>
         </div>
         <div className="col-md-4 mb-4">
-          <div className="card card-outline card-danger shadow-sm h-100">
+          <div className="card card-outline card-danger h-100 shadow-sm">
             <div className="card-header">
               <h3 className="card-title text-bold">Estructura de Gastos</h3>
             </div>
-            <div className="card-body">
-              <div style={{ height: "300px" }}>
-                <Doughnut
-                  data={{
-                    labels: charts.catGastos.map((g) => g.nombre),
-                    datasets: [
-                      {
-                        data: charts.catGastos.map((g) => g.total),
-                        backgroundColor: generateColors(
-                          charts.catGastos.length
-                        ),
-                      },
-                    ],
-                  }}
-                  options={{ responsive: true, maintainAspectRatio: false }}
-                />
-              </div>
+            <div className="card-body" style={{ height: "300px" }}>
+              <Doughnut
+                data={{
+                  labels: charts.catGastos.map((g) => g.nombre),
+                  datasets: [
+                    {
+                      data: charts.catGastos.map((g) => g.total),
+                      backgroundColor: generateColors(charts.catGastos.length),
+                    },
+                  ],
+                }}
+                options={commonOptions}
+              />
             </div>
           </div>
         </div>
@@ -827,15 +802,12 @@ const Dashboard = () => {
           <div className="card card-outline card-warning shadow-sm border-warning">
             <div className="card-header">
               <h3 className="card-title text-bold">
-                <i className="fas fa-bolt text-warning mr-2"></i>Mapa de Flujo:
-                Ventas por Hora
+                <i className="fas fa-bolt text-warning mr-2"></i>Mapa de Flujo
+                Horario
               </h3>
             </div>
             <div className="card-body" style={{ height: "300px" }}>
-              <Bar
-                data={dataVentasHora}
-                options={{ responsive: true, maintainAspectRatio: false }}
-              />
+              <Bar data={dataVentasHora} options={commonOptions} />
             </div>
           </div>
         </div>
@@ -843,45 +815,63 @@ const Dashboard = () => {
 
       <div className="row">
         <div className="col-md-6 mb-4">
-          <div className="card card-outline card-navy shadow-sm h-100">
+          <div className="card card-outline card-navy h-100 shadow-sm">
             <div className="card-header">
               <h3 className="card-title text-bold">Guerra de Cajas</h3>
             </div>
-            <div className="card-body">
-              <div style={{ height: "300px" }}>
-                <Bar
-                  data={{
-                    labels: charts.ventasPorCaja.map(
-                      (c) => `Caja ${c.caja_id}`
-                    ),
-                    datasets: [
-                      {
-                        label: "Total Ventas",
-                        data: charts.ventasPorCaja.map((c) => c.total),
-                        backgroundColor: "#605ca8",
-                      },
-                    ],
-                  }}
-                  options={{ responsive: true, maintainAspectRatio: false }}
-                />
-              </div>
+            <div className="card-body" style={{ height: "300px" }}>
+              <Bar
+                data={{
+                  labels: charts.ventasPorCaja.map((c) => `Caja ${c.caja_id}`),
+                  datasets: [
+                    {
+                      label: "Ventas",
+                      data: charts.ventasPorCaja.map((c) => c.total),
+                      backgroundColor: "#605ca8",
+                    },
+                  ],
+                }}
+                options={commonOptions}
+              />
             </div>
           </div>
         </div>
         <div className="col-md-6 mb-4">
-          <div className="card card-outline card-info shadow-sm h-100">
+          <div className="card card-outline card-success h-100 shadow-sm">
+            <div className="card-header">
+              <h3 className="card-title text-bold">
+                Guerra de Usuarios (Personal)
+              </h3>
+            </div>
+            <div className="card-body" style={{ height: "300px" }}>
+              <Bar data={dataGuerraUsuarios} options={commonOptions} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="row">
+        <div className="col-md-6 mb-4">
+          <div className="card card-outline card-info h-100 shadow-sm">
             <div className="card-header">
               <h3 className="card-title text-bold">
                 Evolución Utilidad Neta Real
               </h3>
             </div>
-            <div className="card-body">
-              <div style={{ height: "300px" }}>
-                <Line
-                  data={dataUtilidadNeta}
-                  options={{ responsive: true, maintainAspectRatio: false }}
-                />
-              </div>
+            <div className="card-body" style={{ height: "300px" }}>
+              <Line data={dataUtilidadNeta} options={commonOptions} />
+            </div>
+          </div>
+        </div>
+        <div className="col-md-6 mb-4">
+          <div className="card card-outline card-success h-100 shadow-sm">
+            <div className="card-header">
+              <h3 className="card-title text-bold">
+                Balance Anual Ingresos/Egresos
+              </h3>
+            </div>
+            <div className="card-body" style={{ height: "300px" }}>
+              <Bar data={dataBalance} options={commonOptions} />
             </div>
           </div>
         </div>
@@ -889,65 +879,40 @@ const Dashboard = () => {
 
       <div className="row">
         <div className="col-md-6 mb-4">
-          <div className="card card-outline card-primary shadow-sm h-100">
+          <div className="card card-outline card-primary h-100 shadow-sm">
             <div className="card-header">
               <h3 className="card-title text-bold">Ventas por Categoría</h3>
             </div>
-            <div className="card-body">
-              <div style={{ height: "350px" }}>
-                <Doughnut
-                  data={{
-                    labels: charts.catVentas.map((c) => c.nombre),
-                    datasets: [
-                      {
-                        data: charts.catVentas.map((c) => c.total),
-                        backgroundColor: generateColors(
-                          charts.catVentas.length
-                        ),
-                      },
-                    ],
-                  }}
-                  options={{ responsive: true, maintainAspectRatio: false }}
-                />
-              </div>
+            <div className="card-body" style={{ height: "350px" }}>
+              <Doughnut
+                data={{
+                  labels: charts.catVentas.map((c) => c.nombre),
+                  datasets: [
+                    {
+                      data: charts.catVentas.map((c) => c.total),
+                      backgroundColor: generateColors(charts.catVentas.length),
+                    },
+                  ],
+                }}
+                options={commonOptions}
+              />
             </div>
           </div>
         </div>
         <div className="col-md-6 mb-4">
-          <div className="card card-outline card-warning shadow-sm h-100">
+          <div className="card card-outline card-warning h-100 shadow-sm text-dark">
             <div className="card-header">
-              <h3 className="card-title text-bold text-dark">
+              <h3 className="card-title text-bold">
                 Ganancia Bruta por Categoría
               </h3>
             </div>
-            <div className="card-body">
-              <div style={{ height: "350px" }}>
-                <Bar
-                  data={dataGananciaCat}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { x: { stacked: true }, y: { stacked: true } },
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="row">
-        <div className="col-md-12 mb-4">
-          <div className="card card-outline card-success shadow-sm">
-            <div className="card-header">
-              <h3 className="card-title text-bold">
-                Balance Anual: Ingresos vs Egresos
-              </h3>
-            </div>
-            <div className="card-body" style={{ height: "320px" }}>
+            <div className="card-body" style={{ height: "350px" }}>
               <Bar
-                data={dataBalance}
-                options={{ responsive: true, maintainAspectRatio: false }}
+                data={dataGananciaCat}
+                options={{
+                  ...commonOptions,
+                  scales: { x: { stacked: true }, y: { stacked: true } },
+                }}
               />
             </div>
           </div>

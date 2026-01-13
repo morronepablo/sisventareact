@@ -157,6 +157,13 @@
                 "permiso": "ver_productos"
             },
             {
+                "id": "asistente_compra",
+                "text": "Asistente de Compra BI",
+                "icon": "fas fa-robot",
+                "path": "/productos/asistente-compra",
+                "permiso": "ver_productos"
+            },
+            {
                 "id": "actualizacion_masiva",
                 "text": "Ajus. Masivo Precios",
                 "icon": "fas fa-percentage",

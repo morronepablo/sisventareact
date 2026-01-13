@@ -15,12 +15,11 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { toggleDesktopSidebar, toggleMobileSidebar } = useLayout();
-  const { arqueoAbierto, arqueoId } = useNotifications();
+  const { arqueoAbierto, arqueoId } = useNotifications(); // 👈 Ya tenemos arqueoAbierto aquí
   const navigate = useNavigate();
 
   // --- LOGOUT ACTUALIZADO ---
   const handleLogout = async () => {
-    // Llamamos a la función asíncrona del contexto pasando el motivo
     await logout("Cierre manual desde menú");
     navigate("/login");
   };
@@ -114,7 +113,8 @@ const Navbar = () => {
             Home
           </Link>
         </li>
-        {/* INDICADOR DE CAJA ACTUAL - CENTRADO PERFECTO */}
+
+        {/* INDICADOR DE CAJA ACTUAL - FONDO NEGRO CON BADGE DE ESTADO */}
         <li className="nav-item d-none d-sm-flex align-items-center ml-2">
           <div
             className="badge badge-dark shadow-sm"
@@ -124,15 +124,31 @@ const Navbar = () => {
               display: "flex",
               alignItems: "center",
               border: "1px solid #444",
-              height: "32px", // Altura estándar para alinear con los otros botones
+              height: "32px",
             }}
           >
             <i className="fas fa-cash-register mr-2 text-warning"></i>
-            <span style={{ fontWeight: "600" }}>
+            <span style={{ fontWeight: "600" }} className="mr-2">
               CAJA N° {user?.caja_id || "1"}
+            </span>
+
+            {/* BADGE DE ESTADO (SUCCESS O DANGER) */}
+            <span
+              className={`badge ${
+                arqueoAbierto ? "badge-success" : "badge-danger"
+              }`}
+              style={{
+                fontSize: "0.65rem",
+                padding: "3px 7px",
+                textTransform: "uppercase",
+                letterSpacing: "0.5px",
+              }}
+            >
+              {arqueoAbierto ? "Abierta" : "Cerrada"}
             </span>
           </div>
         </li>
+
         <li className="nav-item d-none d-sm-inline-block ml-2">
           <button
             type="button"
