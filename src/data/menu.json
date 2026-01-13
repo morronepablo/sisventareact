@@ -420,6 +420,13 @@
                 "icon": "fas fa-fw fa-list",
                 "path": "/combos/listado",
                 "permiso": "ver_combos"
+            },
+            {
+                "id": "alquimista_combos",
+                "text": "El Alquimista (BI)",
+                "icon": "fas fa-vials",
+                "path": "/combos/alquimista",
+                "permiso": "ver_combos"
             }
         ]
     },

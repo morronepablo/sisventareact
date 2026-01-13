@@ -116,6 +116,7 @@ import ListadoCombos from "./pages/combos/ListadoCombos";
 import CrearCombo from "./pages/combos/CrearCombo";
 import VerCombo from "./pages/combos/VerCombo";
 import EditarCombo from "./pages/combos/EditarCombo";
+import SugeridorCombos from "./pages/combos/SugeridorCombos";
 
 // Devoluciones
 import ListadoDevoluciones from "./pages/devoluciones/ListadoDevoluciones";
@@ -355,6 +356,7 @@ const App = () => {
         <Route path="/combos/crear" element={<CrearCombo />} />
         <Route path="/combos/ver/:id" element={<VerCombo />} />
         <Route path="/combos/editar/:id" element={<EditarCombo />} />
+        <Route path="/combos/alquimista" element={<SugeridorCombos />} />
 
         {/* Devoluciones */}
         <Route path="/devoluciones/listado" element={<ListadoDevoluciones />} />

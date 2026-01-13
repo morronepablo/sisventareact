@@ -24,3 +24,17 @@ Impacto: Permite tomar decisiones de precios basadas en datos, no en miedos.
 Qué es: Un sistema que detecta patrones extraños en las cajas (ej: muchas devoluciones seguidas, ventas canceladas justo antes de pagar, o cajeros que tardan mucho entre productos).
 La Magia: Te marca con una "lupa roja" los movimientos sospechosos para que el dueño revise las cámaras en ese horario exacto.
 Impacto: Reduce el "hormigueo" (robo interno) y mejora la eficiencia de los cajeros.
+
+
+1. "El Alquimista" (Sugeridor de Combos por Afinidad) 🧬📦
+Qué es: Un algoritmo que analiza los tickets de los últimos 6 meses buscando productos que suelen comprarse juntos (ej: "El 70% de los que compran Fernet, también compran Coca Cola").
+La Magia: El sistema te tira una lista: "Detecté que estos 2 productos se venden juntos pero no tenés un combo. Si creás el Combo 'Fin de Semana' podrías aumentar la venta un X%".
+Impacto: Aumenta el Ticket Promedio (upselling) basado en datos reales de tus propios clientes.
+2. "Cajero Pro" (Ranking de Eficiencia Operativa) ⏱️⚡
+Qué es: Un monitor que mide el tiempo promedio que tarda cada cajero entre que abre una venta y la finaliza, y cuántos productos pasa por minuto.
+La Magia: En el dashboard aparece un podio: "Cajero más rápido" vs "Cajero con más ventas". Además, detecta cuellos de botella (ej: "La Caja 2 tarda mucho los sábados a la tarde").
+Impacto: Optimiza la atención al cliente y permite premiar a los mejores empleados con datos objetivos.
+3. "El Estado de Resultados Pro" (El Balance Real) 📊💰
+Qué es: Un informe contable profesional automático. No solo Ventas - Gastos.
+La Magia: Cruza las Ventas Netas, resta el CMV (Costo de Mercadería), resta Gastos Fijos, resta Comisiones de Tarjeta/MP (aprox) y te da el EBITDA (la ganancia pura antes de impuestos).
+Impacto: Es el único número que el dueño necesita para saber si su negocio es realmente rentable o si solo está "moviendo plata".
