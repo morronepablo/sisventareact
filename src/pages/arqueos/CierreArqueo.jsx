@@ -14,6 +14,12 @@ const CierreArqueo = () => {
   const [loading, setLoading] = useState(true);
   const [arqueoInfo, setArqueoInfo] = useState(null);
 
+  // Totales sistema
+  const [cards, setCards] = useState(0);
+  const [mp, setMp] = useState(0);
+  const [transfer, setTransfer] = useState(0);
+  const [totalRetiros, setTotalRetiros] = useState(0);
+
   const [bills, setBills] = useState({
     b20000: 0,
     b10000: 0,
@@ -29,9 +35,6 @@ const CierreArqueo = () => {
   });
 
   const [coins, setCoins] = useState({ c2: 0, c1: 0, c050: 0, c025: 0 });
-  const [cards, setCards] = useState(0);
-  const [mp, setMp] = useState(0);
-  const [transfer, setTransfer] = useState(0);
 
   const getLocalNow = () => {
     const now = new Date();
@@ -62,6 +65,15 @@ const CierreArqueo = () => {
             parseFloat(data.totales_sistema.total_transf_sistema) || 0
           );
         }
+
+        if (data.retiros) {
+          const sumRetiros = data.retiros.reduce(
+            (acc, curr) => acc + parseFloat(curr.monto),
+            0
+          );
+          setTotalRetiros(sumRetiros);
+        }
+
         setLoading(false);
       } catch (error) {
         navigate("/arqueos/listado");
@@ -115,23 +127,19 @@ const CierreArqueo = () => {
 
           const dif = res.data.diferencia;
           let msg = "Caja cerrada correctamente.";
-          let icon = "success";
-          if (dif < 0) {
-            icon = "error";
-            msg = `Cierre registrado. FALTAN: ${formatMoney(Math.abs(dif))}`;
-          } else if (dif > 0) {
-            icon = "info";
-            msg = `Cierre registrado. SOBRAN: ${formatMoney(dif)}`;
-          }
+          if (dif < 0)
+            msg = `Cierre registrado con FALTANTE de: ${formatMoney(
+              Math.abs(dif)
+            )}`;
+          else if (dif > 0)
+            msg = `Cierre registrado con SOBRANTE de: ${formatMoney(dif)}`;
 
           await Swal.fire({
             position: "center",
-            icon: "success",
+            icon: Math.abs(dif) > 10 ? "error" : "success",
             title: "Resultado del Arqueo",
             text: msg,
-            showConfirmButton: false,
-            timer: 2500,
-            timerProgressBar: true,
+            showConfirmButton: true,
           }).then(() => {
             navigate("/arqueos/listado");
           });
@@ -152,53 +160,66 @@ const CierreArqueo = () => {
         </h1>
         <hr />
         <div className="row">
-          {/* COLUMNA IZQUIERDA: DISEÑO ORIGINAL */}
+          {/* COLUMNA IZQUIERDA: RESUMEN Y FECHAS */}
           <div className="col-md-4">
             <div className="card card-outline card-primary shadow">
               <div className="card-header">
-                <h3 className="card-title">Instrucciones</h3>
+                <h3 className="card-title text-bold">Resumen de Cierre</h3>
               </div>
               <div className="card-body">
-                <div className="alert alert-info py-2">
-                  <small>
-                    Ingrese la cantidad física de billetes y monedas que tiene
-                    en el cajón. El sistema comparará su conteo con los
-                    registros internos.
-                  </small>
+                <div className="alert alert-info py-2 small mb-3">
+                  Ingrese el efectivo físico. El sistema ajustará
+                  automáticamente los retiros realizados.
                 </div>
-                <div className="form-group">
-                  <label>Fecha Apertura</label>
-                  <input
-                    type="text"
-                    className="form-control bg-light"
-                    value={new Date(arqueoInfo.fecha_apertura).toLocaleString()}
-                    disabled
-                  />
+
+                <div className="form-group mb-2">
+                  <label className="text-xs">FECHA APERTURA</label>
+                  <div className="form-control form-control-sm bg-light">
+                    {new Date(arqueoInfo.fecha_apertura).toLocaleString()}
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label>Fecha de Cierre</label>
+
+                {/* 🚀 FECHA DE CIERRE RESTAURADA 🚀 */}
+                <div className="form-group mb-3">
+                  <label className="text-xs">FECHA DE CIERRE</label>
                   <input
                     type="datetime-local"
-                    className="form-control"
+                    className="form-control form-control-sm border-primary"
                     value={fechaCierre}
                     onChange={(e) => setFechaCierre(e.target.value)}
                   />
                 </div>
-                <div className="form-group">
-                  <label>TOTAL CONTADO (EFECTIVO + OTROS)</label>
+
+                <div className="form-group mb-2">
+                  <label className="text-xs text-uppercase font-weight-bold">
+                    Total Contado Actual
+                  </label>
                   <div
-                    className="h3 text-center p-3 rounded font-weight-bold"
+                    className="h3 text-center p-3 rounded font-weight-bold shadow-sm"
                     style={{
-                      backgroundColor: "#e9ecef",
-                      border: "2px dashed #adb5bd",
+                      backgroundColor: "#f8f9fa",
+                      border: "2px dashed #007bff",
+                      color: "#007bff",
                     }}
                   >
                     {formatMoney(totalContado)}
                   </div>
                 </div>
+
+                {totalRetiros > 0 && (
+                  <div className="bg-warning p-2 rounded mb-3 text-center shadow-sm border border-warning">
+                    <small className="d-block text-uppercase font-weight-bold text-dark">
+                      Retiros de Seguridad Realizados
+                    </small>
+                    <span className="h5 text-bold">
+                      - {formatMoney(totalRetiros)}
+                    </span>
+                  </div>
+                )}
+
                 <button
                   onClick={handleSubmit}
-                  className="btn btn-success btn-block btn-lg shadow mt-4"
+                  className="btn btn-success btn-block btn-lg shadow mt-2 text-bold"
                 >
                   <i className="fas fa-check-circle mr-2"></i> FINALIZAR Y
                   CERRAR
@@ -213,16 +234,16 @@ const CierreArqueo = () => {
             </div>
           </div>
 
-          {/* COLUMNA DERECHA: DISEÑO ORIGINAL CON LABELS DIGITALES */}
+          {/* COLUMNA DERECHA: CONTADOR */}
           <div className="col-md-8">
             <div className="card card-outline card-primary shadow">
               <div className="card-header">
-                <h3 className="card-title">Contador de Billetes y Monedas</h3>
+                <h3 className="card-title text-bold">Contador Físico</h3>
               </div>
               <div className="card-body">
                 <div className="row">
                   <div className="col-md-6 border-right">
-                    <h5 className="text-primary">
+                    <h5 className="text-primary text-bold mb-3">
                       <i className="fas fa-money-bill-wave mr-2"></i>BILLETES
                     </h5>
                     <table className="table table-sm table-borderless">
@@ -232,10 +253,10 @@ const CierreArqueo = () => {
                           5,
                         ].map((val) => (
                           <tr key={val}>
-                            <td width="80">
+                            <td width="85">
                               <input
                                 type="number"
-                                className="form-control form-control-sm text-center font-weight-bold"
+                                className="form-control form-control-sm text-center font-weight-bold border-primary shadow-sm"
                                 min="0"
                                 value={bills[`b${val}`]}
                                 onChange={(e) =>
@@ -250,11 +271,11 @@ const CierreArqueo = () => {
                               <img
                                 src={`/src/assets/img/bill_${val}.jpg`}
                                 alt={val}
-                                width="70"
+                                width="65"
                                 className="img-thumbnail"
                               />
                             </td>
-                            <td className="align-middle text-muted small">
+                            <td className="align-middle text-muted text-bold small">
                               {formatMoney(val)}
                             </td>
                           </tr>
@@ -263,17 +284,17 @@ const CierreArqueo = () => {
                     </table>
                   </div>
                   <div className="col-md-6">
-                    <h5 className="text-primary">
+                    <h5 className="text-primary text-bold mb-3">
                       <i className="fas fa-coins mr-2"></i>MONEDAS Y OTROS
                     </h5>
                     <table className="table table-sm table-borderless">
                       <tbody>
                         {[2, 1, "050", "025"].map((val) => (
                           <tr key={val}>
-                            <td width="80">
+                            <td width="85">
                               <input
                                 type="number"
-                                className="form-control form-control-sm text-center font-weight-bold"
+                                className="form-control form-control-sm text-center font-weight-bold border-primary shadow-sm"
                                 min="0"
                                 value={coins[`c${val}`]}
                                 onChange={(e) =>
@@ -291,7 +312,7 @@ const CierreArqueo = () => {
                                 width="30"
                               />
                             </td>
-                            <td className="align-middle text-muted small">
+                            <td className="align-middle text-muted text-bold small">
                               {formatMoney(
                                 parseFloat(
                                   val === "050"
@@ -307,39 +328,37 @@ const CierreArqueo = () => {
                       </tbody>
                     </table>
                     <hr />
-                    {/* LABELS INFORMATIVOS SOLICITADOS */}
-                    <div className="form-group mb-2">
-                      <label className="small font-weight-bold mb-0">
-                        Tickets de Tarjeta ($)
-                      </label>
-                      <div className="form-control form-control-sm bg-light text-right font-weight-bold">
-                        {formatMoney(cards)}
+                    <div className="bg-light p-3 rounded border shadow-sm">
+                      <div className="d-flex justify-content-between mb-2">
+                        <span className="small font-weight-bold text-muted">
+                          TARJETAS:
+                        </span>
+                        <span className="text-bold">{formatMoney(cards)}</span>
                       </div>
-                    </div>
-                    <div className="form-group mb-2">
-                      <label className="small font-weight-bold mb-0">
-                        Total Mercado Pago ($)
-                      </label>
-                      <div className="form-control form-control-sm bg-light text-right font-weight-bold text-primary">
-                        {formatMoney(mp)}
+                      <div className="d-flex justify-content-between mb-2">
+                        <span className="small font-weight-bold text-primary">
+                          MERCADO PAGO:
+                        </span>
+                        <span className="text-bold text-primary">
+                          {formatMoney(mp)}
+                        </span>
                       </div>
-                    </div>
-                    <div className="form-group mb-3">
-                      <label className="small font-weight-bold mb-0">
-                        Transferencias Recibidas ($)
-                      </label>
-                      <div className="form-control form-control-sm bg-light text-right font-weight-bold">
-                        {formatMoney(transfer)}
+                      <div className="d-flex justify-content-between">
+                        <span className="small font-weight-bold text-muted">
+                          TRANSFERENCIAS:
+                        </span>
+                        <span className="text-bold">
+                          {formatMoney(transfer)}
+                        </span>
                       </div>
                     </div>
 
-                    {/* CUADRO NEGRO DE RESUMEN ORIGINAL */}
-                    <div className="bg-dark p-3 rounded shadow-sm">
-                      <div className="d-flex justify-content-between small">
+                    <div className="bg-dark p-3 rounded mt-3 shadow">
+                      <div className="d-flex justify-content-between small mb-1">
                         <span>Total Efectivo:</span>{" "}
                         <b>{formatMoney(totalCash)}</b>
                       </div>
-                      <div className="d-flex justify-content-between small text-info">
+                      <div className="d-flex justify-content-between small text-info border-top pt-1 mt-1">
                         <span>Total Otros Medios:</span>{" "}
                         <b>{formatMoney(totalContado - totalCash)}</b>
                       </div>

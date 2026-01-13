@@ -72,10 +72,25 @@ const MainLayout = () => {
           });
         }
       }
-      // ✨ ATAJO SEGURO: CTRL + SHIFT + A
+      // ✨ ATAJO SEGURO: SHIFT + F1
+      if (e.shiftKey && e.key === "F1") {
+        e.preventDefault();
+        navigate("/ventas/listado");
+      }
+      // ✨ ATAJO SEGURO: SHIFT + F2
+      if (e.shiftKey && e.key === "F2") {
+        e.preventDefault();
+        navigate("/compras/listado");
+      }
+      // ✨ ATAJO SEGURO: SHIFT + F6
       if (e.shiftKey && e.key === "F6") {
         e.preventDefault();
         navigate("/arqueos/crear");
+      }
+      // ✨ ATAJO SEGURO: SHIFT + F7
+      if (e.shiftKey && e.key === "F7") {
+        e.preventDefault();
+        navigate("/devoluciones/listado");
       }
     };
 

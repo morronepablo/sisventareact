@@ -10,3 +10,5 @@ Impacto: Mejora el flujo de caja liberando dinero atrapado en estanterías.
 Qué es: Una vista ultra-privada para el dueño que muestra cuánto dinero físico hay en cada caja en este preciso instante, desglosado por: Efectivo, Tarjeta y MP.
 La Magia: No espera al cierre. Si el dueño ve que la Caja 1 ya tiene $200.000 en efectivo, puede ir y hacer un "Retiro parcial" para mayor seguridad. El sistema genera un comprobante de retiro y ajusta el monto esperado para el arqueo ciego.
 Impacto: Reduce el riesgo de robos y le da control total al dueño sin estar presente en el local.
+
+

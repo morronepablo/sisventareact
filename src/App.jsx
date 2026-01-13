@@ -106,6 +106,7 @@ import VerArqueo from "./pages/arqueos/VerArqueo";
 import EditarArqueo from "./pages/arqueos/EditarArqueo";
 import MovimientoArqueo from "./pages/arqueos/MovimientoArqueo";
 import CierreArqueo from "./pages/arqueos/CierreArqueo";
+import MonitorRealTime from "./pages/arqueos/MonitorRealTime";
 
 // Combos
 import ListadoCombos from "./pages/combos/ListadoCombos";
@@ -341,6 +342,7 @@ const App = () => {
         <Route path="/arqueos/editar/:id" element={<EditarArqueo />} />
         <Route path="/arqueos/movimiento/:id" element={<MovimientoArqueo />} />
         <Route path="/arqueos/cierre/:id" element={<CierreArqueo />} />
+        <Route path="/arqueos/monitor" element={<MonitorRealTime />} />
 
         {/* Combos */}
         <Route path="/combos/listado" element={<ListadoCombos />} />

@@ -371,6 +371,13 @@
         "permiso": "ver_arqueos",
         "children": [
             {
+                "id": "monitor_vivo",
+                "text": "Monitor en Vivo",
+                "icon": "fas fa-eye",
+                "path": "/arqueos/monitor",
+                "permiso": "ver_arqueos"
+            },
+            {
                 "id": "listado",
                 "text": "Listado de Arqueos",
                 "icon": "fas fa-fw fa-list",

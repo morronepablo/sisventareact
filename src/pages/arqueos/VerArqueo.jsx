@@ -38,19 +38,32 @@ const VerArqueo = () => {
       day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
+      hour12: false,
     });
   };
 
-  if (loading) return <div className="p-4">Cargando detalle...</div>;
-  if (!data) return <div className="p-4">No se encontró el arqueo.</div>;
+  if (loading)
+    return (
+      <div className="p-4 text-center">
+        <i className="fas fa-spinner fa-spin mr-2"></i> Cargando detalle...
+      </div>
+    );
+  if (!data || !data.arqueo)
+    return (
+      <div className="p-4 text-center text-danger">
+        No se encontró el arqueo.
+      </div>
+    );
 
-  const { arqueo, movimientos } = data;
+  // Extraemos datos asegurando que sean arrays para que no falle el .filter
+  const arqueo = data.arqueo;
+  const movimientos = data.movimientos || [];
+  const retiros = data.retiros || []; // 👈 Nueva data de retiros
 
-  // Forzar conversión a números para evitar errores de cálculo
   const m_inicial = parseFloat(arqueo.monto_inicial || 0);
   const m_final = parseFloat(arqueo.monto_final || 0);
 
-  // Filtrar y sumar movimientos
+  // Filtrar movimientos
   const ingresos = movimientos.filter((m) => m.tipo === "Ingreso");
   const egresos = movimientos.filter((m) => m.tipo === "Egreso");
 
@@ -62,215 +75,240 @@ const VerArqueo = () => {
     (acc, curr) => acc + parseFloat(curr.monto || 0),
     0
   );
+  const totalRetiros = retiros.reduce(
+    (acc, curr) => acc + parseFloat(curr.monto || 0),
+    0
+  );
 
-  // LÓGICA DE DIFERENCIA CORREGIDA
-  // Saldo que debería haber = inicial + lo que entró - lo que salió
-  const saldoEsperado = m_inicial + totalIngreso - totalEgreso;
-  // Diferencia = Lo que realmente hay - Lo que debería haber
+  // LÓGICA DE DIFERENCIA BI ACTUALIZADA (Resta Retiros)
+  const saldoEsperado = m_inicial + totalIngreso - totalEgreso - totalRetiros;
   const diferencia = m_final - saldoEsperado;
 
   return (
     <div className="content-header">
       <div className="container-fluid">
-        <div className="row mb-2">
+        <div className="row mb-3">
           <div className="col-sm-12">
-            <h1>
-              <b>Detalle del Arqueo</b> - Usuario:{" "}
-              {arqueo.usuario_nombre || "Admin"}
+            <h1 className="m-0 text-dark">
+              <b>Detalle del Arqueo</b>{" "}
+              <small className="text-muted">| Caja N° {arqueo.caja_id}</small>
             </h1>
             <hr />
           </div>
         </div>
 
         <div className="row">
-          {/* COLUMNA 1: DATOS REGISTRADOS */}
+          {/* COLUMNA 1: DATOS CABECERA */}
           <div className="col-md-3">
             <div className="card card-outline card-info shadow-sm">
               <div className="card-header">
-                <h3 className="card-title text-info">
-                  <b>Datos Registrados</b>
-                </h3>
+                <h3 className="card-title text-bold">Información General</h3>
               </div>
               <div className="card-body">
-                <div className="form-group">
-                  <label>Fecha Apertura</label>
-                  <input
-                    type="text"
-                    className="form-control border-info bg-white"
-                    value={formatDateTime(arqueo.fecha_apertura)}
-                    disabled
-                  />
+                <label className="text-xs text-uppercase text-muted">
+                  Cajero Responsable
+                </label>
+                <p className="text-bold">{arqueo.usuario_nombre || "Admin"}</p>
+
+                <div className="form-group mb-2">
+                  <label className="text-xs text-uppercase text-muted">
+                    Fecha Apertura
+                  </label>
+                  <div className="form-control form-control-sm bg-light">
+                    {formatDateTime(arqueo.fecha_apertura)}
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label>Monto Inicial</label>
-                  <input
-                    type="text"
-                    className="form-control border-info bg-white text-right"
-                    value={formatMoney(m_inicial)}
-                    disabled
-                  />
+
+                <div className="form-group mb-2">
+                  <label className="text-xs text-uppercase text-muted">
+                    Monto Inicial
+                  </label>
+                  <div className="form-control form-control-sm bg-light text-right text-bold">
+                    {formatMoney(m_inicial)}
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label>Fecha Cierre</label>
-                  <input
-                    type="text"
-                    className="form-control border-info bg-white"
-                    value={
-                      arqueo.fecha_cierre
-                        ? formatDateTime(arqueo.fecha_cierre)
-                        : "SIN CERRAR"
-                    }
-                    disabled
-                  />
+
+                <div className="form-group mb-2">
+                  <label className="text-xs text-uppercase text-muted">
+                    Fecha Cierre
+                  </label>
+                  <div className="form-control form-control-sm bg-light">
+                    {arqueo.fecha_cierre
+                      ? formatDateTime(arqueo.fecha_cierre)
+                      : "CAJA ABIERTA"}
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label>Monto Final</label>
-                  <input
-                    type="text"
-                    className="form-control border-info bg-white text-right"
-                    value={formatMoney(m_final)}
-                    disabled
-                  />
+
+                <div className="form-group mb-3">
+                  <label className="text-xs text-uppercase text-muted">
+                    Monto Final (Real)
+                  </label>
+                  <div className="form-control form-control-sm bg-light text-right text-bold text-primary">
+                    {formatMoney(m_final)}
+                  </div>
                 </div>
-                <div className="form-group">
-                  <label>Descripción</label>
-                  <input
-                    type="text"
-                    className="form-control border-info bg-white"
-                    value={arqueo.descripcion || ""}
-                    disabled
-                  />
-                </div>
-                <hr />
+
                 <button
                   className="btn btn-secondary btn-block shadow-sm"
                   onClick={() => navigate("/arqueos/listado")}
                 >
-                  <i className="fas fa-reply"></i> Volver
+                  <i className="fas fa-arrow-left mr-1"></i> Volver al Listado
                 </button>
               </div>
             </div>
           </div>
 
-          {/* COLUMNA 2: INGRESOS */}
-          <div className="col-md-4">
+          {/* COLUMNA 2: MOVIMIENTOS (INGRESOS / EGRESOS) */}
+          <div className="col-md-5">
             <div className="card card-outline card-success shadow-sm">
               <div className="card-header">
-                <h3 className="card-title text-success">
-                  <b>Ingresos</b>
+                <h3 className="card-title text-bold">
+                  Ingresos y Egresos Manuales
                 </h3>
               </div>
               <div className="card-body p-0">
-                <table className="table table-bordered table-sm table-striped mb-0">
-                  <thead className="thead-dark text-center">
+                <table className="table table-sm table-striped mb-0">
+                  <thead className="bg-dark text-white text-xs">
                     <tr>
-                      <th>Nro</th>
-                      <th>Detalle</th>
-                      <th>Monto</th>
+                      <th>TIPO</th>
+                      <th>DETALLE</th>
+                      <th className="text-right">MONTO</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {ingresos.length > 0 ? (
-                      ingresos.map((m, i) => (
+                  <tbody className="text-sm">
+                    {movimientos.length > 0 ? (
+                      movimientos.map((m) => (
                         <tr key={m.id}>
-                          <td className="text-center">{i + 1}</td>
+                          <td className="text-center">
+                            <span
+                              className={`badge ${
+                                m.tipo === "Ingreso"
+                                  ? "badge-success"
+                                  : "badge-danger"
+                              }`}
+                            >
+                              {m.tipo}
+                            </span>
+                          </td>
                           <td>{m.descripcion}</td>
-                          <td className="text-right">{formatMoney(m.monto)}</td>
+                          <td className="text-right text-bold">
+                            {formatMoney(m.monto)}
+                          </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="3" className="text-center">
-                          No hay ingresos
+                        <td colSpan="3" className="text-center text-muted">
+                          Sin movimientos manuales
                         </td>
                       </tr>
                     )}
                   </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colSpan="2" className="text-right text-success">
-                        <b>Total Ingresos</b>
-                      </td>
-                      <td className="text-right text-success">
-                        <b>{formatMoney(totalIngreso)}</b>
-                      </td>
-                    </tr>
-                  </tfoot>
                 </table>
               </div>
             </div>
           </div>
 
-          {/* COLUMNA 3: EGRESOS */}
-          <div className="col-md-5">
-            <div className="card card-outline card-danger shadow-sm">
+          {/* COLUMNA 3: RETIROS DE SEGURIDAD */}
+          <div className="col-md-4">
+            <div className="card card-outline card-warning shadow-sm">
               <div className="card-header">
-                <h3 className="card-title text-danger">
-                  <b>Egresos</b>
+                <h3 className="card-title text-bold">
+                  Retiros de Seguridad (Monitor)
                 </h3>
               </div>
               <div className="card-body p-0">
-                <table className="table table-bordered table-sm table-striped mb-0">
-                  <thead className="thead-dark text-center">
+                <table className="table table-sm table-striped mb-0">
+                  <thead className="bg-warning text-dark text-xs">
                     <tr>
-                      <th>Nro</th>
-                      <th>Detalle</th>
-                      <th>Monto</th>
+                      <th>FECHA</th>
+                      <th>MOTIVO</th>
+                      <th className="text-right">MONTO</th>
                     </tr>
                   </thead>
-                  <tbody>
-                    {egresos.length > 0 ? (
-                      egresos.map((m, i) => (
-                        <tr key={m.id}>
-                          <td className="text-center">{i + 1}</td>
-                          <td>{m.descripcion}</td>
-                          <td className="text-right">{formatMoney(m.monto)}</td>
+                  <tbody className="text-sm">
+                    {retiros.length > 0 ? (
+                      retiros.map((r) => (
+                        <tr key={r.id}>
+                          <td className="text-center">
+                            {new Date(r.fecha).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </td>
+                          <td>{r.motivo}</td>
+                          <td className="text-right text-bold text-danger">
+                            -{formatMoney(r.monto)}
+                          </td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="3" className="text-center">
-                          No hay egresos
+                        <td colSpan="3" className="text-center text-muted py-3">
+                          No hubo retiros parciales
                         </td>
                       </tr>
                     )}
                   </tbody>
-                  <tfoot>
-                    <tr>
-                      <td colSpan="2" className="text-right text-danger">
-                        <b>Total Egresos</b>
-                      </td>
-                      <td className="text-right text-danger">
-                        <b>{formatMoney(totalEgreso)}</b>
-                      </td>
-                    </tr>
-                  </tfoot>
+                  {totalRetiros > 0 && (
+                    <tfoot>
+                      <tr className="bg-light">
+                        <td colSpan="2" className="text-right">
+                          <b>Total Retirado</b>
+                        </td>
+                        <td className="text-right text-danger text-bold">
+                          {formatMoney(totalRetiros)}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  )}
                 </table>
               </div>
             </div>
           </div>
         </div>
 
-        {/* FILA INFERIOR: DIFERENCIA */}
-        <div className="row mt-3">
-          <div className="col-md-5">
-            <div className="card card-outline card-warning shadow-sm">
-              <div className="card-body py-2">
-                <div className="row align-items-center">
-                  <div className="col-auto">
-                    <label className="mb-0 text-warning">
-                      <b>Dif. (Final - [Inicial + Ingresos - Egresos])</b>
+        {/* BALANCE FINAL BI */}
+        <div className="row mt-4">
+          <div className="col-md-12">
+            <div
+              className={`card ${
+                diferencia < 0 ? "card-danger" : "card-success"
+              } card-outline shadow-sm`}
+            >
+              <div className="card-body py-3">
+                <div className="row text-center">
+                  <div className="col-md-3 border-right">
+                    <label className="text-muted text-xs text-uppercase d-block">
+                      Saldo Esperado
                     </label>
+                    <span className="h4 text-bold">
+                      {formatMoney(saldoEsperado)}
+                    </span>
                   </div>
-                  <div className="col">
-                    <input
-                      type="text"
-                      className={`form-control text-right font-weight-bold bg-white ${
+                  <div className="col-md-3 border-right">
+                    <label className="text-muted text-xs text-uppercase d-block">
+                      Dinero Entregado
+                    </label>
+                    <span className="h4 text-bold">{formatMoney(m_final)}</span>
+                  </div>
+                  <div className="col-md-6">
+                    <label className="text-muted text-xs text-uppercase d-block">
+                      Resultado del Arqueo (Diferencia)
+                    </label>
+                    <span
+                      className={`h2 text-bold ${
                         diferencia < 0 ? "text-danger" : "text-success"
                       }`}
-                      value={formatMoney(diferencia)}
-                      disabled
-                    />
+                    >
+                      {diferencia === 0
+                        ? "CAJA PERFECTA"
+                        : formatMoney(diferencia)}
+                    </span>
+                    <p className="text-xs mt-1 mb-0 italic">
+                      Matemática: (Inicial + Ingresos) - Egresos - Retiros vs
+                      Monto Final
+                    </p>
                   </div>
                 </div>
               </div>

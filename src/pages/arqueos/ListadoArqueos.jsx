@@ -6,16 +6,15 @@ import { useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import Swal from "sweetalert2";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import { useAuth } from "../../context/AuthContext"; // 👈 1. IMPORTAMOS AUTH
+import { useAuth } from "../../context/AuthContext";
 
 const ListadoArqueos = () => {
   const [arqueos, setArqueos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [arqueoAbierto, setArqueoAbierto] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth(); // 👈 2. OBTENEMOS EL USUARIO
+  const { user } = useAuth();
 
-  // 🕵️ 3. Lógica de seguridad (Solo ID 1 puede ver lo sensible)
   const isAdmin = user?.id === 1;
 
   const spanishLanguage = {
@@ -77,35 +76,43 @@ const ListadoArqueos = () => {
     });
   };
 
+  const formatMoney = (amount) =>
+    new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+    }).format(amount || 0);
+
   const formatDetails = (d) => {
-    // 🔒 4. Bloqueo en el acordeón para el cajero
-    if (!isAdmin) {
-      return '<div class="p-3 bg-light border rounded m-2 text-center text-muted"><i class="fas fa-lock mr-2"></i>Detalle de movimientos restringido al administrador.</div>';
-    }
+    if (!isAdmin)
+      return '<div class="p-3 bg-light border rounded m-2 text-center text-muted"><i class="fas fa-lock mr-2"></i>Detalle restringido.</div>';
 
     let html = '<div class="p-3 bg-light border rounded shadow-sm m-2">';
     html +=
-      '<h6 class="mb-2"><strong>Detalle de Movimientos de Caja</strong></h6>';
+      '<h6 class="mb-2"><strong>Desglose de Movimientos y Retiros</strong></h6>';
+
+    // Tabla de Movimientos (Ingresos/Egresos)
     if (d.movimientos && d.movimientos.length > 0) {
       html +=
-        '<table class="table table-sm table-bordered bg-white shadow-sm mb-0">';
-      html +=
-        '<thead class="thead-dark text-center"><tr><th>Tipo</th><th>Monto</th><th>Descripción</th><th>Fecha</th></tr></thead><tbody>';
+        '<table class="table table-sm table-bordered bg-white mb-2"><thead><tr className="bg-dark text-white"><th>Tipo</th><th>Monto</th><th>Descripción</th></tr></thead><tbody>';
       d.movimientos.forEach((m) => {
-        const monto = new Intl.NumberFormat("es-AR", {
-          style: "currency",
-          currency: "ARS",
-        }).format(m.monto);
-        html += `<tr><td class="text-center"><b><span class="${
+        html += `<tr><td><span class="${
           m.tipo === "Ingreso" ? "text-success" : "text-danger"
-        }">${m.tipo}</span></b></td><td class="text-right">${monto}</td><td>${
-          m.descripcion || ""
-        }</td><td class="text-center">${format24h(m.created_at)}</td></tr>`;
+        }">${m.tipo}</span></td><td class="text-right">${formatMoney(
+          m.monto
+        )}</td><td>${m.descripcion || ""}</td></tr>`;
       });
       html += "</tbody></table>";
-    } else {
-      html += '<p class="text-muted small">No hay movimientos registrados.</p>';
     }
+
+    // Tabla de Retiros Parciales (Si existen)
+    if (d.total_retiros > 0) {
+      html +=
+        '<p className="mb-1 text-xs text-danger"><b>Retiros de Seguridad:</b></p>';
+      html += `<div className="alert alert-warning py-1 px-2 text-xs">Esta caja tuvo un retiro de seguridad por un total de <b>${formatMoney(
+        d.total_retiros
+      )}</b></div>`;
+    }
+
     html += "</div>";
     return html;
   };
@@ -123,7 +130,6 @@ const ListadoArqueos = () => {
             responsive: true,
             pageLength: 8,
             language: spanishLanguage,
-            lengthChange: false,
             searching: false,
             dom: "rtip",
             columnDefs: [
@@ -154,44 +160,25 @@ const ListadoArqueos = () => {
                   .attr("class", "fas fa-minus-circle text-danger");
               }
             });
-          window.$('[data-bs-toggle="tooltip"]').tooltip();
         }
       }, 150);
       return () => {
         clearTimeout(timer);
-        if (window.$) {
-          window.$(".tooltip").remove();
-          if (window.$.fn.DataTable.isDataTable("#arqueos-table"))
-            window.$("#arqueos-table").DataTable().destroy();
-        }
+        if (window.$ && window.$.fn.DataTable.isDataTable("#arqueos-table"))
+          window.$("#arqueos-table").DataTable().destroy();
       };
     }
-  }, [loading, arqueos, isAdmin]);
-
-  const handleExport = (type) => {
-    window.$("#arqueos-table").DataTable().button(`.buttons-${type}`).trigger();
-  };
-
-  const formatMoney = (amount) =>
-    new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-    }).format(amount || 0);
+  }, [loading, arqueos]);
 
   if (loading) return <LoadingSpinner />;
 
   return (
     <div className="content-header">
       <div className="container-fluid">
-        <div className="row mb-2">
-          <div className="col-sm-6">
-            <h1>
-              <b>Listado de Arqueos</b>
-            </h1>
-          </div>
-        </div>
+        <h1>
+          <b>Listado de Arqueos</b>
+        </h1>
         <hr />
-        <br />
         <div className="card card-outline card-primary shadow-sm">
           <div className="card-header">
             <h3 className="card-title my-1">Arqueos registrados</h3>
@@ -213,66 +200,6 @@ const ListadoArqueos = () => {
             </div>
           </div>
           <div className="card-body">
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <div className="d-flex align-items-center">
-                <label className="mr-2 mb-0">Mostrar</label>
-                <select
-                  className="form-control form-control-sm mr-2"
-                  style={{ width: "65px" }}
-                  onChange={(e) =>
-                    window
-                      .$("#arqueos-table")
-                      .DataTable()
-                      .page.len(e.target.value)
-                      .draw()
-                  }
-                >
-                  <option value="8">8</option>
-                  <option value="10">10</option>
-                  <option value="25">25</option>
-                </select>
-                <div className="btn-group ml-3">
-                  <button
-                    className="btn btn-secondary btn-sm"
-                    onClick={() => handleExport("copy")}
-                  >
-                    Copiar
-                  </button>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => handleExport("pdf")}
-                  >
-                    PDF
-                  </button>
-                  <button
-                    className="btn btn-success btn-sm"
-                    onClick={() => handleExport("excel")}
-                  >
-                    Excel
-                  </button>
-                  <button
-                    className="btn btn-warning btn-sm"
-                    onClick={() => handleExport("print")}
-                  >
-                    Imprimir
-                  </button>
-                </div>
-              </div>
-              <input
-                type="text"
-                className="form-control form-control-sm"
-                placeholder="Buscar..."
-                style={{ width: "200px" }}
-                onChange={(e) =>
-                  window
-                    .$("#arqueos-table")
-                    .DataTable()
-                    .search(e.target.value)
-                    .draw()
-                }
-              />
-            </div>
-
             <table
               id="arqueos-table"
               className="table table-striped table-bordered table-hover table-sm"
@@ -288,11 +215,10 @@ const ListadoArqueos = () => {
                   <th>Efectivo</th>
                   <th>Tarjetas</th>
                   <th>M. Pago</th>
-                  <th>Descripción</th>
-                  {/* 🔒 5. CABECERA PROTEGIDA */}
-                  {isAdmin && <th>Movimientos</th>}
+                  <th>Retiros</th> {/* 👈 NUEVA COLUMNA */}
+                  {isAdmin && <th>Movimientos BI</th>}
                   <th>Usuario</th>
-                  <th style={{ width: "180px" }}>Acciones</th>
+                  <th style={{ width: "150px" }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -300,16 +226,16 @@ const ListadoArqueos = () => {
                   const m_ini = parseFloat(arq.monto_inicial || 0);
                   const ing = parseFloat(arq.total_ingresos || 0);
                   const egr = parseFloat(arq.total_egresos || 0);
+                  const ret = parseFloat(arq.total_retiros || 0); // 👈 Captura de retiros
                   const m_fin = parseFloat(arq.monto_final || 0);
-                  const teorico = m_ini + ing - egr;
+
+                  // LÓGICA DE TEÓRICO: Inicial + Ingresos - Egresos - Retiros
+                  const teorico = m_ini + ing - egr - ret;
                   const isClosed = !!arq.fecha_cierre;
 
                   return (
                     <tr key={arq.id} data-index={index}>
-                      <td
-                        className="details-control text-center"
-                        style={{ cursor: "pointer" }}
-                      >
+                      <td className="details-control text-center">
                         <i className="fas fa-plus-circle text-primary"></i>
                       </td>
                       <td className="text-center font-weight-bold">
@@ -334,30 +260,45 @@ const ListadoArqueos = () => {
                       <td className="text-right">
                         {formatMoney(arq.ventas_mercadopago)}
                       </td>
-                      <td>{arq.descripcion}</td>
 
-                      {/* 🔒 6. CELDA PROTEGIDA (CON TU DISEÑO ORIGINAL) */}
+                      {/* COLUMNA DE RETIROS */}
+                      <td className="text-right text-danger font-weight-bold">
+                        {ret > 0 ? `- ${formatMoney(ret)}` : formatMoney(0)}
+                      </td>
+
+                      {/* CELDA DE MOVIMIENTOS PARA ADMIN (Ajustada a 4 columnas) */}
                       {isAdmin && (
-                        <td style={{ minWidth: "200px" }}>
+                        <td style={{ minWidth: "220px" }}>
                           <div
                             className="row text-center m-0"
-                            style={{ fontSize: "0.72rem" }}
+                            style={{ fontSize: "0.68rem" }}
                           >
-                            <div className="col-4 p-0 text-success">
-                              <b>Ingresos</b>
+                            <div className="col-3 p-0 text-success">
+                              <b>Ing.</b>
                               <br />
                               {formatMoney(ing)}
                             </div>
-                            <div className="col-4 p-0 text-danger">
-                              <b>Egresos</b>
+                            <div className="col-3 p-0 text-danger">
+                              <b>Egr.</b>
                               <br />
                               {formatMoney(egr)}
                             </div>
-                            <div className="col-4 p-0 text-warning">
+                            <div className="col-3 p-0 text-maroon">
+                              <b>Ret.</b>
+                              <br />
+                              {formatMoney(ret)}
+                            </div>
+                            <div
+                              className={`col-3 p-0 ${
+                                isClosed && Math.abs(teorico - m_fin) > 1
+                                  ? "text-danger text-bold"
+                                  : "text-primary"
+                              }`}
+                            >
                               <b>Dif.</b>
                               <br />
                               {formatMoney(
-                                isClosed ? teorico - m_fin : teorico
+                                isClosed ? m_fin - teorico : teorico
                               )}
                             </div>
                           </div>
@@ -377,41 +318,40 @@ const ListadoArqueos = () => {
                           >
                             <i className="fas fa-eye"></i>
                           </button>
-                          <button
-                            className={`btn btn-success btn-sm ${
-                              isClosed ? "disabled" : ""
-                            }`}
-                            onClick={() =>
-                              !isClosed &&
-                              navegarSinTooltips(`/arqueos/editar/${arq.id}`)
-                            }
-                          >
-                            <i className="fas fa-pencil-alt"></i>
-                          </button>
-                          <button
-                            className={`btn btn-warning btn-sm ${
-                              isClosed ? "disabled" : ""
-                            }`}
-                            onClick={() =>
-                              !isClosed &&
-                              navegarSinTooltips(
-                                `/arqueos/movimiento/${arq.id}`
-                              )
-                            }
-                          >
-                            <i className="fas fa-cash-register"></i>
-                          </button>
-                          <button
-                            className={`btn btn-secondary btn-sm ${
-                              isClosed ? "disabled" : ""
-                            }`}
-                            onClick={() =>
-                              !isClosed &&
-                              navegarSinTooltips(`/arqueos/cierre/${arq.id}`)
-                            }
-                          >
-                            <i className="fas fa-lock"></i>
-                          </button>
+                          {!isClosed && (
+                            <>
+                              <button
+                                className="btn btn-success btn-sm"
+                                onClick={() =>
+                                  navegarSinTooltips(
+                                    `/arqueos/editar/${arq.id}`
+                                  )
+                                }
+                              >
+                                <i className="fas fa-pencil-alt"></i>
+                              </button>
+                              <button
+                                className="btn btn-warning btn-sm"
+                                onClick={() =>
+                                  navegarSinTooltips(
+                                    `/arqueos/movimiento/${arq.id}`
+                                  )
+                                }
+                              >
+                                <i className="fas fa-cash-register"></i>
+                              </button>
+                              <button
+                                className="btn btn-secondary btn-sm"
+                                onClick={() =>
+                                  navegarSinTooltips(
+                                    `/arqueos/cierre/${arq.id}`
+                                  )
+                                }
+                              >
+                                <i className="fas fa-lock"></i>
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     </tr>
