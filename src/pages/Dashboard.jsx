@@ -3,7 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { fetchCounts, fetchChartData } from "../services/dashboardService";
+import {
+  fetchCounts,
+  fetchChartData,
+  fetchPredictionBI,
+} from "../services/dashboardService"; // 👈 Importada
 import LoadingSpinner from "../components/LoadingSpinner";
 import { io } from "socket.io-client";
 
@@ -41,6 +45,7 @@ const Dashboard = () => {
   const { user, hasPermission } = useAuth();
   const [counts, setCounts] = useState({ topProductos: [] });
   const [charts, setCharts] = useState(null);
+  const [prediction, setPrediction] = useState(null); // 👈 Nuevo Estado
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
 
@@ -66,12 +71,14 @@ const Dashboard = () => {
   const loadDashboardData = async () => {
     if (!charts) setLoading(true);
     try {
-      const [countsRes, chartsRes] = await Promise.all([
+      const [countsRes, chartsRes, predictionRes] = await Promise.all([
         fetchCounts(),
         fetchChartData(selectedMonth),
+        fetchPredictionBI(), // 👈 Nueva Carga
       ]);
       setCounts(countsRes);
       setCharts(chartsRes);
+      setPrediction(predictionRes); // 👈 Guardar Predicción
     } catch (error) {
       console.error("Error Dashboard:", error);
     } finally {
@@ -197,8 +204,7 @@ const Dashboard = () => {
 
   if (loading || !charts) return <LoadingSpinner />;
 
-  // --- 📊 DEFINICIÓN DE TODOS LOS OBJETOS DE DATOS PARA GRÁFICOS 📊 ---
-
+  // --- 📊 DATOS GRÁFICOS ---
   const dataComparativa = {
     labels: charts.comparativaDiaria.map((d) => d.dia),
     datasets: [
@@ -341,6 +347,7 @@ const Dashboard = () => {
         .productos-scroll::-webkit-scrollbar { width: 3px; } .productos-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); }
         .product-badge { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: bold; }
         .zoomP { transition: transform .2s; } .zoomP:hover { transform: scale(1.01); }
+        .card-bi { background: linear-gradient(60deg, #29323c 0%, #485563 100%); color: #fff; border: none; }
       `}</style>
 
       <h1>
@@ -348,7 +355,7 @@ const Dashboard = () => {
       </h1>
       <hr />
 
-      {/* FILAS INFOBOXES (LAS 13 ORIGINALES) */}
+      {/* INFOBOXES */}
       <div className="row">
         <InfoBox
           permission="ver_roles"
@@ -502,7 +509,78 @@ const Dashboard = () => {
 
       <hr />
 
-      {/* FILAS SMALLBOXES FINANZAS (LAS 16 ORIGINALES) */}
+      {/* 🧠 WIDGET DE INTELIGENCIA DE NEGOCIO (PROYECCIÓN) */}
+      {prediction && (
+        <div className="row mb-4">
+          <div className="col-12">
+            <div className="card card-bi shadow-lg">
+              <div className="card-body p-4">
+                <div className="row align-items-center">
+                  <div className="col-md-7">
+                    <h5
+                      className="text-uppercase font-weight-bold opacity-7"
+                      style={{
+                        letterSpacing: "2px",
+                        fontSize: "0.9rem",
+                        color: "#39CCCC",
+                      }}
+                    >
+                      <i className="fas fa-brain mr-2"></i> Inteligencia de
+                      Negocio
+                    </h5>
+                    <h2 className="display-4 font-weight-bold mb-0">
+                      {formatARS(prediction.prediccionCierre)}
+                    </h2>
+                    <p className="lead mb-0 mt-1">
+                      Proyección de <b>Utilidad Neta Real</b> al cierre del mes
+                    </p>
+                  </div>
+                  <div className="col-md-5 text-md-right mt-3 mt-md-0">
+                    <div className="mb-3">
+                      <span
+                        className="badge badge-teal p-2"
+                        style={{
+                          fontSize: "1rem",
+                          backgroundColor: "#39CCCC",
+                          color: "#001f3f",
+                        }}
+                      >
+                        <i className="fas fa-history mr-2"></i> Ritual de
+                        Cierre: {prediction.diasRestantes} días restantes
+                      </span>
+                    </div>
+                    <div
+                      className="progress mb-2"
+                      style={{
+                        height: "12px",
+                        backgroundColor: "rgba(255,255,255,0.1)",
+                        borderRadius: "10px",
+                      }}
+                    >
+                      <div
+                        className="progress-bar progress-bar-striped progress-bar-animated bg-teal"
+                        role="progressbar"
+                        style={{
+                          width: `${prediction.porcentajeMes}%`,
+                          backgroundColor: "#39CCCC",
+                        }}
+                      ></div>
+                    </div>
+                    <div className="d-flex justify-content-between text-sm opacity-7">
+                      <span>Progreso del Mes: {prediction.porcentajeMes}%</span>
+                      <span>
+                        Ritmo Diario: {formatARS(prediction.promedioDiario)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SMALLBOXES FINANZAS */}
       <div className="row">
         <SmallBox
           permission="ver_ventas"
@@ -700,7 +778,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* BLOQUE GRÁFICOS 1 */}
+      {/* GRÁFICOS */}
       <div className="row">
         <div className="col-md-8 mb-4">
           <div className="card card-outline card-primary shadow-sm h-100">
@@ -744,7 +822,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* MAPA DE CALOR HORARIO */}
       <div className="row">
         <div className="col-md-12 mb-4">
           <div className="card card-outline card-warning shadow-sm border-warning">
@@ -764,7 +841,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* BLOQUE GRÁFICOS 2: CAJAS Y UTILIDAD */}
       <div className="row">
         <div className="col-md-6 mb-4">
           <div className="card card-outline card-navy shadow-sm h-100">
@@ -811,7 +887,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* BLOQUE GRÁFICOS 3: CATEGORÍAS */}
       <div className="row">
         <div className="col-md-6 mb-4">
           <div className="card card-outline card-primary shadow-sm h-100">
@@ -861,7 +936,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* BALANCE ANUAL FINAL */}
       <div className="row">
         <div className="col-md-12 mb-4">
           <div className="card card-outline card-success shadow-sm">

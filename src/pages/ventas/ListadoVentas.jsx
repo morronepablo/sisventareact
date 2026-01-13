@@ -37,6 +37,14 @@ const ListadoVentas = () => {
     },
   };
 
+  const formatMoney = (val) =>
+    new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(val || 0);
+
   const navegarSinTooltips = (url) => {
     if (window.$) {
       window.$(".tooltip").remove();
@@ -66,33 +74,46 @@ const ListadoVentas = () => {
     refreshArqueoStatus();
   }, [refreshArqueoStatus]);
 
-  // --- FUNCIÓN DEL ABANICO ACTUALIZADA CON IMPORTES ---
+  // --- 💡 FUNCIÓN DEL ABANICO CORREGIDA PARA MOSTRAR IMPORTES NETOS (CON PROMOS) ---
   const formatDetails = (venta) => {
+    // Calculamos el subtotal teórico de la venta (sin descuentos) para obtener el factor de prorrateo
+    const subtotalTeoricoVenta = venta.detalles.reduce(
+      (acc, d) => acc + d.cantidad * d.precio_venta,
+      0
+    );
+
+    // Factor = Lo que pagó / Lo que valía. Ejemplo: 7200 / 10800 = 0.666
+    const factorDescuento =
+      subtotalTeoricoVenta > 0 ? venta.precio_total / subtotalTeoricoVenta : 1;
+
     let html = '<div class="p-3 bg-light border rounded shadow-sm m-2">';
     html +=
       '<table class="table table-sm table-bordered bg-white shadow-sm" style="width:100%; font-size: 0.85rem;">';
     html += '<thead class="thead-dark text-center">';
     html +=
-      '<tr><th>Código</th><th>Producto/Combo</th><th class="text-center">Cant.</th><th class="text-center">P. Unitario</th><th class="text-center">Subtotal</th></tr></thead><tbody>';
+      '<tr><th>Código</th><th>Producto/Combo</th><th class="text-center">Cant.</th><th class="text-center">P. Lista</th><th class="text-center">Importe Neto</th></tr></thead><tbody>';
 
     if (venta.detalles && venta.detalles.length > 0) {
       venta.detalles.forEach((d) => {
         const codigo = d.producto_codigo || d.combo_codigo || "(Sin código)";
         const nombre = d.producto_nombre || d.combo_nombre || "(Sin nombre)";
         const unidad = d.unidad_nombre || (d.combo_id ? "Combo" : "Unid.");
-        const precio = parseFloat(d.precio_venta || 0);
-        const subtotal = d.cantidad * precio;
+
+        const precioLista = parseFloat(d.precio_venta || 0);
+        const subtotalOriginal = d.cantidad * precioLista;
+
+        // El subtotal neto es el subtotal original multiplicado por el factor de descuento de la venta total
+        const subtotalNeto = subtotalOriginal * factorDescuento;
 
         html += `<tr>
             <td class="text-center">${codigo}</td>
             <td>${nombre}</td>
             <td class="text-right">${d.cantidad} ${unidad}</td>
-            <td class="text-right">$ ${precio.toLocaleString("es-AR", {
-              minimumFractionDigits: 2,
-            })}</td>
-            <td class="text-right font-weight-bold">$ ${subtotal.toLocaleString(
-              "es-AR",
-              { minimumFractionDigits: 2 }
+            <td class="text-right text-muted"><del>${formatMoney(
+              precioLista
+            )}</del></td>
+            <td class="text-right font-weight-bold" style="color: #28a745;">${formatMoney(
+              subtotalNeto
             )}</td>
         </tr>`;
       });
@@ -100,7 +121,17 @@ const ListadoVentas = () => {
       html +=
         '<tr><td colspan="5" class="text-center">No hay productos.</td></tr>';
     }
-    html += "</tbody></table></div>";
+
+    html += "</tbody>";
+    html += `<tfoot class="bg-white">
+              <tr>
+                <td colspan="4" class="text-right text-bold">TOTAL COMPROBANTE:</td>
+                <td class="text-right text-bold text-primary" style="font-size: 1rem;">${formatMoney(
+                  venta.precio_total
+                )}</td>
+              </tr>
+            </tfoot>`;
+    html += "</table></div>";
     return html;
   };
 
@@ -324,10 +355,7 @@ const ListadoVentas = () => {
                       T {String(v.id).padStart(8, "0")}
                     </td>
                     <td className="text-right align-middle font-weight-bold text-primary">
-                      ${" "}
-                      {parseFloat(v.precio_total).toLocaleString("es-AR", {
-                        minimumFractionDigits: 2,
-                      })}
+                      {formatMoney(v.precio_total)}
                     </td>
                     <td className="text-center align-middle">
                       {v.usuario_nombre}

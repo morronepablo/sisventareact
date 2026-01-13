@@ -247,3 +247,13 @@ export const fetchChartData = async (month) => {
     return null;
   }
 };
+
+export const fetchPredictionBI = async () => {
+  try {
+    const res = await api.get("/dashboard/prediction"); // Asegúrate de crear esta ruta en tu router de backend
+    return res.data;
+  } catch (error) {
+    console.error("Error al cargar predicción BI:", error);
+    return null;
+  }
+};

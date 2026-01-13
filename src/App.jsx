@@ -50,6 +50,7 @@ import VerProducto from "./pages/productos/VerProducto";
 import EditarProducto from "./pages/productos/EditarProducto";
 import ActualizacionMasiva from "./pages/productos/ActualizacionMasiva";
 import MonitorReposicion from "./pages/productos/MonitorReposicion";
+import Promociones from "./pages/productos/Promociones";
 
 // Proveedores
 import ListadoProveedores from "./pages/proveedores/ListadoProveedores";
@@ -215,6 +216,7 @@ const App = () => {
           element={<ActualizacionMasiva />}
         />
         <Route path="/productos/reposicion" element={<MonitorReposicion />} />
+        <Route path="/productos/promociones" element={<Promociones />} />
 
         {/* Proveedores */}
         <Route path="/proveedores/listado" element={<ListadoProveedores />} />

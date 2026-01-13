@@ -162,6 +162,13 @@
                 "icon": "fas fa-percentage",
                 "path": "/productos/actualizacion-masiva",
                 "permiso": "ver_productos"
+            },
+            {
+                "id": "promociones",
+                "text": "Promociones",
+                "icon": "fas fa-percentage",
+                "path": "/productos/promociones",
+                "permiso": "ver_productos"
             }
         ]
     },
