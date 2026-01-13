@@ -286,6 +286,13 @@
                 "permiso": "ver_clientes"
             },
             {
+                "id": "recaptura_clientes",
+                "text": "Recapturar Clientes",
+                "icon": "fab fa-whatsapp",
+                "path": "/clientes/recaptura",
+                "permiso": "ver_clientes"
+            },
+            {
                 "id": "informes_clientes",
                 "text": "Informes",
                 "icon": "fas fa-chart-pie",

@@ -84,6 +84,7 @@ import VerComprasCliente from "./pages/clientes/VerComprasCliente";
 import HistorialCliente from "./pages/clientes/HistorialCliente";
 import EditarCliente from "./pages/clientes/EditarCliente";
 import InformeCobranzas from "./pages/clientes/informes/InformeCobranzas";
+import RecapturaClientes from "./pages/clientes/RecapturaClientes";
 
 // Ventas
 import ListadoVentas from "./pages/ventas/ListadoVentas";
@@ -293,6 +294,7 @@ const App = () => {
           path="/clientes/informes/cobranzas"
           element={<InformeCobranzas />}
         />
+        <Route path="/clientes/recaptura" element={<RecapturaClientes />} />
 
         {/* Ventas */}
         <Route path="/ventas/listado" element={<ListadoVentas />} />

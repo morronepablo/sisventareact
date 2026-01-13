@@ -12,3 +12,15 @@ La Magia: No espera al cierre. Si el dueño ve que la Caja 1 ya tiene $200.000 e
 Impacto: Reduce el riesgo de robos y le da control total al dueño sin estar presente en el local.
 
 
+1. "El Recapturador" (Fidelización Activa vía WhatsApp) 🤖💬
+Qué es: Un algoritmo que busca en la base de datos a los clientes que compraban seguido pero no vienen hace más de 15 días.
+La Magia: En el listado de clientes, te aparece un botón de "Alerta de Abandono". Al tocarlo, el sistema genera un link de WhatsApp con un mensaje personalizado: "Hola [Nombre], hace mucho no te vemos por el local. Tenemos stock de [Producto que más compra] esperándote. ¡Te regalamos un 10% en tu próxima compra!".
+Impacto: Aumenta la frecuencia de compra de forma directa. No esperás a que el cliente venga, vas a buscarlo.
+2. "Simulador de Impacto" (Laboratorio de Precios) 🧪💰
+Qué es: Una herramienta BI donde el dueño dice: "¿Qué pasa si subo el 5% a toda la categoría Almacén?".
+La Magia: El sistema analiza las ventas de los últimos 3 meses y te dice: "Si mantenés el volumen de ventas, tu utilidad neta subiría $X.XXX al mes, pero podrías perder un X% de clientes". Te da una proyección de ganancia antes de tocar un solo precio.
+Impacto: Permite tomar decisiones de precios basadas en datos, no en miedos.
+3. "Auditor de Fugas" (Detector de Anomalías) 🕵️‍♂️🔍
+Qué es: Un sistema que detecta patrones extraños en las cajas (ej: muchas devoluciones seguidas, ventas canceladas justo antes de pagar, o cajeros que tardan mucho entre productos).
+La Magia: Te marca con una "lupa roja" los movimientos sospechosos para que el dueño revise las cámaras en ese horario exacto.
+Impacto: Reduce el "hormigueo" (robo interno) y mejora la eficiencia de los cajeros.
