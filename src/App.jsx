@@ -79,6 +79,7 @@ import InformeProveedores from "./pages/compras/informes/InformeProveedores";
 import DetalleInformeProveedores from "./pages/compras/informes/DetalleInformeProveedores";
 import InformeNoPagadas from "./pages/compras/informes/InformeNoPagadas";
 import DetalleInformeNoPagadas from "./pages/compras/informes/DetalleInformeNoPagadas";
+import AuditoriaTraicion from "./pages/compras/AuditoriaTraicion";
 
 // Clientes
 import ListadoClientes from "./pages/clientes/ListadoClientes";
@@ -315,6 +316,10 @@ const App = () => {
         <Route
           path="/clientes/fidelizacion"
           element={<FidelizacionClientes />}
+        />
+        <Route
+          path="/compras/auditoria-traicion"
+          element={<AuditoriaTraicion />}
         />
 
         {/* Ventas */}

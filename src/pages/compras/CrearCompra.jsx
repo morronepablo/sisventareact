@@ -116,6 +116,32 @@ const CrearCompra = () => {
 
   // --- ACCIONES ---
 
+  const handlePriceChange = async (id, nuevoPrecio) => {
+    // 1. Actualizamos el estado local inmediatamente para que el usuario pueda escribir
+    const nuevasCompras = tmpCompras.map((item) => {
+      if (item.id === id) {
+        return { ...item, precio_compra: nuevoPrecio };
+      }
+      return item;
+    });
+    setTmpCompras(nuevasCompras);
+
+    // 2. Calculamos el total nuevamente para que la UI se vea real
+    const nuevoTotal = nuevasCompras.reduce(
+      (acc, item) =>
+        acc + parseFloat(item.cantidad) * parseFloat(item.precio_compra || 0),
+      0
+    );
+    setFormData((prev) => ({ ...prev, precio_total: nuevoTotal }));
+
+    // 3. Enviamos al servidor en segundo plano (sin bloquear la escritura)
+    try {
+      await api.put(`/compras/tmp/price/${id}`, { precio_compra: nuevoPrecio });
+    } catch (e) {
+      console.error("Error al guardar precio en servidor", e);
+    }
+  };
+
   const updateQty = async (id, currentQty, delta) => {
     const newQty = parseFloat(currentQty) + delta;
     if (newQty < 1) return;
@@ -170,6 +196,7 @@ const CrearCompra = () => {
         id_proveedor: proveedorSeleccionado.id,
         usuario_id: user.id,
         empresa_id: user.empresa_id,
+        actualizar_precios: true, // 👈 Flag para que el backend recalcule venta
       };
       const response = await api.post("/compras", payload);
       if (response.data.success) {
@@ -179,14 +206,14 @@ const CrearCompra = () => {
         await Swal.fire({
           icon: "success",
           title: "¡Éxito!",
-          text: "Compra registrada correctamente",
+          text: "Compra registrada. Los precios de venta se han ajustado automáticamente.",
           showConfirmButton: false,
-          timer: 1500,
+          timer: 2000,
         });
         navigate("/compras/listado");
       }
     } catch (e) {
-      Swal.fire("Error", "Ocurrió un error al procesar", "error");
+      Swal.fire("Error", "Ocurrió un error al procesar la compra", "error");
     }
   };
 
@@ -225,7 +252,6 @@ const CrearCompra = () => {
               </div>
               <div className="card-body">
                 <div className="row">
-                  {/* SECCIÓN IZQUIERDA: CARRITO */}
                   <div className="col-md-8">
                     <div className="row">
                       <div className="col-md-2">
@@ -275,7 +301,7 @@ const CrearCompra = () => {
                           <th>Código</th>
                           <th style={{ width: "120px" }}>Cant.</th>
                           <th>Producto</th>
-                          <th>Costo</th>
+                          <th style={{ width: "130px" }}>Costo Unit.</th>
                           <th>Total</th>
                           <th>Acción</th>
                         </tr>
@@ -314,13 +340,24 @@ const CrearCompra = () => {
                               </div>
                             </td>
                             <td className="align-middle">{it.nombre}</td>
-                            <td className="text-right align-middle">
-                              ${" "}
-                              {parseFloat(it.precio_compra).toLocaleString(
-                                "es-AR",
-                                { minimumFractionDigits: 2 }
-                              )}
+
+                            {/* 🚀 COSTO UNITARIO EDITABLE EN GRILLA 🚀 */}
+                            <td
+                              className="text-right align-middle"
+                              style={{ width: "130px" }}
+                            >
+                              <input
+                                type="number"
+                                className="form-control form-control-sm text-right font-weight-bold"
+                                step="0.01"
+                                value={it.precio_compra} // Vinculado al estado local
+                                onChange={(e) =>
+                                  handlePriceChange(it.id, e.target.value)
+                                }
+                                onFocus={(e) => e.target.select()} // Selecciona todo al hacer clic para facilitar edición
+                              />
                             </td>
+
                             <td className="text-right align-middle text-bold">
                               ${" "}
                               {(it.cantidad * it.precio_compra).toLocaleString(
@@ -367,7 +404,6 @@ const CrearCompra = () => {
                     </button>
                   </div>
 
-                  {/* SECCIÓN DERECHA: PROVEEDOR Y PAGO */}
                   <div className="col-md-4">
                     <div className="row mb-3">
                       <div className="col-md-6">
@@ -454,7 +490,7 @@ const CrearCompra = () => {
         </div>
       </div>
 
-      {/* --- MODAL PAGO --- */}
+      {/* MODAL PAGO */}
       <div className="modal fade" id="modal-pagos" tabIndex="-1">
         <div className="modal-dialog modal-dialog-centered">
           <div className="modal-content">
@@ -512,7 +548,7 @@ const CrearCompra = () => {
         </div>
       </div>
 
-      {/* --- MODAL BÚSQUEDA PRODUCTOS (CORREGIDO CON IMAGEN) --- */}
+      {/* MODAL PRODUCTOS */}
       <div className="modal fade" id="modal-productos" tabIndex="-1">
         <div className="modal-dialog modal-xl modal-dialog-centered">
           <div className="modal-content">
@@ -539,7 +575,7 @@ const CrearCompra = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {productos.map((p, i) => (
+                  {productos.map((p) => (
                     <tr key={p.id}>
                       <td className="text-center align-middle">
                         <button
@@ -552,8 +588,6 @@ const CrearCompra = () => {
                           <i className="fas fa-check"></i>
                         </button>
                       </td>
-
-                      {/* COLUMNA IMAGEN INTELIGENTE 👇 */}
                       <td className="text-center align-middle">
                         {p.imagen ? (
                           <img
@@ -571,7 +605,6 @@ const CrearCompra = () => {
                           <small className="text-muted">N/A</small>
                         )}
                       </td>
-
                       <td className="text-center align-middle">{p.codigo}</td>
                       <td className="align-middle">{p.nombre}</td>
                       <td className="text-center align-middle">{p.stock}</td>
@@ -590,7 +623,7 @@ const CrearCompra = () => {
         </div>
       </div>
 
-      {/* --- MODAL PROVEEDORES --- */}
+      {/* MODAL PROVEEDORES */}
       <div className="modal fade" id="modal-proveedores" tabIndex="-1">
         <div className="modal-dialog modal-xl modal-dialog-centered">
           <div className="modal-content">

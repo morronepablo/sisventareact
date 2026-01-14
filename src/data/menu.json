@@ -275,6 +275,13 @@
                 "permiso": "ver_compras"
             },
             {
+                "id": "auditoria_traicion",
+                "text": "Alerta de Traición (BI)",
+                "icon": "fas fa-exclamation-triangle",
+                "path": "/compras/auditoria-traicion",
+                "permiso": "ver_compras"
+            },
+            {
                 "id": "informes",
                 "text": "Informes",
                 "icon": "fas fa-fw fa-chart-bar",
