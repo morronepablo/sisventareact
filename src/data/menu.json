@@ -307,6 +307,13 @@
                 "permiso": "ver_clientes"
             },
             {
+                "id": "fidelizacion_rfm",
+                "text": "Fidelización (RFM)",
+                "icon": "fas fa-brain",
+                "path": "/clientes/fidelizacion",
+                "permiso": "ver_clientes"
+            },
+            {
                 "id": "recaptura_clientes",
                 "text": "Recapturar Clientes",
                 "icon": "fab fa-whatsapp",
