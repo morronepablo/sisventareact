@@ -139,7 +139,8 @@ const CierreArqueo = () => {
             icon: Math.abs(dif) > 10 ? "error" : "success",
             title: "Resultado del Arqueo",
             text: msg,
-            showConfirmButton: true,
+            timer: 2000,
+            showConfirmButton: false,
           }).then(() => {
             navigate("/arqueos/listado");
           });
