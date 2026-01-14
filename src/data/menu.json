@@ -157,6 +157,13 @@
                 "permiso": "ver_productos"
             },
             {
+                "id": "termometro_ventas",
+                "text": "Termómetro BI",
+                "icon": "fas fa-thermometer-half",
+                "path": "/productos/termometro",
+                "permiso": "ver_productos"
+            },
+            {
                 "id": "simulador_precios",
                 "text": "Simulador de Precios",
                 "icon": "fas fa-vial",
