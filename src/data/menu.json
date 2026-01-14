@@ -171,6 +171,13 @@
                 "permiso": "ver_productos"
             },
             {
+                "id": "radar_pareto",
+                "text": "Radar de Oro (ABC)",
+                "icon": "fas fa-bullseye",
+                "path": "/productos/radar-pareto",
+                "permiso": "ver_productos"
+            },
+            {
                 "id": "guardian_margenes",
                 "text": "Guardián de Márgenes",
                 "icon": "fas fa-shield-alt",

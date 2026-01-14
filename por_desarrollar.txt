@@ -38,3 +38,19 @@ Impacto: Optimiza la atención al cliente y permite premiar a los mejores emplea
 Qué es: Un informe contable profesional automático. No solo Ventas - Gastos.
 La Magia: Cruza las Ventas Netas, resta el CMV (Costo de Mercadería), resta Gastos Fijos, resta Comisiones de Tarjeta/MP (aprox) y te da el EBITDA (la ganancia pura antes de impuestos).
 Impacto: Es el único número que el dueño necesita para saber si su negocio es realmente rentable o si solo está "moviendo plata".
+
+
+1. El "Radar de Oro" (Ley de Pareto 80/20) 🎯💎
+Qué es: Un motor que clasifica tu inventario en tres categorías: A (El 20% de productos que generan el 80% de tus ventas), B (Productos medios) y C (Productos que casi no aportan).
+La Magia: El sistema te dice: "Ojo, este producto es Clase A y tenés stock solo para 2 días. Si te quedás sin esto, tu facturación caerá un 15% de golpe".
+Impacto: El dueño deja de perder tiempo con "chucherías" y se enfoca en cuidar los productos que realmente le dan de comer.
+2. El "Cerebro de Fidelización" (Segmentación RFM) 🧠👥
+Qué es: Un algoritmo que segmenta a tus clientes automáticamente en: "Campeones" (compran mucho y seguido), "Leales", "En Riesgo" y "Dormidos".
+La Magia: No solo los lista. Te permite crear acciones. Ej: "Enviar cupón de regalo solo a los 'Campeones' por su cumpleaños" o "Alerta: El cliente [Nombre], que es un 'Leal', no viene hace 20 días".
+Impacto: Marketing de precisión. Dejás de tirar manotazos de ahogado y tratás a cada cliente según lo que vale para el negocio.
+3. El "Auditor de Tickets" (Detección de Patrones de Robo) 👮‍♂️🕵️
+Qué es: Un escáner que busca "anomalías de comportamiento" en el momento de la venta.
+La Magia: Detecta si un cajero borra muchos productos del carrito antes de cobrar, o si hay muchos tickets con monto $0 o descuentos manuales excesivos. Te tira un reporte de "Riesgo de Integridad" por empleado.
+Impacto: Cortás de raíz el robo en el mostrador (que el cajero cobre y no registre, o que haga descuentos a amigos).
+
+

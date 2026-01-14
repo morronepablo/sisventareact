@@ -56,6 +56,7 @@ import GuardianMargenes from "./pages/productos/GuardianMargenes";
 import LiquidadorInteligente from "./pages/productos/LiquidadorInteligente";
 import SimuladorImpacto from "./pages/productos/SimuladorImpacto";
 import AuditorFugas from "./pages/productos/AuditorFugas";
+import RadarPareto from "./pages/productos/RadarPareto";
 
 // Proveedores
 import ListadoProveedores from "./pages/proveedores/ListadoProveedores";
@@ -240,6 +241,7 @@ const App = () => {
         />
         <Route path="/productos/simulador" element={<SimuladorImpacto />} />
         <Route path="/productos/auditor-fugas" element={<AuditorFugas />} />
+        <Route path="/productos/radar-pareto" element={<RadarPareto />} />
 
         {/* Proveedores */}
         <Route path="/proveedores/listado" element={<ListadoProveedores />} />

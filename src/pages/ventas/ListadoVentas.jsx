@@ -76,22 +76,12 @@ const ListadoVentas = () => {
 
   // --- 💡 FUNCIÓN DEL ABANICO CORREGIDA PARA MOSTRAR IMPORTES NETOS (CON PROMOS) ---
   const formatDetails = (venta) => {
-    // Calculamos el subtotal teórico de la venta (sin descuentos) para obtener el factor de prorrateo
-    const subtotalTeoricoVenta = venta.detalles.reduce(
-      (acc, d) => acc + d.cantidad * d.precio_venta,
-      0
-    );
-
-    // Factor = Lo que pagó / Lo que valía. Ejemplo: 7200 / 10800 = 0.666
-    const factorDescuento =
-      subtotalTeoricoVenta > 0 ? venta.precio_total / subtotalTeoricoVenta : 1;
-
     let html = '<div class="p-3 bg-light border rounded shadow-sm m-2">';
     html +=
       '<table class="table table-sm table-bordered bg-white shadow-sm" style="width:100%; font-size: 0.85rem;">';
     html += '<thead class="thead-dark text-center">';
     html +=
-      '<tr><th>Código</th><th>Producto/Combo</th><th class="text-center">Cant.</th><th class="text-center">P. Lista</th><th class="text-center">Importe Neto</th></tr></thead><tbody>';
+      '<tr><th>Código</th><th>Producto/Combo</th><th class="text-center">Cant.</th><th class="text-center">P. Unitario</th><th class="text-center">Importe Total</th></tr></thead><tbody>';
 
     if (venta.detalles && venta.detalles.length > 0) {
       venta.detalles.forEach((d) => {
@@ -99,23 +89,19 @@ const ListadoVentas = () => {
         const nombre = d.producto_nombre || d.combo_nombre || "(Sin nombre)";
         const unidad = d.unidad_nombre || (d.combo_id ? "Combo" : "Unid.");
 
-        const precioLista = parseFloat(d.precio_venta || 0);
-        const subtotalOriginal = d.cantidad * precioLista;
-
-        // El subtotal neto es el subtotal original multiplicado por el factor de descuento de la venta total
-        const subtotalNeto = subtotalOriginal * factorDescuento;
+        // ✅ Usamos los valores reales calculados en el backend
+        const precioUnitario = parseFloat(d.precio_unitario || 0);
+        const importeTotal = parseFloat(d.importe_neto || 0);
 
         html += `<tr>
-            <td class="text-center">${codigo}</td>
-            <td>${nombre}</td>
-            <td class="text-right">${d.cantidad} ${unidad}</td>
-            <td class="text-right text-muted"><del>${formatMoney(
-              precioLista
-            )}</del></td>
-            <td class="text-right font-weight-bold" style="color: #28a745;">${formatMoney(
-              subtotalNeto
-            )}</td>
-        </tr>`;
+          <td class="text-center">${codigo}</td>
+          <td>${nombre}</td>
+          <td class="text-right">${d.cantidad} ${unidad}</td>
+          <td class="text-right">${formatMoney(precioUnitario)}</td>
+          <td class="text-right font-weight-bold" style="color: #28a745;">${formatMoney(
+            importeTotal
+          )}</td>
+      </tr>`;
       });
     } else {
       html +=
@@ -124,13 +110,13 @@ const ListadoVentas = () => {
 
     html += "</tbody>";
     html += `<tfoot class="bg-white">
-              <tr>
-                <td colspan="4" class="text-right text-bold">TOTAL COMPROBANTE:</td>
-                <td class="text-right text-bold text-primary" style="font-size: 1rem;">${formatMoney(
-                  venta.precio_total
-                )}</td>
-              </tr>
-            </tfoot>`;
+            <tr>
+              <td colspan="4" class="text-right text-bold">TOTAL COMPROBANTE:</td>
+              <td class="text-right text-bold text-primary" style="font-size: 1rem;">${formatMoney(
+                venta.precio_total
+              )}</td>
+            </tr>
+          </tfoot>`;
     html += "</table></div>";
     return html;
   };
