@@ -83,3 +83,5 @@ Impacto: Retención absoluta. El cliente vuelve porque tiene plata "atrapada" en
 Qué es: Un escáner que se activa cada vez que cargás una Compra de Mercadería.
 La Magia: El sistema detecta si el proveedor te aumentó un producto por encima de la inflación promedio del local. Te tira un alerta: "¡Cuidado! Este proveedor te aumentó la leche un 20%, mientras que los demás solo un 5%".
 Impacto: Evita que los proveedores "se pasen de vivos". El dueño tiene datos para decir: "Bajame el precio o le compro a la competencia".
+
+
