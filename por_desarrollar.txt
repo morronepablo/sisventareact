@@ -54,3 +54,20 @@ La Magia: Detecta si un cajero borra muchos productos del carrito antes de cobra
 Impacto: Cortás de raíz el robo en el mostrador (que el cajero cobre y no registre, o que haga descuentos a amigos).
 
 
+
+1. "El Negociador" (Ranking de Proveedores BI) 🚛💰
+Qué es: Un informe que analiza qué proveedor le deja más Ganancia Neta Real al negocio.
+La Magia: No mide quién te vende más caro o barato, mide quién te da más utilidad. Ej: "El proveedor A te vende mucho, pero el margen es del 10%. El proveedor B vende poco, pero tu margen es del 40%. Deberías comprarle más al B".
+Impacto: Permite al dueño sentarse con el proveedor y decirle: "Che, sos el que menos rentabilidad me da, bajame el precio o te dejo de comprar". Poder de negociación puro.
+2. "Termómetro de Ventas" (Mapa de Calor por Categoría) 🌡️📊
+Qué es: Ya tenemos las ventas por hora, pero esto va más allá: ¿A qué hora se vende cada cosa?
+La Magia: Un gráfico que muestra: "De 8 a 10 am lo que más sale es Panadería. De 19 a 21 pm lo que más sale es Bebidas y Snacks".
+Impacto: Permite optimizar el personal y el stock. Ej: "Si a la tarde vendo alcohol, no pongas al repositor a acomodar fideos, ponelo a enfriar cervezas".
+3. "El Reporte del Dueño" (Snapshot Automático por WhatsApp) 📱🤖
+Qué es: Una función que, al momento en que se cierra el último arqueo del día, le envía al dueño un WhatsApp automático con el resumen de la jornada.
+La Magia: El dueño recibe: "Resumen del día: Ventas Netas $X, Ganancia Neta $Y, Retiros de Seguridad $Z, Diferencia Total $0.00. El producto más vendido fue [Nombre]".
+Impacto: El dueño no tiene ni que entrar al sistema. La información le llega al celular mientras está cenando. Control total a distancia.
+
+
+
+

@@ -94,6 +94,7 @@ import FidelizacionClientes from "./pages/clientes/FidelizacionClientes";
 import ListadoVentas from "./pages/ventas/ListadoVentas";
 import CrearVenta from "./pages/ventas/CrearVenta";
 import VerVenta from "./pages/ventas/VerVenta";
+import AuditorIntegridad from "./pages/ventas/AuditorIntegridad";
 import InformeProductosVentas from "./pages/ventas/informes/InformeProductosVentas";
 import DetalleInformeProductosVentas from "./pages/ventas/informes/DetalleInformeProductosVentas";
 import InformeClientesVentas from "./pages/ventas/informes/InformeClientesVentas";
@@ -313,6 +314,7 @@ const App = () => {
         <Route path="/ventas/listado" element={<ListadoVentas />} />
         <Route path="/ventas/crear" element={<CrearVenta />} />
         <Route path="/ventas/ver/:id" element={<VerVenta />} />
+        <Route path="/ventas/auditoria" element={<AuditorIntegridad />} />
         <Route
           path="/ventas/informes/productos"
           element={<InformeProductosVentas />}

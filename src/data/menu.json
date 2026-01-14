@@ -353,6 +353,13 @@
                 "permiso": "ver_ventas"
             },
             {
+                "id": "auditoria_tickets",
+                "text": "Auditor de Tickets (BI)",
+                "icon": "fas fa-user-shield",
+                "path": "/ventas/auditoria",
+                "permiso": "ver_ventas"
+            },
+            {
                 "id": "informes",
                 "text": "Informes",
                 "icon": "fas fa-fw fa-chart-bar",
@@ -413,17 +420,17 @@
         "permiso": "ver_arqueos",
         "children": [
             {
-                "id": "monitor_vivo",
-                "text": "Monitor en Vivo",
-                "icon": "fas fa-eye",
-                "path": "/arqueos/monitor",
-                "permiso": "ver_arqueos"
-            },
-            {
                 "id": "listado",
                 "text": "Listado de Arqueos",
                 "icon": "fas fa-fw fa-list",
                 "path": "/arqueos/listado",
+                "permiso": "ver_arqueos"
+            },
+            {
+                "id": "monitor_vivo",
+                "text": "Monitor en Vivo",
+                "icon": "fas fa-eye",
+                "path": "/arqueos/monitor",
                 "permiso": "ver_arqueos"
             }
         ]
