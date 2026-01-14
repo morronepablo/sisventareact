@@ -39,7 +39,7 @@ const CrearVenta = () => {
   const [combos, setCombos] = useState([]);
   const [clientes, setClientes] = useState([]);
   const [tmpVentas, setTmpVentas] = useState([]);
-  const [promos, setPromos] = useState([]); // 👈 ESTADO PARA LAS PROMOS
+  const [promos, setPromos] = useState([]);
   const [dolar, setDolar] = useState(1499.5);
   const [cantidad, setCantidad] = useState(1);
   const [codigo, setCodigo] = useState("");
@@ -54,8 +54,8 @@ const CrearVenta = () => {
     nombre_cliente: "Consumidor Final",
     cuil_codigo: "00000000000",
     puntos: 0,
+    saldo_billetera: 0,
   });
-
   const [deudaInfo, setDeudaInfo] = useState({ deuda_total: 0, dias_mora: 0 });
   const [descPorcentaje, setDescPorcentaje] = useState(0);
   const [descMonto, setDescMonto] = useState(0);
@@ -64,8 +64,10 @@ const CrearVenta = () => {
     tarjeta: 0,
     mercadopago: 0,
     transferencia: 0,
+    billetera: 0,
   });
   const [esCtaCte, setEsCtaCte] = useState(false);
+  const [vueltoABilletera, setVueltoABilletera] = useState(false);
   const [nuevoCliente, setNuevoCliente] = useState({
     nombre_cliente: "",
     cuil_codigo: "",
@@ -77,30 +79,22 @@ const CrearVenta = () => {
     new Intl.NumberFormat("es-AR", {
       style: "currency",
       currency: "ARS",
+      minimumFractionDigits: 2,
     }).format(val || 0);
 
-  // --- 🚀 MOTOR DE CÁLCULO DE PROMOCIONES 🚀 ---
   const calcularAhorroItem = (item) => {
     const promo = promos.find(
       (p) => p.producto_id === item.producto_id && p.estado === 1
     );
     if (!promo) return 0;
-
     const precio = parseFloat(item.precio_venta || 0);
     const cant = parseFloat(item.cantidad || 0);
-
-    if (promo.tipo === "3x2" && cant >= 3) {
-      return Math.floor(cant / 3) * precio;
-    }
-    if (promo.tipo === "2da_al_70" && cant >= 2) {
+    if (promo.tipo === "3x2" && cant >= 3) return Math.floor(cant / 3) * precio;
+    if (promo.tipo === "2da_al_70" && cant >= 2)
       return Math.floor(cant / 2) * (precio * 0.7);
-    }
-    if (promo.tipo === "2da_al_50" && cant >= 2) {
+    if (promo.tipo === "2da_al_50" && cant >= 2)
       return Math.floor(cant / 2) * (precio * 0.5);
-    }
-    if (promo.tipo === "4x3" && cant >= 4) {
-      return Math.floor(cant / 4) * precio;
-    }
+    if (promo.tipo === "4x3" && cant >= 4) return Math.floor(cant / 4) * precio;
     return 0;
   };
 
@@ -108,7 +102,6 @@ const CrearVenta = () => {
     (acc, it) => acc + parseFloat(it.cantidad),
     0
   );
-
   const subtotalBruto = tmpVentas.reduce((acc, it) => {
     let precio = parseFloat(it.precio_venta || it.combo_precio || 0);
     if (it.aplicar_porcentaje)
@@ -118,12 +111,10 @@ const CrearVenta = () => {
     return acc + parseFloat(it.cantidad) * precio;
   }, 0);
 
-  // Calculamos el ahorro total por promociones automáticas
   const ahorroTotalPromos = tmpVentas.reduce(
     (acc, it) => acc + calcularAhorroItem(it),
     0
   );
-
   const totalDescuentoManual =
     (subtotalBruto - ahorroTotalPromos) *
       (parseFloat(descPorcentaje || 0) / 100) +
@@ -139,13 +130,35 @@ const CrearVenta = () => {
     0
   );
   const montoSaldar = Math.max(totalFinal - totalPagado, 0);
-  const otrosMedios =
+
+  // 🚀 LÓGICA DE VUELTO CORREGIDA 🚀
+  const otrosMediosSinBilletera =
     parseFloat(pagos.tarjeta || 0) +
     parseFloat(pagos.mercadopago || 0) +
     parseFloat(pagos.transferencia || 0);
-  const restoParaEfectivo = totalFinal - otrosMedios;
-  const vuelto =
-    pagos.efectivo > restoParaEfectivo ? pagos.efectivo - restoParaEfectivo : 0;
+  const saldoUsadoBilletera = parseFloat(pagos.billetera || 0);
+
+  // Vuelto Físico (Lo que excede al efectivo necesario para pagar lo que queda después de tarjetas/mp/billetera)
+  const efectivoNecesario = Math.max(
+    totalFinal - otrosMediosSinBilletera - saldoUsadoBilletera,
+    0
+  );
+  const vueltoFisico =
+    parseFloat(pagos.efectivo) > efectivoNecesario
+      ? parseFloat(pagos.efectivo) - efectivoNecesario
+      : 0;
+
+  // Monto a Cargar (El excedente del efectivo sobre el total de la compra)
+  const montoCargarBilletera = Math.max(
+    parseFloat(pagos.efectivo || 0) - (totalFinal - otrosMediosSinBilletera),
+    0
+  );
+
+  // Saldo Neto a mostrar (Lo que realmente sube la billetera: Carga - Consumo)
+  const saldoNetoMostrado = Math.max(
+    montoCargarBilletera - saldoUsadoBilletera,
+    0
+  );
 
   const fetchData = async () => {
     if (!user) return;
@@ -159,7 +172,7 @@ const CrearVenta = () => {
           fetch("https://dolarapi.com/v1/dolares/bolsa")
             .then((r) => r.json())
             .catch(() => ({ compra: 1499.5 })),
-          api.get("/promociones").catch(() => ({ data: [] })), // 👈 Carga de promos
+          api.get("/promociones").catch(() => ({ data: [] })),
         ]);
       setProductos(resP.data);
       setClientes(resCl.data);
@@ -192,16 +205,19 @@ const CrearVenta = () => {
   const handleConfirmarVenta = async () => {
     if (!esCtaCte && totalPagado < totalFinal)
       return Swal.fire("Error", "Monto insuficiente", "error");
+    if (parseFloat(pagos.billetera) > parseFloat(clienteSel.saldo_billetera))
+      return Swal.fire("Error", "Saldo insuficiente en billetera", "error");
+
     try {
       const pagosSaneados = {
         ...pagos,
-        efectivo: Math.max(parseFloat(pagos.efectivo || 0) - vuelto, 0),
+        efectivo: Math.max(parseFloat(pagos.efectivo || 0) - vueltoFisico, 0),
       };
       const payload = {
         cliente_id: clienteSel.id,
         fecha,
         precio_total: totalFinal,
-        pagos: pagosSaneados,
+        pagos: { ...pagosSaneados, pago_billetera: pagos.billetera },
         es_cuenta_corriente: esCtaCte,
         usuario_id: user.id,
         empresa_id: user.empresa_id,
@@ -212,6 +228,8 @@ const CrearVenta = () => {
           Number(descMonto) === Number(clienteSel.puntos)
             ? clienteSel.puntos
             : 0,
+        cargar_vuelto_billetera: vueltoABilletera,
+        vuelto_monto: montoCargarBilletera, // 👈 Enviamos el excedente real para que la resta de saldo sea correcta
       };
       const res = await api.post("/ventas", payload);
       if (res.data.success) {
@@ -232,17 +250,26 @@ const CrearVenta = () => {
             }?token=${localStorage.getItem("token")}`,
             "_blank"
           );
-        setPagos({ efectivo: 0, tarjeta: 0, mercadopago: 0, transferencia: 0 });
+        setPagos({
+          efectivo: 0,
+          tarjeta: 0,
+          mercadopago: 0,
+          transferencia: 0,
+          billetera: 0,
+        });
         setClienteSel({
           id: 1,
           nombre_cliente: "Consumidor Final",
           cuil_codigo: "00000000000",
           puntos: 0,
+          saldo_billetera: 0,
         });
         setDescPorcentaje(0);
         setDescMonto(0);
         setCodigo("");
         setCantidad(1);
+        setEsCtaCte(false);
+        setVueltoABilletera(false);
         fetchData();
       }
     } catch (e) {
@@ -277,7 +304,7 @@ const CrearVenta = () => {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [tmpVentas, totalPagado, totalFinal, vuelto, descMonto]);
+  }, [tmpVentas, totalPagado, totalFinal, vueltoFisico]);
 
   const addItem = async (codigoItem) => {
     try {
@@ -325,12 +352,14 @@ const CrearVenta = () => {
         ["#prod-table", "#clie-table"].forEach((id) => {
           if (window.$.fn.DataTable.isDataTable(id))
             window.$(id).DataTable().destroy();
-          window.$(id).DataTable({
-            paging: true,
-            pageLength: 5,
-            language: spanishLanguage,
-            autoWidth: false,
-          });
+          window
+            .$(id)
+            .DataTable({
+              paging: true,
+              pageLength: 5,
+              language: spanishLanguage,
+              autoWidth: false,
+            });
         });
       }, 400);
     }
@@ -362,9 +391,6 @@ const CrearVenta = () => {
         <div className="row">
           <div className="col-md-8">
             <div className="card card-outline card-primary shadow-sm">
-              <div className="card-header">
-                <h3 className="card-title">Ingrese los datos</h3>
-              </div>
               <div className="card-body">
                 <div className="row mb-3">
                   <div className="col-md-2">
@@ -429,6 +455,9 @@ const CrearVenta = () => {
                     <tbody>
                       {tmpVentas.map((it, i) => {
                         const ahorro = calcularAhorroItem(it);
+                        const precioBase = parseFloat(
+                          it.precio_venta || it.combo_precio
+                        );
                         return (
                           <tr key={it.id}>
                             <td className="text-center align-middle">
@@ -471,9 +500,8 @@ const CrearVenta = () => {
                             <td className="align-middle">
                               {it.nombre || it.combo_nombre}
                               {ahorro > 0 && (
-                                <span className="badge badge-success ml-2 animate__animated animate__flash">
-                                  <i className="fas fa-tag mr-1"></i>PROMO
-                                  APLICADA
+                                <span className="badge badge-success ml-2">
+                                  PROMO
                                 </span>
                               )}
                             </td>
@@ -481,31 +509,23 @@ const CrearVenta = () => {
                               {it.unidad_nombre || "Unid."}
                             </td>
                             <td className="text-right align-middle">
-                              {formatMoney(it.precio_venta || it.combo_precio)}
+                              {formatMoney(precioBase)}
                             </td>
                             <td className="text-right align-middle text-bold">
                               {ahorro > 0 ? (
                                 <div>
                                   <del className="text-muted small">
-                                    {formatMoney(
-                                      it.cantidad *
-                                        (it.precio_venta || it.combo_precio)
-                                    )}
+                                    {formatMoney(it.cantidad * precioBase)}
                                   </del>
                                   <br />
                                   <span>
                                     {formatMoney(
-                                      it.cantidad *
-                                        (it.precio_venta || it.combo_precio) -
-                                        ahorro
+                                      it.cantidad * precioBase - ahorro
                                     )}
                                   </span>
                                 </div>
                               ) : (
-                                formatMoney(
-                                  it.cantidad *
-                                    (it.precio_venta || it.combo_precio)
-                                )
+                                formatMoney(it.cantidad * precioBase)
                               )}
                             </td>
                             <td className="text-center align-middle">
@@ -522,27 +542,17 @@ const CrearVenta = () => {
                           </tr>
                         );
                       })}
-                      {tmpVentas.length === 0 && (
-                        <tr>
-                          <td
-                            colSpan="8"
-                            className="text-center text-muted py-3 italic"
-                          >
-                            No hay productos en el carrito
-                          </td>
-                        </tr>
-                      )}
                     </tbody>
                     <tfoot className="bg-light">
                       <tr className="text-bold">
                         <td colSpan="2" className="text-right">
-                          Total Cantidad
+                          Total Cant.
                         </td>
                         <td className="text-center text-primary">
                           {totalCantidad}
                         </td>
                         <td colSpan="3" className="text-right">
-                          Total Venta Bruto
+                          Subtotal
                         </td>
                         <td className="text-right text-primary">
                           {formatMoney(subtotalBruto)}
@@ -552,12 +562,6 @@ const CrearVenta = () => {
                     </tfoot>
                   </table>
                 </div>
-                <button
-                  className="btn btn-secondary btn-sm mt-2"
-                  onClick={() => navigate("/ventas/listado")}
-                >
-                  <i className="fas fa-reply"></i> Volver
-                </button>
               </div>
             </div>
           </div>
@@ -609,19 +613,15 @@ const CrearVenta = () => {
                     />
                   </div>
                 </div>
-                <div className="form-group">
-                  <label>
-                    <small>Fecha de venta *</small>
-                  </label>
-                  <input
-                    type="date"
-                    className="form-control form-control-sm"
-                    value={fecha}
-                    onChange={(e) => setFecha(e.target.value)}
-                  />
-                </div>
 
-                {/* 🏆 FIDELIZACIÓN: PUNTOS */}
+                {clienteSel.id !== 1 &&
+                  parseFloat(clienteSel.saldo_billetera) > 0 && (
+                    <div className="alert alert-success p-2 text-center mb-2 shadow-sm border-0 animate__animated animate__fadeIn">
+                      <i className="fas fa-wallet mr-1"></i> Billetera Virtual:{" "}
+                      <b>{formatMoney(clienteSel.saldo_billetera)}</b>
+                    </div>
+                  )}
+
                 {clienteSel.id !== 1 && (
                   <div
                     className="alert alert-info p-2 text-center mb-2"
@@ -630,22 +630,6 @@ const CrearVenta = () => {
                     <i className="fas fa-star text-warning"></i> Puntos:{" "}
                     <b>{clienteSel.puntos || 0}</b> (
                     {formatMoney(clienteSel.puntos)})
-                    {clienteSel.puntos > 0 && (
-                      <button
-                        className="btn btn-xs btn-primary ml-2"
-                        onClick={() => setDescMonto(clienteSel.puntos)}
-                      >
-                        Canjear
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* 🎁 AHORRO POR PROMOCIONES */}
-                {ahorroTotalPromos > 0 && (
-                  <div className="alert alert-success p-2 text-center mb-2 animate__animated animate__pulse animate__infinite">
-                    <i className="fas fa-gift mr-1"></i> ¡Ahorro Promos!:{" "}
-                    <b>-{formatMoney(ahorroTotalPromos)}</b>
                   </div>
                 )}
 
@@ -700,7 +684,7 @@ const CrearVenta = () => {
                 </div>
                 <div className="form-group">
                   <label>
-                    <small>Precio Total en Dólares</small>
+                    <small>Precio Total USD</small>
                   </label>
                   <input
                     type="text"
@@ -711,12 +695,13 @@ const CrearVenta = () => {
                     readOnly
                   />
                 </div>
+
                 <div
                   className={`p-2 text-right border rounded mb-3 text-white font-weight-bold ${
                     deudaInfo.deuda_total > 0 ? "bg-danger" : "bg-success"
                   }`}
                 >
-                  <small>DEUDA ACTUAL DEL CLIENTE</small>
+                  <small>CTA CTE DEL CLIENTE</small>
                   <div className="h6 m-0">
                     {formatMoney(deudaInfo.deuda_total)} ({deudaInfo.dias_mora}{" "}
                     días mora)
@@ -756,11 +741,31 @@ const CrearVenta = () => {
                   />
                 </div>
               </div>
-              {["efectivo", "tarjeta", "mercadopago", "transferencia"].map(
-                (m) => (
+
+              {[
+                "efectivo",
+                "tarjeta",
+                "mercadopago",
+                "transferencia",
+                "billetera",
+              ].map((m) => {
+                if (
+                  m === "billetera" &&
+                  (!clienteSel.saldo_billetera ||
+                    clienteSel.saldo_billetera <= 0)
+                )
+                  return null;
+                return (
                   <div className="form-group row mb-2" key={m}>
                     <label className="col-sm-5 text-capitalize text-bold">
-                      {m}
+                      {m === "billetera" ? (
+                        <>
+                          <i className="fas fa-wallet text-success mr-1"></i>{" "}
+                          Billetera
+                        </>
+                      ) : (
+                        m
+                      )}
                     </label>
                     <div className="col-sm-7 input-group">
                       <input
@@ -769,7 +774,11 @@ const CrearVenta = () => {
                         className="form-control text-right font-weight-bold"
                         style={{
                           backgroundColor:
-                            m === "efectivo" ? "#d4edda" : "#e9ecef",
+                            m === "efectivo"
+                              ? "#d4edda"
+                              : m === "billetera"
+                              ? "#e1f5fe"
+                              : "#e9ecef",
                           fontSize: "1.4rem",
                           height: "45px",
                         }}
@@ -781,18 +790,47 @@ const CrearVenta = () => {
                       <div className="input-group-append">
                         <button
                           className="btn btn-primary"
-                          onClick={() =>
-                            setPagos({ ...pagos, [m]: totalFinal.toFixed(2) })
-                          }
+                          onClick={() => {
+                            let max = totalFinal;
+                            if (m === "billetera")
+                              max = Math.min(
+                                totalFinal,
+                                clienteSel.saldo_billetera
+                              );
+                            setPagos({ ...pagos, [m]: max.toFixed(2) });
+                          }}
                         >
                           $
                         </button>
                       </div>
                     </div>
                   </div>
-                )
-              )}
+                );
+              })}
+
               <hr />
+              {vueltoFisico > 0 && clienteSel.id !== 1 && (
+                <div className="alert alert-warning d-flex justify-content-between align-items-center shadow-sm border-0 animate__animated animate__bounceIn mb-3">
+                  <div>
+                    <i className="fas fa-coins mr-2"></i>¿Cargar vuelto de{" "}
+                    <b>{formatMoney(vueltoFisico)}</b> a la billetera?
+                  </div>
+                  <div className="custom-control custom-switch">
+                    <input
+                      type="checkbox"
+                      className="custom-control-input"
+                      id="switchVuelto"
+                      checked={vueltoABilletera}
+                      onChange={(e) => setVueltoABilletera(e.target.checked)}
+                    />
+                    <label
+                      className="custom-control-label"
+                      htmlFor="switchVuelto"
+                    ></label>
+                  </div>
+                </div>
+              )}
+
               <div className="form-group row">
                 <label className="col-sm-5 text-bold">Total a Pagar</label>
                 <div className="col-sm-7">
@@ -821,7 +859,7 @@ const CrearVenta = () => {
               </div>
               <div className="form-group row">
                 <label className="col-sm-5 text-bold text-primary">
-                  Total en Dólares
+                  Total USD
                 </label>
                 <div className="col-sm-7">
                   <input
@@ -835,16 +873,25 @@ const CrearVenta = () => {
                   />
                 </div>
               </div>
-              <div className="form-group row">
-                <label className="col-sm-5 text-bold text-success">
-                  Vuelto (Efectivo)
+
+              <div className="form-group row text-success">
+                <label className="col-sm-5 text-bold">
+                  {vueltoABilletera
+                    ? "Saldo Neto a Cargar"
+                    : "Vuelto (Efectivo)"}
                 </label>
                 <div className="col-sm-7">
                   <input
                     type="text"
-                    className="form-control text-right font-weight-bold text-success bg-light"
+                    className={`form-control text-right font-weight-bold bg-light ${
+                      vueltoABilletera ? "text-primary" : "text-success"
+                    }`}
                     style={{ fontSize: "1.4rem" }}
-                    value={formatMoney(vuelto)}
+                    value={
+                      vueltoABilletera
+                        ? formatMoney(saldoNetoMostrado)
+                        : formatMoney(vueltoFisico)
+                    }
                     readOnly
                   />
                 </div>
@@ -879,6 +926,7 @@ const CrearVenta = () => {
         </div>
       </div>
 
+      {/* MODAL PRODUCTOS */}
       <div className="modal fade" id="modal-productos" tabIndex="-1">
         <div className="modal-dialog modal-xl modal-dialog-centered">
           <div className="modal-content">
@@ -947,33 +995,6 @@ const CrearVenta = () => {
                       </td>
                     </tr>
                   ))}
-                  {combos.map((c) => (
-                    <tr key={`c-${c.id}`}>
-                      <td className="text-center align-middle">
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => {
-                            addItem(c.codigo);
-                            window.$("#modal-productos").modal("hide");
-                          }}
-                        >
-                          <i className="fas fa-check"></i>
-                        </button>
-                      </td>
-                      <td className="text-center align-middle">
-                        <small className="text-muted">Combo</small>
-                      </td>
-                      <td className="text-center align-middle">{c.codigo}</td>
-                      <td className="align-middle">{c.nombre}</td>
-                      <td className="text-center align-middle">N/A</td>
-                      <td className="text-right align-middle">
-                        {formatMoney(parseFloat(c.precio_venta))}
-                      </td>
-                      <td className="text-center align-middle">
-                        <span className="badge badge-warning">Combo</span>
-                      </td>
-                    </tr>
-                  ))}
                 </tbody>
               </table>
             </div>
@@ -981,6 +1002,7 @@ const CrearVenta = () => {
         </div>
       </div>
 
+      {/* MODAL CLIENTES */}
       <div className="modal fade" id="modal-clientes" tabIndex="-1">
         <div className="modal-dialog modal-lg">
           <div className="modal-content">
@@ -1001,6 +1023,7 @@ const CrearVenta = () => {
                     <th>Acción</th>
                     <th>C.U.I.L</th>
                     <th>Nombre</th>
+                    <th>Billetera</th>
                     <th>Puntos</th>
                   </tr>
                 </thead>
@@ -1023,6 +1046,9 @@ const CrearVenta = () => {
                       </td>
                       <td className="text-center">{cl.cuil_codigo}</td>
                       <td>{cl.nombre_cliente}</td>
+                      <td className="text-right text-success text-bold">
+                        {formatMoney(cl.saldo_billetera)}
+                      </td>
                       <td className="text-center">
                         <b>{cl.puntos || 0}</b>
                       </td>
@@ -1030,88 +1056,6 @@ const CrearVenta = () => {
                   ))}
                 </tbody>
               </table>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="modal fade" id="modal-crear-cliente" tabIndex="-1">
-        <div className="modal-dialog modal-lg modal-dialog-centered">
-          <div className="modal-content shadow-lg">
-            <div className="modal-header bg-primary text-white">
-              <h5>Registrar nuevo cliente</h5>
-              <button className="close text-white" data-dismiss="modal">
-                ×
-              </button>
-            </div>
-            <div className="modal-body">
-              <div className="row mb-3">
-                <div className="col-md-6 form-group">
-                  <label>Cliente</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    onChange={(e) =>
-                      setNuevoCliente({
-                        ...nuevoCliente,
-                        nombre_cliente: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="col-md-6 form-group">
-                  <label>C.U.I.T./D.N.I.</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    onChange={(e) =>
-                      setNuevoCliente({
-                        ...nuevoCliente,
-                        cuil_codigo: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="row">
-                <div className="col-md-6 form-group">
-                  <label>Teléfono</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    onChange={(e) =>
-                      setNuevoCliente({
-                        ...nuevoCliente,
-                        telefono: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="col-md-6 form-group">
-                  <label>Correo Electrónico</label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    onChange={(e) =>
-                      setNuevoCliente({
-                        ...nuevoCliente,
-                        email: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer d-flex justify-content-between">
-              <button className="btn btn-secondary" data-dismiss="modal">
-                Salir
-              </button>
-              <button
-                className="btn btn-primary"
-                onClick={handleGuardarNuevoCliente}
-              >
-                <i className="fa-regular fa-floppy-disk mr-1"></i> Registrar
-              </button>
             </div>
           </div>
         </div>

@@ -71,3 +71,15 @@ Impacto: El dueño no tiene ni que entrar al sistema. La información le llega a
 
 
 
+1. "El Termómetro de Supervivencia" (Punto de Equilibrio BI) 🏁💰
+Qué es: Un motor que cruza tus Gastos Fijos (Alquiler, Luz, Sueldos) con tu Utilidad Neta Diaria.
+La Magia: En el Dashboard aparece una barra de progreso que dice: "Faltan $15.400 de utilidad para cubrir los costos del mes". Cuando llegás, el sistema explota en un festejo visual: "¡Felicidades! A partir de ahora, todo es ganancia pura".
+Impacto: El dueño sabe exactamente qué día del mes dejó de trabajar para pagar cuentas y empezó a ganar para él. Es la métrica de paz mental definitiva.
+2. "Billetera Virtual" (Store Credit / Monedero de Clientes) 💳📱
+Qué es: Un sistema de saldo a favor para los clientes.
+La Magia: ¿No tenés monedas para el cambio? Se lo cargás a la Billetera Virtual del cliente. ¿Un cliente quiere dejar $5.000 pagos "a cuenta"? Se lo cargás. Al vender, el sistema detecta: "El cliente tiene $1.200 de saldo. ¿Desea usarlo?".
+Impacto: Retención absoluta. El cliente vuelve porque tiene plata "atrapada" en tu local. Además, mejora el flujo de caja porque cobrás dinero por adelantado.
+3. "El Alerta de Traición" (Auditoría de Precios de Compra) 📉🕵️‍♂️
+Qué es: Un escáner que se activa cada vez que cargás una Compra de Mercadería.
+La Magia: El sistema detecta si el proveedor te aumentó un producto por encima de la inflación promedio del local. Te tira un alerta: "¡Cuidado! Este proveedor te aumentó la leche un 20%, mientras que los demás solo un 5%".
+Impacto: Evita que los proveedores "se pasen de vivos". El dueño tiene datos para decir: "Bajame el precio o le compro a la competencia".

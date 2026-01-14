@@ -8,8 +8,10 @@ import {
   fetchChartData,
   fetchPredictionBI,
 } from "../services/dashboardService";
+import api from "../services/api"; // 👈 Aseguramos import de api para PE
 import LoadingSpinner from "../components/LoadingSpinner";
 import { io } from "socket.io-client";
+import Swal from "sweetalert2"; // 👈 Importamos Swal para el festejo del PE
 
 import {
   Chart as ChartJS,
@@ -46,6 +48,7 @@ const Dashboard = () => {
   const [counts, setCounts] = useState({ topProductos: [] });
   const [charts, setCharts] = useState(null);
   const [prediction, setPrediction] = useState(null);
+  const [puntoEquilibrio, setPuntoEquilibrio] = useState(null); // 👈 Nuevo Estado PE
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
 
@@ -72,14 +75,16 @@ const Dashboard = () => {
   const loadDashboardData = async () => {
     if (!charts) setLoading(true);
     try {
-      const [countsRes, chartsRes, predictionRes] = await Promise.all([
+      const [countsRes, chartsRes, predictionRes, peRes] = await Promise.all([
         fetchCounts(),
         fetchChartData(selectedMonth),
         fetchPredictionBI(),
+        api.get("/dashboard/punto-equilibrio").catch(() => ({ data: null })), // 👈 Carga PE
       ]);
       setCounts(countsRes);
       setCharts(chartsRes);
       setPrediction(predictionRes);
+      setPuntoEquilibrio(peRes.data); // 👈 Guardar PE
     } catch (error) {
       console.error("Error Dashboard:", error);
     } finally {
@@ -100,6 +105,23 @@ const Dashboard = () => {
       socket.disconnect();
     };
   }, []);
+
+  // --- LÓGICA DE FESTEJO PUNTO DE EQUILIBRIO ---
+  useEffect(() => {
+    if (puntoEquilibrio?.objetivoCumplido) {
+      if (!sessionStorage.getItem("festejo_pe")) {
+        Swal.fire({
+          title: "¡OBJETIVO CUMPLIDO!",
+          text: "Has alcanzado el punto de equilibrio mensual. ¡A partir de ahora todo es ganancia!",
+          icon: "success",
+          confirmButtonText: "¡A seguir vendiendo!",
+          confirmButtonColor: "#28a745",
+          backdrop: `rgba(40,167,69,0.2) url("https://media.giphy.com/media/l41lI4bYdRnnYC2Wk/giphy.gif") center center no-repeat`,
+        });
+        sessionStorage.setItem("festejo_pe", "true");
+      }
+    }
+  }, [puntoEquilibrio]);
 
   const formatARS = (val) =>
     `$ ${parseFloat(val || 0).toLocaleString("es-AR", {
@@ -348,11 +370,9 @@ const Dashboard = () => {
     })),
   };
 
-  // --- LÓGICA DEL PODIO CAJERO PRO ---
   const renderPodio = () => {
     if (!charts.rankingEficiencia || charts.rankingEficiencia.length === 0)
       return null;
-
     const vendedores = [...charts.rankingEficiencia].sort(
       (a, b) => b.facturacion - a.facturacion
     );
@@ -665,6 +685,111 @@ const Dashboard = () => {
         </div>
       )}
 
+      {/* 🏁 NUEVO: TERMÓMETRO DE SUPERVIVENCIA (PUNTO DE EQUILIBRIO) 🏁 */}
+      {puntoEquilibrio && (
+        <div className="row mb-4">
+          <div className="col-12">
+            <div
+              className={`card ${
+                puntoEquilibrio.objetivoCumplido
+                  ? "bg-gradient-success"
+                  : "bg-white"
+              } shadow-sm border-0 zoomP`}
+            >
+              <div className="card-body p-4">
+                <div className="row align-items-center">
+                  <div className="col-md-8">
+                    <h5
+                      className={`text-uppercase font-weight-bold ${
+                        puntoEquilibrio.objetivoCumplido
+                          ? "text-white"
+                          : "text-muted"
+                      }`}
+                      style={{ letterSpacing: "1px" }}
+                    >
+                      <i
+                        className={`fas ${
+                          puntoEquilibrio.objetivoCumplido
+                            ? "fa-check-circle"
+                            : "fa-flag-checkered"
+                        } mr-2`}
+                      ></i>
+                      {puntoEquilibrio.objetivoCumplido
+                        ? "¡Ganancia Pura Alcanzada!"
+                        : "Punto de Equilibrio Mensual"}
+                    </h5>
+                    <div
+                      className="progress mt-3 mb-2"
+                      style={{
+                        height: "25px",
+                        borderRadius: "15px",
+                        backgroundColor: "rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      <div
+                        className={`progress-bar progress-bar-striped progress-bar-animated ${
+                          puntoEquilibrio.objetivoCumplido
+                            ? "bg-white"
+                            : "bg-primary"
+                        }`}
+                        role="progressbar"
+                        style={{ width: `${puntoEquilibrio.porcentaje}%` }}
+                      >
+                        <span
+                          className={
+                            puntoEquilibrio.objetivoCumplido
+                              ? "text-success"
+                              : "text-white"
+                          }
+                        >
+                          <b>{puntoEquilibrio.porcentaje}%</b>
+                        </span>
+                      </div>
+                    </div>
+                    <p
+                      className={`mb-0 ${
+                        puntoEquilibrio.objetivoCumplido
+                          ? "text-white"
+                          : "text-dark"
+                      }`}
+                    >
+                      {puntoEquilibrio.objetivoCumplido
+                        ? "Todo lo que vendas de ahora en más es ganancia real para tu bolsillo."
+                        : `Faltan ${formatARS(
+                            puntoEquilibrio.faltante
+                          )} de utilidad neta para cubrir tus costos fijos del mes.`}
+                    </p>
+                  </div>
+                  <div className="col-md-4 text-center border-left d-none d-md-block">
+                    <small
+                      className={`text-uppercase ${
+                        puntoEquilibrio.objetivoCumplido
+                          ? "text-white"
+                          : "text-muted"
+                      }`}
+                    >
+                      Meta de Gastos Fijos
+                    </small>
+                    <h2 className="font-weight-bold">
+                      {formatARS(puntoEquilibrio.meta)}
+                    </h2>
+                    <small
+                      className={`${
+                        puntoEquilibrio.objetivoCumplido
+                          ? "text-white"
+                          : "text-muted"
+                      }`}
+                    >
+                      Neto Actual: {formatARS(puntoEquilibrio.utilidadNeta)}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* FILAS DE SMALLBOXES */}
       <div className="row">
         <SmallBox
@@ -765,6 +890,7 @@ const Dashboard = () => {
           link="/clientes/listado"
         />
       </div>
+      {/* DEVOLUCIONES Y COMPRAS SE MANTIENEN IGUAL */}
       <div className="row">
         <SmallBox
           permission="ver_devoluciones"
@@ -855,6 +981,7 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {/* BLOQUE GRÁFICOS */}
       <div className="row">
         <div className="col-md-8 mb-4">
           <div className="card card-outline card-primary h-100 shadow-sm">
@@ -942,7 +1069,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* 🏆 PODIO CAJERO PRO 🏆 */}
       {renderPodio()}
 
       <div className="row">
