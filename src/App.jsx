@@ -66,6 +66,7 @@ import EditarProveedor from "./pages/proveedores/EditarProveedor";
 import GestionPagos from "./pages/proveedores/GestionPagos";
 import MovimientosProveedor from "./pages/proveedores/MovimientosProveedor";
 import InformeCuentasPorPagar from "./pages/proveedores/informes/InformeCuentasPorPagar";
+import RankingProveedoresBI from "./pages/proveedores/RankingProveedoresBI";
 
 // Compras
 import ListadoCompras from "./pages/compras/ListadoCompras";
@@ -258,6 +259,10 @@ const App = () => {
         <Route
           path="/proveedores/informes/cuentas-por-pagar"
           element={<InformeCuentasPorPagar />}
+        />
+        <Route
+          path="/proveedores/ranking-bi"
+          element={<RankingProveedoresBI />}
         />
 
         {/* Compras */}
