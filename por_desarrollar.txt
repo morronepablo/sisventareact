@@ -117,3 +117,21 @@ Impacto: Evitás el "quiebre de stock" y optimizás el capital (no comprás de m
 
 
 
+
+1. "El Scoring de Confianza" (Credit Score BI)
+Dado que tenés un módulo de "Cuentas por Cobrar", este es fundamental para no perder plata.
+La Lógica BI: El sistema analiza históricamente cuánto tarda el cliente en pagar sus deudas de Cuenta Corriente.
+El Valor: Al lado de cada cliente aparecerá un escudo:
+🛡️ Escudo de Oro: Paga siempre a término. (Se le puede dar más crédito).
+⚠️ Escudo de Bronce: Siempre se atrasa +10 días. (Alerta al vendedor antes de fiarle).
+Impacto: Protegés el flujo de caja evitando clientes morosos crónicos.
+2. "El Radar de Cumpleaños y Aniversarios" (Marketing Automático)
+Nada fideliza más que un mensaje en el momento justo.
+La Lógica BI: El sistema barre la base de datos diariamente buscando quién cumple años hoy o quién cumple 1 año desde su primera compra.
+El Valor: Una pantalla con tarjetas tipo "Social Media" que diga: "Hoy cumplen 5 clientes".
+Acción Directa: Un botón de WhatsApp que ya viene con un texto predefinido: "¡Hola [Nombre]! Feliz cumple. Pasá hoy por el local y tenés un 10% de regalo".
+
+
+
+
+

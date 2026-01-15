@@ -93,6 +93,7 @@ import EditarCliente from "./pages/clientes/EditarCliente";
 import InformeCobranzas from "./pages/clientes/informes/InformeCobranzas";
 import RecapturaClientes from "./pages/clientes/RecapturaClientes";
 import FidelizacionClientes from "./pages/clientes/FidelizacionClientes";
+import ScoringConfianza from "./pages/clientes/ScoringConfianza";
 
 // Ventas
 import ListadoVentas from "./pages/ventas/ListadoVentas";
@@ -280,6 +281,10 @@ const App = () => {
         <Route path="/compras/crear" element={<CrearCompra />} />
         <Route path="/compras/ver/:id" element={<VerCompra />} />
         <Route
+          path="/compras/auditoria-traicion"
+          element={<AuditoriaTraicion />}
+        />
+        <Route
           path="/compras/informes/productos"
           element={<InformeProductos />}
         />
@@ -324,10 +329,7 @@ const App = () => {
           path="/clientes/fidelizacion"
           element={<FidelizacionClientes />}
         />
-        <Route
-          path="/compras/auditoria-traicion"
-          element={<AuditoriaTraicion />}
-        />
+        <Route path="/clientes/scoring" element={<ScoringConfianza />} />
 
         {/* Ventas */}
         <Route path="/ventas/listado" element={<ListadoVentas />} />

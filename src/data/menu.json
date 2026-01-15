@@ -349,6 +349,13 @@
                 "permiso": "ver_clientes"
             },
             {
+                "id": "scoring_clientes",
+                "text": "Scoring de Confianza",
+                "icon": "fas fa-user-shield",
+                "path": "/clientes/scoring",
+                "permiso": "ver_clientes"
+            },
+            {
                 "id": "informes_clientes",
                 "text": "Informes",
                 "icon": "fas fa-chart-pie",
