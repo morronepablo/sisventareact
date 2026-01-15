@@ -146,6 +146,7 @@ import VerGasto from "./pages/gastos/VerGasto";
 import CirujanoCostos from "./pages/gastos/informes/CirujanoCostos";
 import ListadoCategoriasGastos from "./pages/gastos/ListadoCategoriasGastos";
 import PuntoEquilibrio from "./pages/gastos/informes/PuntoEquilibrio";
+import RadarHormiga from "./pages/gastos/informes/RadarHormiga";
 
 // Logs
 import ListadoLogs from "./pages/logs/ListadoLogs";
@@ -417,6 +418,7 @@ const App = () => {
           element={<ListadoCategoriasGastos />}
         />
         <Route path="/gastos/punto-equilibrio" element={<PuntoEquilibrio />} />
+        <Route path="/gastos/radar-hormiga" element={<RadarHormiga />} />
 
         {/* Logs */}
         <Route path="/logs/listado" element={<ListadoLogs />} />

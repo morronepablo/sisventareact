@@ -561,6 +561,13 @@
                 "icon": "fas fa-scale-balanced",
                 "path": "/gastos/punto-equilibrio",
                 "permiso": "ver_gastos"
+            },
+            {
+                "id": "radar_hormiga",
+                "text": "Radar Hormiga (BI)",
+                "icon": "fas fa-bug",
+                "path": "/gastos/radar-hormiga",
+                "permiso": "ver_gastos"
             }
         ]
     }
