@@ -73,7 +73,11 @@ const InformeCuentasPorPagar = () => {
                     </td>
                     <td className="text-center">{d.facturas_pendientes}</td>
                     <td className="text-right text-danger font-weight-bold">
-                      $ {parseFloat(d.saldo_pendiente).toLocaleString("es-AR")}
+                      ${" "}
+                      {parseFloat(d.saldo_pendiente).toLocaleString("es-AR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </td>
                     <td className="text-center">
                       <button
