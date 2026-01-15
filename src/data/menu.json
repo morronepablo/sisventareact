@@ -540,6 +540,27 @@
                 "icon": "fas fa-list",
                 "path": "/gastos/listado",
                 "permiso": "ver_gastos"
+            },
+            {
+                "id": "gastos_categorias",
+                "text": "Categorías",
+                "icon": "fas fa-tags",
+                "path": "/gastos/categorias",
+                "permiso": "ver_gastos"
+            },
+            {
+                "id": "cirujano_costos",
+                "text": "El Cirujano (BI)",
+                "icon": "fas fa-cut",
+                "path": "/gastos/cirujano",
+                "permiso": "ver_gastos"
+            },
+            {
+                "id": "punto_equilibrio",
+                "text": "Punto de Equilibrio",
+                "icon": "fas fa-scale-balanced",
+                "path": "/gastos/punto-equilibrio",
+                "permiso": "ver_gastos"
             }
         ]
     }

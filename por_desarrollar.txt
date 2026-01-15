@@ -85,3 +85,25 @@ La Magia: El sistema detecta si el proveedor te aumentó un producto por encima 
 Impacto: Evita que los proveedores "se pasen de vivos". El dueño tiene datos para decir: "Bajame el precio o le compro a la competencia".
 
 
+
+
+
+1. "El Cirujano de Costos" (BI)
+En lugar de un listado, este informe desglosa en qué se está "desangrando" el dinero.
+Qué hace: Clasifica los gastos en Fijos (alquiler, sueldos) y Variables (reparaciones, insumos).
+Valor BI: Muestra un gráfico de torta de la estructura de egresos y te dice: "Este mes, tus costos fijos representan el 40% de tus ventas totales. Necesitas bajar un 5% para estar en zona segura".
+2. "Calculadora de Punto de Equilibrio" (Vital)
+Este es el informe más importante para cualquier dueño de retail.
+Qué hace: Cruza los Gastos Totales del mes con el Margen de Ganancia Promedio de las ventas.
+Valor BI: Te da un número mágico. Ejemplo: "Para cubrir tus gastos de este mes ($500.000), necesitas vender un mínimo de $1.250.000. Llevas vendido $800.000 (Faltan $450.000)".
+3. "Radar de Gastos Hormiga"
+Los pequeños gastos que parecen nada, pero sumados son una fortuna.
+Qué hace: Agrupa gastos recurrentes muy pequeños que no son mercadería (café, artículos de limpieza, propinas, pequeñas compras de librería).
+Valor BI: Identifica tendencias. "Has gastado un 30% más en 'Varios' que el mes pasado. Detectamos 15 tickets de montos menores a $2.000".
+4. "Monitor de Salud Financiera" (Flujo de Caja)
+Un gráfico comparativo de barras.
+Qué hace: Superpone Ventas Reales (Ingresos) vs Gastos + Compras de Mercadería (Egresos).
+Valor BI: Determina el Flujo de Caja Neto. Si la barra de egresos es más alta que la de ingresos, el sistema lanza una alerta roja: "Atención: Estás quemando capital".
+
+
+

@@ -143,6 +143,8 @@ import VerMovimientosProducto from "./pages/movimientos/VerMovimientosProducto";
 import ListadoGastos from "./pages/gastos/ListadoGastos";
 import CrearGasto from "./pages/gastos/CrearGasto";
 import VerGasto from "./pages/gastos/VerGasto";
+import CirujanoCostos from "./pages/gastos/informes/CirujanoCostos";
+import ListadoCategoriasGastos from "./pages/gastos/ListadoCategoriasGastos";
 
 // Logs
 import ListadoLogs from "./pages/logs/ListadoLogs";
@@ -408,6 +410,11 @@ const App = () => {
         <Route path="/gastos/listado" element={<ListadoGastos />} />
         <Route path="/gastos/crear" element={<CrearGasto />} />
         <Route path="/gastos/ver/:id" element={<VerGasto />} />
+        <Route path="/gastos/cirujano" element={<CirujanoCostos />} />
+        <Route
+          path="/gastos/categorias"
+          element={<ListadoCategoriasGastos />}
+        />
 
         {/* Logs */}
         <Route path="/logs/listado" element={<ListadoLogs />} />
