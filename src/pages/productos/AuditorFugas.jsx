@@ -1,5 +1,6 @@
 // src/pages/productos/AuditorFugas.jsx
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom"; // 👈 Importamos Link para la navegación interna
 import api from "../../services/api";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
@@ -155,17 +156,34 @@ const AuditorFugas = () => {
                 <tbody>
                   {anomalias.horarios_extranos.map((v, i) => (
                     <tr key={i}>
-                      <td>T-{String(v.id).padStart(8, "0")}</td>
-                      <td>{v.usuario_nombre}</td>
-                      <td>Caja {v.caja_id}</td>
-                      <td className="text-bold">
+                      <td className="align-middle">
+                        {/* 🚀 LINK AL DETALLE DE LA VENTA 🚀 */}
+                        <Link
+                          to={`/ventas/ver/${v.id}`}
+                          className="text-bold text-info"
+                          title="Click para ver detalle de la venta"
+                        >
+                          <i className="fas fa-search mr-1"></i>
+                          T-{String(v.id).padStart(8, "0")}
+                        </Link>
+                      </td>
+                      <td className="align-middle">{v.usuario_nombre}</td>
+                      <td className="align-middle">Caja {v.caja_id}</td>
+                      <td className="text-bold align-middle">
                         {formatMoney(v.precio_total)}
                       </td>
-                      <td className="text-primary text-bold">
+                      <td className="text-primary text-bold align-middle">
                         {new Date(v.created_at).toLocaleTimeString()}
                       </td>
                     </tr>
                   ))}
+                  {anomalias.horarios_extranos.length === 0 && (
+                    <tr>
+                      <td colSpan="5" className="text-center py-3 text-muted">
+                        No se detectaron ventas en horarios inusuales.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
