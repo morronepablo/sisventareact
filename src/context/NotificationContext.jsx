@@ -39,8 +39,10 @@ export const NotificationProvider = ({ children }) => {
   const refreshStock = useCallback(async () => {
     if (!user) return;
     try {
-      const res = await api.get("/productos/bajo-stock");
+      // Añadimos Date.now() para evitar que el navegador use caché
+      const res = await api.get(`/productos/bajo-stock?t=${Date.now()}`);
       setLowStockProducts(res.data);
+      return res.data;
     } catch (e) {
       console.error("Error stock:", e);
     }
@@ -80,13 +82,17 @@ export const NotificationProvider = ({ children }) => {
     }
   }, [user]);
 
-  const refreshAll = useCallback(() => {
+  const refreshAll = useCallback(async () => {
     if (!user) return;
-    refreshStock();
-    refreshProviderDebts();
-    refreshClientDebts();
-    refreshArqueoStatus();
-    refreshSidebarCounts();
+    // Ejecutamos todo y esperamos los resultados
+    await Promise.all([
+      refreshStock(),
+      refreshProviderDebts(),
+      refreshClientDebts(),
+      refreshArqueoStatus(),
+      refreshSidebarCounts(),
+    ]);
+    console.log("🔔 Notificaciones actualizadas");
   }, [
     user,
     refreshStock,

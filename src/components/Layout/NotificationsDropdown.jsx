@@ -1,26 +1,12 @@
 // src/components/layout/NotificationsDropdown.jsx
-import React, { useState, useEffect } from "react";
-import api from "../../services/api";
+import React from "react";
 import { useTheme } from "../../context/ThemeContext";
+import { useNotifications } from "../../context/NotificationContext"; // Importamos el contexto
 
 const NotificationsDropdown = () => {
   const { theme } = useTheme();
-  const [lowStockProducts, setLowStockProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchLowStock = async () => {
-      try {
-        const res = await api.get("/productos/bajo-stock");
-        setLowStockProducts(res.data);
-      } catch (error) {
-        console.error("Error al cargar productos con bajo stock:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchLowStock();
-  }, []);
+  // EXTRAEMOS LOS DATOS DIRECTAMENTE DEL CONTEXTO GLOBAL
+  const { lowStockProducts } = useNotifications();
 
   const lowStockCount = lowStockProducts.length;
   const bellIconClass = theme === "dark" ? "far fa-bell" : "fas fa-bell";
@@ -56,19 +42,17 @@ const NotificationsDropdown = () => {
         {/* CONTENEDOR CON SCROLL PARA LOS PRODUCTOS */}
         <div
           style={{
-            maxHeight: "260px", // Altura aproximada para 4-5 productos
+            maxHeight: "260px",
             overflowY: "auto",
             overflowX: "hidden",
           }}
           className="low-stock-scroll-container"
         >
-          {loading ? (
-            <p className="dropdown-item text-center">Cargando...</p>
-          ) : lowStockProducts.length === 0 ? (
-            <a href="#" className="dropdown-item">
+          {lowStockProducts.length === 0 ? (
+            <div className="dropdown-item">
               <i className="fas fa-check text-success mr-2"></i> No hay
               productos con bajo stock
-            </a>
+            </div>
           ) : (
             <>
               {lowStockProducts.map((prod) => (
@@ -107,14 +91,12 @@ const NotificationsDropdown = () => {
             </>
           )}
         </div>
-        {/* FIN DEL CONTENEDOR CON SCROLL */}
 
         <a href="/productos/listado" className="dropdown-item dropdown-footer">
           Ver todos los productos
         </a>
       </div>
 
-      {/* ESTILO OPCIONAL PARA HACER EL SCROLL MÁS FINO (Chrome/Safari) */}
       <style>{`
         .low-stock-scroll-container::-webkit-scrollbar {
           width: 6px;
