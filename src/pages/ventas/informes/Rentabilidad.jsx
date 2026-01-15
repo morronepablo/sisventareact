@@ -51,7 +51,7 @@ const Rentabilidad = () => {
           window.$(tableId).DataTable().destroy();
         window.$(tableId).DataTable({
           paging: true,
-          pageLength: 10,
+          pageLength: 5,
           language: spanishLanguage,
           responsive: true,
           autoWidth: false,

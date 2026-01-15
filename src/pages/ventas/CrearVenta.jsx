@@ -2330,7 +2330,83 @@ const CrearVenta = () => {
     fetchData();
   }, [arqueoAbierto, user]);
 
+  // const handleConfirmarVenta = async () => {
+  //   if (!esCtaCte && totalPagado < totalFinal)
+  //     return Swal.fire("Error", "Monto insuficiente", "error");
+  //   if (parseFloat(pagos.billetera) > parseFloat(clienteSel.saldo_billetera))
+  //     return Swal.fire("Error", "Saldo insuficiente en billetera", "error");
+
+  //   try {
+  //     const pagosSaneados = {
+  //       ...pagos,
+  //       efectivo: Math.max(parseFloat(pagos.efectivo || 0) - vueltoFisico, 0),
+  //     };
+  //     const payload = {
+  //       cliente_id: clienteSel.id,
+  //       fecha,
+  //       precio_total: totalFinal,
+  //       pagos: { ...pagosSaneados, pago_billetera: pagos.billetera },
+  //       es_cuenta_corriente: esCtaCte,
+  //       usuario_id: user.id,
+  //       empresa_id: user.empresa_id,
+  //       items: tmpVentas,
+  //       descuento_porcentaje: descPorcentaje,
+  //       descuento_monto: descMonto,
+  //       puntos_canjeados:
+  //         Number(descMonto) === Number(clienteSel.puntos)
+  //           ? clienteSel.puntos
+  //           : 0,
+  //       cargar_vuelto_billetera: vueltoABilletera,
+  //       vuelto_monto: montoCargarBilletera,
+  //     };
+  //     const res = await api.post("/ventas", payload);
+  //     if (res.data.success) {
+  //       if (refreshAll) await refreshAll();
+  //       window.$("#modal-pagos").modal("hide");
+  //       await Swal.fire({
+  //         position: "center",
+  //         icon: "success",
+  //         title: "¡Éxito!",
+  //         text: "Venta registrada",
+  //         showConfirmButton: false,
+  //         timer: 2500,
+  //       });
+  //       if (res.data.venta_id)
+  //         window.open(
+  //           `${API_URL}/api/ventas/ticket/${
+  //             res.data.venta_id
+  //           }?token=${localStorage.getItem("token")}`,
+  //           "_blank"
+  //         );
+  //       setPagos({
+  //         efectivo: 0,
+  //         tarjeta: 0,
+  //         mercadopago: 0,
+  //         transferencia: 0,
+  //         billetera: 0,
+  //       });
+  //       setClienteSel({
+  //         id: 1,
+  //         nombre_cliente: "Consumidor Final",
+  //         cuil_codigo: "00000000000",
+  //         puntos: 0,
+  //         saldo_billetera: 0,
+  //       });
+  //       setDescPorcentaje(0);
+  //       setDescMonto(0);
+  //       setCodigo("");
+  //       setCantidad(1);
+  //       setEsCtaCte(false);
+  //       setVueltoABilletera(false);
+  //       fetchData();
+  //     }
+  //   } catch (e) {
+  //     Swal.fire("Error", "Fallo al registrar", "error");
+  //   }
+  // };
+
   const handleConfirmarVenta = async () => {
+    // ... (tus validaciones iniciales se mantienen igual)
     if (!esCtaCte && totalPagado < totalFinal)
       return Swal.fire("Error", "Monto insuficiente", "error");
     if (parseFloat(pagos.billetera) > parseFloat(clienteSel.saldo_billetera))
@@ -2341,7 +2417,9 @@ const CrearVenta = () => {
         ...pagos,
         efectivo: Math.max(parseFloat(pagos.efectivo || 0) - vueltoFisico, 0),
       };
+
       const payload = {
+        // ... (tu payload se mantiene igual)
         cliente_id: clienteSel.id,
         fecha,
         precio_total: totalFinal,
@@ -2359,10 +2437,43 @@ const CrearVenta = () => {
         cargar_vuelto_billetera: vueltoABilletera,
         vuelto_monto: montoCargarBilletera,
       };
+
       const res = await api.post("/ventas", payload);
+
       if (res.data.success) {
         if (refreshAll) await refreshAll();
         window.$("#modal-pagos").modal("hide");
+
+        // --- LÓGICA DE DESCARGA DIRECTA ---
+        if (res.data.venta_id) {
+          try {
+            const response = await api.get(
+              `/ventas/ticket/${res.data.venta_id}`,
+              {
+                responseType: "blob", // Importante para manejar archivos
+              }
+            );
+
+            // Crear un link temporal para la descarga
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement("a");
+            link.href = url;
+            link.setAttribute(
+              "download",
+              `ticket_venta_${res.data.venta_id}.pdf`
+            ); // Nombre del archivo
+            document.body.appendChild(link);
+            link.click();
+
+            // Limpiar el DOM y la memoria
+            link.parentNode.removeChild(link);
+            window.URL.revokeObjectURL(url);
+          } catch (error) {
+            console.error("Error descargando el ticket", error);
+          }
+        }
+        // ----------------------------------
+
         await Swal.fire({
           position: "center",
           icon: "success",
@@ -2371,13 +2482,8 @@ const CrearVenta = () => {
           showConfirmButton: false,
           timer: 2500,
         });
-        if (res.data.venta_id)
-          window.open(
-            `${API_URL}/api/ventas/ticket/${
-              res.data.venta_id
-            }?token=${localStorage.getItem("token")}`,
-            "_blank"
-          );
+
+        // Reseteo de estados (tu código original)
         setPagos({
           efectivo: 0,
           tarjeta: 0,
