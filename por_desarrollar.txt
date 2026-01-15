@@ -135,3 +135,20 @@ Acción Directa: Un botón de WhatsApp que ya viene con un texto predefinido: "�
 
 
 
+1. "El Guardián de Márgenes" MODIFICADO 🛡️📈
+Este es EL módulo para Argentina. A veces vendés mucho, pero perdés plata porque el costo de reposición subió y no actualizaste el precio a tiempo.
+La Lógica BI: El sistema cruza el precio de la última compra (factura del proveedor) con tu precio de venta actual.
+El Valor: Una pantalla con un ranking de "Productos en Peligro". Si tu margen real cae por debajo del 20% (o lo que vos definas), el producto salta en rojo.
+Acción Directa: Un botón para actualizar el precio de venta ahí mismo y recuperar la rentabilidad antes de la próxima venta.
+2. "El Cementerio de Mercadería" (Optimización de Capital) ⚰️📦
+Tener mercadería parada es tener "plata muerta" que se desvaloriza.
+La Lógica BI: El sistema detecta productos que tienen stock pero hace más de 60 días que no tienen una sola venta.
+El Valor: Te dice cuánta plata tenés "enterrada" en esos productos. Ejemplo: "Tenés $150.000 en stock que no se mueve hace 3 meses".
+Acción Directa: Sugerencia de "Liquidación Inteligente" o crear un Combo con un producto estrella para sacártelo de encima.
+3. "Auditor de Fugas" (Detección de Anomalías) 🕵️‍♂️🔍
+El "robo hormiga" o los errores de caja suelen esconderse tras descuentos excesivos o anulaciones.
+La Lógica BI: Analiza qué usuarios aplican más descuentos manuales o qué cajero tiene el mayor promedio de "Ventas Anuladas".
+El Valor: Un semáforo de alerta sobre el personal. Si un cajero descuenta el 10% en el 80% de sus ventas, hay una fuga de capital.
+Impacto: Control absoluto sobre la honestidad y eficiencia del equipo.
+
+
