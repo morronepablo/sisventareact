@@ -145,7 +145,7 @@ Tener mercadería parada es tener "plata muerta" que se desvaloriza.
 La Lógica BI: El sistema detecta productos que tienen stock pero hace más de 60 días que no tienen una sola venta.
 El Valor: Te dice cuánta plata tenés "enterrada" en esos productos. Ejemplo: "Tenés $150.000 en stock que no se mueve hace 3 meses".
 Acción Directa: Sugerencia de "Liquidación Inteligente" o crear un Combo con un producto estrella para sacártelo de encima.
-3. "Auditor de Fugas" (Detección de Anomalías) 🕵️‍♂️🔍
+3. "Auditor de Fugas" (Detección de Anomalías) MODIFICADO 🕵️‍♂️🔍
 El "robo hormiga" o los errores de caja suelen esconderse tras descuentos excesivos o anulaciones.
 La Lógica BI: Analiza qué usuarios aplican más descuentos manuales o qué cajero tiene el mayor promedio de "Ventas Anuladas".
 El Valor: Un semáforo de alerta sobre el personal. Si un cajero descuenta el 10% en el 80% de sus ventas, hay una fuga de capital.
