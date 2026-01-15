@@ -114,19 +114,6 @@ Actualmente, el sistema te avisa cuando el stock es bajo. El Oráculo hace algo 
 La lógica BI: El sistema analiza el promedio de venta diario de cada producto de los últimos 30 días y lo cruza con el stock actual.
 El Valor: No te dice "tenés 10 unidades", te dice: "Te quedan 4 días de stock. Si no comprás hoy, el jueves perdés ventas".
 Impacto: Evitás el "quiebre de stock" y optimizás el capital (no comprás de más lo que no se vende).
-2. "Cazador de Clientes Dormidos" (Algoritmo RFM)
-Es 10 veces más caro conseguir un cliente nuevo que mantener uno viejo.
-La lógica BI: El sistema detecta clientes que solían venir seguido pero hace tiempo no aparecen.
-El Valor: El sistema te lanza una alerta: "El Cliente Juan Pérez venía cada 10 días y hace 25 que no compra. Está en zona de riesgo de fuga".
-Acción Directa: Un botón de WhatsApp al lado del nombre para mandarle una promo y "recuperarlo" antes de que se vaya a la competencia.
-3. "El Guardián de Márgenes" (Alerta Inflacionaria)
-Vital para Argentina. A veces vendés mucho, pero perdés plata porque el costo de reposición subió y no actualizaste el precio.
-La lógica BI: Cruza el último precio de compra (factura de proveedor) con tu precio de venta actual.
-El Valor: Si tu margen cae por debajo del 20% (o lo que vos definas) debido a un aumento del proveedor, el sistema se pone en ROJO y te dice: "Atención: El producto X subió de costo. Estás ganando solo el 5%. Sugerencia de precio: $XXXX".
-Impacto: Protegés tu bolsillo en tiempo real.
-4. "El Alquimista de Combos" (Market Basket Analysis)
-¿Sabías que el que compra cerveza suele comprar papas fritas?
-La lógica BI: El sistema analiza todos tus tickets y busca patrones: qué productos se venden juntos con más frecuencia.
-El Valor: Te propone combos: "Detectamos que el 60% de los que compran Fernet también llevan Coca. ¿Querés crear un 'Combo Amistad' con un 5% de descuento?".
-Impacto: Subís el "Ticket Promedio" (hacés que cada cliente que entra gaste más).
+
+
 

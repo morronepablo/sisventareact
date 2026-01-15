@@ -157,6 +157,13 @@
                 "permiso": "ver_productos"
             },
             {
+                "id": "oraculo_stock",
+                "text": "El Oráculo (BI)",
+                "icon": "fas fa-eye",
+                "path": "/productos/oraculo",
+                "permiso": "ver_productos"
+            },
+            {
                 "id": "termometro_ventas",
                 "text": "Termómetro BI",
                 "icon": "fas fa-thermometer-half",

@@ -58,6 +58,7 @@ import SimuladorImpacto from "./pages/productos/SimuladorImpacto";
 import AuditorFugas from "./pages/productos/AuditorFugas";
 import RadarPareto from "./pages/productos/RadarPareto";
 import TermometroVentas from "./pages/productos/TermometroVentas";
+import OraculoStock from "./pages/productos/OraculoStock";
 
 // Proveedores
 import ListadoProveedores from "./pages/proveedores/ListadoProveedores";
@@ -253,6 +254,7 @@ const App = () => {
         <Route path="/productos/auditor-fugas" element={<AuditorFugas />} />
         <Route path="/productos/radar-pareto" element={<RadarPareto />} />
         <Route path="/productos/termometro" element={<TermometroVentas />} />
+        <Route path="/productos/oraculo" element={<OraculoStock />} />
 
         {/* Proveedores */}
         <Route path="/proveedores/listado" element={<ListadoProveedores />} />
