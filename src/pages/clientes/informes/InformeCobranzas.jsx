@@ -102,7 +102,11 @@ const InformeCobranzas = () => {
                       </span>
                     </td>
                     <td className="text-right text-danger font-weight-bold">
-                      $ {parseFloat(d.saldo_pend).toLocaleString("es-AR")}
+                      ${" "}
+                      {parseFloat(d.saldo_pend).toLocaleString("es-AR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </td>
                     <td className="text-center">
                       <button
