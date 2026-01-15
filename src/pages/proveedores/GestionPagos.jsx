@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../../services/api";
 import Swal from "sweetalert2";
+import LoadingSpinner from "../../components/LoadingSpinner";
 // 1. Importamos el hook de notificaciones
 import { useNotifications } from "../../context/NotificationContext";
 
@@ -131,12 +132,7 @@ const GestionPagos = () => {
     }
   };
 
-  if (loading || !data)
-    return (
-      <div className="p-4 text-center">
-        <h4>Cargando Gestión de Pagos...</h4>
-      </div>
-    );
+  if (loading || !data) return <LoadingSpinner />;
 
   return (
     <div className="content-header">
