@@ -70,6 +70,7 @@ import GestionPagos from "./pages/proveedores/GestionPagos";
 import MovimientosProveedor from "./pages/proveedores/MovimientosProveedor";
 import InformeCuentasPorPagar from "./pages/proveedores/informes/InformeCuentasPorPagar";
 import RankingProveedoresBI from "./pages/proveedores/RankingProveedoresBI";
+import RadarInflacion from "./pages/proveedores/RadarInflacion";
 
 // Compras
 import ListadoCompras from "./pages/compras/ListadoCompras";
@@ -277,6 +278,10 @@ const App = () => {
         <Route
           path="/proveedores/ranking-bi"
           element={<RankingProveedoresBI />}
+        />
+        <Route
+          path="/proveedores/radar-inflacion"
+          element={<RadarInflacion />}
         />
 
         {/* Compras */}
