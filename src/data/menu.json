@@ -568,6 +568,13 @@
                 "icon": "fas fa-bug",
                 "path": "/gastos/radar-hormiga",
                 "permiso": "ver_gastos"
+            },
+            {
+                "id": "salud_financiera",
+                "text": "Salud Financiera (BI)",
+                "icon": "fas fa-heartbeat",
+                "path": "/gastos/salud-financiera",
+                "permiso": "ver_gastos"
             }
         ]
     }
