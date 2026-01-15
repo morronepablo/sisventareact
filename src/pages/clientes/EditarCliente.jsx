@@ -14,21 +14,23 @@ const EditarCliente = () => {
     cuil_codigo: "",
     telefono: "",
     email: "",
+    fecha_nacimiento: "", // 👈 Agregado al estado
   });
 
-  // Cargar datos del cliente al iniciar
   useEffect(() => {
     const fetchCliente = async () => {
       try {
         const res = await api.get(`/clientes/${id}`);
+
+        // 👈 FORMATEO DE FECHA PARA EL INPUT (De ISO a YYYY-MM-DD)
+        if (res.data.fecha_nacimiento) {
+          res.data.fecha_nacimiento = res.data.fecha_nacimiento.split("T")[0];
+        }
+
         setCliente(res.data);
         setLoading(false);
       } catch (error) {
-        Swal.fire(
-          "Error",
-          "No se pudo obtener la información del cliente",
-          "error"
-        );
+        Swal.fire("Error", "No se pudo obtener la información", "error");
         navigate("/clientes/listado");
       }
     };
@@ -56,7 +58,7 @@ const EditarCliente = () => {
     }
   };
 
-  if (loading) return <div className="p-4">Cargando datos...</div>;
+  if (loading) return <div className="p-4 text-center">Cargando datos...</div>;
 
   return (
     <div className="content-header">
@@ -76,7 +78,7 @@ const EditarCliente = () => {
           <div className="col-md-9">
             <div className="card card-outline card-success shadow-sm">
               <div className="card-header">
-                <h3 className="card-title">Ingrese los datos</h3>
+                <h3 className="card-title text-bold">Datos del Perfil</h3>
               </div>
               <div className="card-body">
                 <form onSubmit={handleSubmit}>
@@ -136,18 +138,40 @@ const EditarCliente = () => {
                     </div>
                   </div>
 
+                  {/* 🚀 NUEVO CAMPO FECHA DE NACIMIENTO */}
+                  <div className="row mt-2">
+                    <div className="col-md-6">
+                      <div className="form-group">
+                        <label>
+                          <i className="fas fa-birthday-cake mr-1 text-danger"></i>{" "}
+                          Fecha de Nacimiento
+                        </label>
+                        <input
+                          type="date"
+                          name="fecha_nacimiento"
+                          className="form-control"
+                          value={cliente.fecha_nacimiento || ""}
+                          onChange={handleChange}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
                   <hr />
                   <div className="row">
                     <div className="col-md-12 d-flex justify-content-between">
                       <button
                         type="button"
-                        className="btn btn-secondary"
+                        className="btn btn-secondary shadow-sm"
                         onClick={() => navigate("/clientes/listado")}
                       >
-                        <i className="fas fa-reply"></i> Volver
+                        <i className="fas fa-reply mr-1"></i> Volver
                       </button>
-                      <button type="submit" className="btn btn-success">
-                        <i className="fas fa-save"></i> Actualizar
+                      <button
+                        type="submit"
+                        className="btn btn-success shadow-sm font-weight-bold"
+                      >
+                        <i className="fas fa-save mr-1"></i> Guardar Cambios
                       </button>
                     </div>
                   </div>

@@ -94,6 +94,7 @@ import InformeCobranzas from "./pages/clientes/informes/InformeCobranzas";
 import RecapturaClientes from "./pages/clientes/RecapturaClientes";
 import FidelizacionClientes from "./pages/clientes/FidelizacionClientes";
 import ScoringConfianza from "./pages/clientes/ScoringConfianza";
+import RadarCelebraciones from "./pages/clientes/RadarCelebraciones";
 
 // Ventas
 import ListadoVentas from "./pages/ventas/ListadoVentas";
@@ -330,6 +331,10 @@ const App = () => {
           element={<FidelizacionClientes />}
         />
         <Route path="/clientes/scoring" element={<ScoringConfianza />} />
+        <Route
+          path="/clientes/celebraciones"
+          element={<RadarCelebraciones />}
+        />
 
         {/* Ventas */}
         <Route path="/ventas/listado" element={<ListadoVentas />} />

@@ -356,6 +356,13 @@
                 "permiso": "ver_clientes"
             },
             {
+                "id": "celebraciones_clientes",
+                "text": "Radar Celebraciones",
+                "icon": "fas fa-gift",
+                "path": "/clientes/celebraciones",
+                "permiso": "ver_clientes"
+            },
+            {
                 "id": "informes_clientes",
                 "text": "Informes",
                 "icon": "fas fa-chart-pie",

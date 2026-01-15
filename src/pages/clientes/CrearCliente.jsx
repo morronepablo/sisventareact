@@ -11,6 +11,7 @@ const CrearCliente = () => {
     cuil_codigo: "",
     telefono: "",
     email: "",
+    fecha_nacimiento: "", // 👈 Nuevo campo
   });
 
   const handleChange = (e) => {
@@ -120,6 +121,28 @@ const CrearCliente = () => {
                           onChange={handleChange}
                           required
                         />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 🚀 NUEVA FILA PARA FECHA DE NACIMIENTO */}
+                  <div className="row">
+                    <div className="col-md-6">
+                      <div className="form-group">
+                        <label>
+                          <i className="fas fa-birthday-cake mr-1 text-danger"></i>{" "}
+                          Fecha de Nacimiento
+                        </label>
+                        <input
+                          type="date"
+                          name="fecha_nacimiento"
+                          className="form-control"
+                          value={formData.fecha_nacimiento}
+                          onChange={handleChange}
+                        />
+                        <small className="text-muted">
+                          Necesario para el Radar de Celebraciones BI.
+                        </small>
                       </div>
                     </div>
                   </div>
