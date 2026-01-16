@@ -172,3 +172,24 @@ La Lógica BI: El sistema calcula qué % de tu Ganancia Total depende de los pro
 El Valor: Si un solo proveedor representa el 60% de tu utilidad, estás en "Zona de Riesgo".
 Impacto: Te obliga a diversificar proveedores para que el negocio no sea un rehén de una sola marca o distribuidor.
 
+
+
+
+
+1. "El Alquimista de Combos" (Market Basket Analysis) 🧪🍔
+¿Sabías que en los supermercados se descubrió que los hombres que compran pañales los viernes suelen comprar también cerveza?
+La Lógica BI: El sistema barre todos tus tickets de venta buscando productos que se compran juntos con frecuencia.
+El Valor: El sistema te sugiere: "Che, detectamos que el 70% de los que compran 'Galletitas Urquiza' también llevan 'Jugo Minerva'. Armá un combo o ponelos cerca en el estante".
+Impacto: Subís el Ticket Promedio (hacés que cada cliente gaste más plata antes de irse).
+2. "El Mapa del Tesoro" (Heatmap Operativo) 🗺️⏱️
+¿Realmente vale la pena tener abierto el local los martes a las 3 de la tarde?
+La Lógica BI: Cruza el volumen de ventas con el día de la semana y la hora exacta.
+El Valor: Un gráfico de calor que muestra tus "Horas de Oro" y tus "Horas Muertas".
+Impacto: Ahorro en luz, aire acondicionado y sueldos. Si sabés que de 14 a 16 hs no vendés nada, podés usar ese tiempo para reponer stock o incluso cerrar y ahorrar costos operativos.
+3. "El Oráculo Financiero" (Cash Flow Forecast) 🔮💸
+Este es el informe definitivo para dormir tranquilo en Argentina.
+La Lógica BI: Cruza lo que tenés que cobrar (Cuentas por Cobrar) con lo que tenés que pagar (Cuentas por Pagar) en los próximos 7, 15 y 30 días.
+El Valor: Una línea de tiempo que te dice: "El día 20 de este mes vas a tener un bache de -$50.000. Empezá a liquidar stock ahora para llegar bien al pago de proveedores".
+Impacto: Evitás quedarte sin "caja" para pagar sueldos o facturas críticas.
+
+

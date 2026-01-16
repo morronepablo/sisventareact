@@ -72,6 +72,7 @@ import InformeCuentasPorPagar from "./pages/proveedores/informes/InformeCuentasP
 import RankingProveedoresBI from "./pages/proveedores/RankingProveedoresBI";
 import RadarInflacion from "./pages/proveedores/RadarInflacion";
 import SemaforoCumplimiento from "./pages/proveedores/SemaforoCumplimiento";
+import MatrizDependencia from "./pages/proveedores/MatrizDependencia";
 
 // Compras
 import ListadoCompras from "./pages/compras/ListadoCompras";
@@ -291,6 +292,10 @@ const App = () => {
         <Route
           path="/proveedores/cumplimiento"
           element={<SemaforoCumplimiento />}
+        />
+        <Route
+          path="/proveedores/dependencia"
+          element={<MatrizDependencia />}
         />
 
         {/* Compras */}
