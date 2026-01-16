@@ -442,6 +442,13 @@
                 "permiso": "ver_ventas"
             },
             {
+                "id": "wall_street",
+                "text": "Modo Wall Street (TV)",
+                "icon": "fas fa-tv",
+                "path": "/dashboard/wall-street",
+                "permiso": "ver_ventas"
+            },
+            {
                 "id": "informes",
                 "text": "Informes",
                 "icon": "fas fa-fw fa-chart-bar",

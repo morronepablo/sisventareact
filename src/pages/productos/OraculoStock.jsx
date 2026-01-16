@@ -10,17 +10,17 @@ const OraculoStock = () => {
   const [loading, setLoading] = useState(true);
 
   const spanishLanguage = {
-    sProcessing: "Procesando...",
-    sLengthMenu: "Mostrar _MENU_ registros",
-    sZeroRecords: "No se encontraron resultados",
-    sEmptyTable: "Ningún dato disponible en esta tabla",
-    sInfo: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+    sProcessing: "Calculando proyecciones...",
+    sLengthMenu: "Ver _MENU_ registros",
+    sZeroRecords: "No hay productos para analizar",
+    sEmptyTable: "Sin datos",
+    sInfo: "Mostrando _START_ a _END_ de _TOTAL_",
     sSearch: "Buscar:",
     oPaginate: {
       sFirst: "Primero",
       sLast: "Último",
-      sNext: "Siguiente",
-      sPrevious: "Anterior",
+      sNext: "Sig",
+      sPrevious: "Ant",
     },
   };
 
@@ -41,29 +41,23 @@ const OraculoStock = () => {
   useEffect(() => {
     if (!loading && data.length >= 0) {
       const tableId = "#oraculo-table";
-      const $ = window.$;
-      const timer = setTimeout(() => {
-        if ($.fn.DataTable.isDataTable(tableId))
-          $(tableId).DataTable().destroy();
-        $(tableId).DataTable({
-          paging: true,
-          ordering: true,
-          info: true,
-          responsive: true,
-          autoWidth: false,
-          pageLength: 5,
-          language: spanishLanguage,
-          dom: "rtip",
-          columnDefs: [{ targets: -1, orderable: false }],
-        });
-      }, 200);
-      return () => clearTimeout(timer);
+      if (window.$.fn.DataTable.isDataTable(tableId))
+        window.$(tableId).DataTable().destroy();
+      window.$(tableId).DataTable({
+        paging: true,
+        ordering: true,
+        info: true,
+        responsive: true,
+        pageLength: 5, // 👈 5 filas por página
+        language: spanishLanguage,
+        dom: "rtip",
+        columnDefs: [{ targets: -1, orderable: false }],
+      });
     }
   }, [loading, data]);
 
   if (loading) return <LoadingSpinner />;
 
-  // Seleccionamos los 4 más urgentes (Días 0 o menores)
   const criticos = data.filter((p) => p.diasRestantes <= 3).slice(0, 4);
 
   return (
@@ -76,13 +70,14 @@ const OraculoStock = () => {
               <b>El Oráculo de Stock</b>
             </h1>
             <p className="text-muted">
-              Prioridad Basada en Stock Mínimo + Velocidad de Venta
+              Análisis Predictivo: Stock Mínimo + Ventas Directas + Ventas en
+              Combos
             </p>
           </div>
         </div>
         <hr />
 
-        {/* TARJETAS DE AVISO - AHORA TOMARÁN LOS QUE ESTÁN EN MÍNIMO */}
+        {/* CARDS DE AVISO */}
         <div className="row">
           {criticos.map((p) => (
             <div className="col-md-3" key={p.id}>
@@ -95,7 +90,7 @@ const OraculoStock = () => {
                   <h5 className="font-weight-bold text-truncate">{p.nombre}</h5>
                   <p className="m-0">
                     {p.diasRestantes === 0 ? (
-                      <b>STOCK MÍNIMO ALCANZADO</b>
+                      <b>STOCK BAJO EL MÍNIMO</b>
                     ) : (
                       <>
                         Quedan: <b>{p.diasRestantes} días</b>
@@ -104,8 +99,8 @@ const OraculoStock = () => {
                   </p>
                   <small>
                     {p.diasRestantes === 0
-                      ? `Stock: ${p.stock} / Min: ${p.stock_minimo}`
-                      : `Proyectado: ${new Date(
+                      ? `Actual: ${p.stock} / Mín: ${p.stock_minimo}`
+                      : `Fuga estimada: ${new Date(
                           p.fechaQuiebre + "T00:00:00"
                         ).toLocaleDateString("es-AR")}`}
                   </small>
@@ -114,7 +109,7 @@ const OraculoStock = () => {
                   <i
                     className={
                       p.diasRestantes === 0
-                        ? "fas fa-exclamation-circle"
+                        ? "fas fa-exclamation-triangle"
                         : "fas fa-hourglass-half"
                     }
                   ></i>
@@ -122,21 +117,12 @@ const OraculoStock = () => {
               </div>
             </div>
           ))}
-          {criticos.length === 0 && (
-            <div className="col-12">
-              <div className="alert alert-success">
-                <i className="fas fa-check-circle mr-2"></i>Todos los productos
-                tienen autonomía mayor a 3 días y superan el stock mínimo.
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="card card-outline card-primary shadow-sm mt-3">
           <div className="card-header">
             <h3 className="card-title text-bold">
-              <i className="fas fa-list-ol mr-2"></i>Proyección Completa de
-              Inventario
+              Proyección de Inventario (Híbrida)
             </h3>
           </div>
           <div className="card-body">
@@ -148,10 +134,10 @@ const OraculoStock = () => {
                 <tr>
                   <th>Producto</th>
                   <th>Stock Actual</th>
-                  <th>Venta Diaria</th>
-                  <th>Días Restantes</th>
+                  <th>Salida Diaria (Prom)</th>
+                  <th>Autonomía</th>
                   <th>Estado del Oráculo</th>
-                  <th>Acción</th>
+                  <th>Ver</th>
                 </tr>
               </thead>
               <tbody>
@@ -161,13 +147,11 @@ const OraculoStock = () => {
                       <b>{p.nombre}</b>
                       <br />
                       <small className="text-muted">
-                        Mínimo: {p.stock_minimo}
+                        Umbral Mínimo: {p.stock_minimo}
                       </small>
                     </td>
-                    <td className="text-center align-middle">
-                      {p.stock} unid.
-                    </td>
-                    <td className="text-center align-middle">
+                    <td className="text-center align-middle">{p.stock}</td>
+                    <td className="text-center align-middle text-muted">
                       {p.vDiaria} / día
                     </td>
                     <td className="text-center align-middle">
@@ -180,23 +164,20 @@ const OraculoStock = () => {
                           ? "ALERTA"
                           : p.diasRestantes >= 999
                           ? "∞"
-                          : p.diasRestantes}
+                          : p.diasRestantes + " d"}
                       </span>
                     </td>
                     <td className="text-center align-middle">
                       {p.diasRestantes === 0 ? (
                         <span className="badge badge-danger p-2 animate__animated animate__flash animate__infinite">
-                          <i className="fas fa-exclamation-triangle mr-1"></i>{" "}
-                          REPOSICIÓN URGENTE
+                          URGENTE
                         </span>
                       ) : p.diasRestantes <= 7 ? (
                         <span className="badge badge-warning p-2 text-white">
-                          <i className="fas fa-clock mr-1"></i> COMPRAR PRONTO
+                          RECOMPRAR
                         </span>
                       ) : (
-                        <span className="badge badge-success p-2">
-                          <i className="fas fa-check mr-1"></i> STOCK SEGURO
-                        </span>
+                        <span className="badge badge-success p-2">SEGURO</span>
                       )}
                     </td>
                     <td className="text-center align-middle">

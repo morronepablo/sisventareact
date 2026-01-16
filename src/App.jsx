@@ -170,6 +170,9 @@ import ListadoLogs from "./pages/logs/ListadoLogs";
 // Whatsapp
 import WhatsAppConfig from "./pages/configuracion/WhatsAppConfig";
 
+import WallStreetLayout from "./layouts/WallStreetLayout"; // 👈 Agregar import
+import DashboardWallStreet from "./pages/DashboardWallStreet"; // 👈 Agregar import
+
 // 👇 IMPORTACIÓN DE COMPONENTES DE RUTA
 import ProtectedRoute from "./utils/ProtectedRoute";
 import PublicRoute from "./utils/PublicRoute";
@@ -481,6 +484,20 @@ const App = () => {
 
         {/* 404 dentro del layout si la ruta no existe */}
         <Route path="*" element={<NotFound />} />
+      </Route>
+
+      {/* 🚀 BLOQUE NUEVO: MODO WALL STREET (SIN MENÚ) 🚀 */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <WallStreetLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route
+          path="/dashboard/wall-street"
+          element={<DashboardWallStreet />}
+        />
       </Route>
 
       {/* Redirección final para cualquier ruta desconocida fuera del layout */}
