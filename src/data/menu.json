@@ -636,6 +636,13 @@
                 "icon": "fas fa-heartbeat",
                 "path": "/gastos/salud-financiera",
                 "permiso": "ver_gastos"
+            },
+            {
+                "id": "oraculo_financiero",
+                "text": "El Oráculo (CashFlow)",
+                "icon": "fas fa-magic",
+                "path": "/gastos/oraculo-financiero",
+                "permiso": "ver_gastos"
             }
         ]
     }

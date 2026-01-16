@@ -188,3 +188,24 @@ El Valor: Una línea de tiempo que te dice: "El día 20 de este mes vas a tener 
 Impacto: Evitás quedarte sin "caja" para pagar sueldos o facturas críticas.
 
 
+
+
+
+
+1. "El Comprador Inteligente" (Auto-Restock Assistant) 🤖🛒
+Ya tenemos el "Oráculo de Stock" que predice cuándo se acaba la mercadería. Ahora vamos a darle "manos" a ese cerebro.
+La Lógica BI: El sistema agrupa todos los productos que el Oráculo marcó como "Críticos" o "Reponer pronto", filtrados por Proveedor.
+El Valor: Una pantalla donde el dueño elige un proveedor (ej: Minerva Srl) y el sistema le arma el Pedido Sugerido automáticamente: "Tenés que pedirle 20 Cocas y 10 Papas para cubrir los próximos 15 días".
+Acción Directa: Un botón que genera el texto del pedido y se lo manda por WhatsApp al proveedor en un segundo.
+Impacto: El dueño ahorra 2 horas de trabajo manual por día.
+2. "El Analista de Pasarelas" (Net Profit 2.0) 💳📉
+En Argentina, vender $100 en efectivo no es lo mismo que vender $100 por Mercado Pago o Tarjeta (por las comisiones y retenciones).
+La Lógica BI: El sistema permite configurar el % de comisión de cada método de pago (MP, Débito, Crédito).
+El Valor: En todos tus informes de ventas y rentabilidad, el sistema descuenta la comisión bancaria automáticamente.
+Impacto: El dueño sabe cuánta plata le queda limpia en el bolsillo después de que el banco le "muerda" su parte. Evitás la falsa sensación de ganancia.
+3. "Modo Wall Street" (TV Dashboard Mode) 📺🔥
+Este es para el "estatus" y control visual del local.
+La Lógica BI: Una vista especial del Dashboard diseñada para pantalla completa (monitor de 32' o 43' en la oficina o detrás del mostrador).
+El Valor: Gráficos que se actualizan solos cada 30 segundos (Socket.io), con alertas visuales cuando hay una "Venta de Oro" o cuando un indicador entra en rojo.
+Impacto: Control total sin tocar el mouse. El dueño mira la tele y sabe exactamente qué está pasando en su empresa en tiempo real.
+
