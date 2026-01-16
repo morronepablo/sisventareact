@@ -308,6 +308,13 @@
                 "permiso": "ver_compras"
             },
             {
+                "id": "asistente_compra",
+                "text": "Asistente de Compra",
+                "icon": "fas fa-robot",
+                "path": "/compras/asistente",
+                "permiso": "ver_compras"
+            },
+            {
                 "id": "listado",
                 "text": "Listado de Compras",
                 "icon": "fas fa-fw fa-list",

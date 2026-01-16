@@ -89,6 +89,7 @@ import ListadoOrdenes from "./pages/compras/ListadoOrdenes";
 import CrearOrdenCompra from "./pages/compras/CrearOrdenCompra";
 import VerOrdenCompra from "./pages/compras/VerOrdenCompra";
 import RecibirOrdenCompra from "./pages/compras/RecibirOrdenCompra";
+import AsistenteCompra2 from "./pages/compras/AsistenteCompra";
 
 // Clientes
 import ListadoClientes from "./pages/clientes/ListadoClientes";
@@ -339,6 +340,7 @@ const App = () => {
           path="/compras/ordenes/recibir/:id"
           element={<RecibirOrdenCompra />}
         />
+        <Route path="/compras/asistente" element={<AsistenteCompra2 />} />
 
         {/* Clientes */}
         <Route path="/clientes/listado" element={<ListadoClientes />} />
