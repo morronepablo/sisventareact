@@ -93,7 +93,7 @@ const NotificationsDropdown = () => {
         </div>
 
         <a href="/productos/listado" className="dropdown-item dropdown-footer">
-          Ver todos los productos
+          <b>Ver todos los productos</b>
         </a>
       </div>
 

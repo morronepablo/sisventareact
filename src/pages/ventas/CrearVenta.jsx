@@ -204,13 +204,12 @@ const CrearVenta = () => {
     if (parseFloat(pagos.billetera) > parseFloat(clienteSel.saldo_billetera))
       return Swal.fire("Error", "Saldo insuficiente en billetera", "error");
 
-    // 1. Mostrar Spinner de "Procesando"
     Swal.fire({
       title: "Procesando Venta...",
       text: "Estamos registrando la operación y actualizando el stock.",
       allowOutsideClick: false,
       didOpen: () => {
-        Swal.showLoading(); // Esto activa el spinner de SweetAlert2
+        Swal.showLoading();
       },
     });
 
@@ -242,18 +241,14 @@ const CrearVenta = () => {
       const res = await api.post("/ventas", payload);
 
       if (res.data.success) {
-        // 2. Cerramos el modal de pagos
         window.$("#modal-pagos").modal("hide");
 
-        // 3. ESPERA DE SEGURIDAD (700ms) para que impacte en DB
         await new Promise((resolve) => setTimeout(resolve, 700));
 
-        // 4. ACTUALIZAR NAVBAR (Ahora será instantáneo con el cambio en el dropdown)
         if (refreshAll) {
           await refreshAll();
         }
 
-        // 5. LÓGICA DE DESCARGA DE TICKET
         if (res.data.venta_id) {
           try {
             const response = await api.get(
@@ -275,7 +270,6 @@ const CrearVenta = () => {
           }
         }
 
-        // 6. MENSAJE DE ÉXITO (Esto reemplaza automáticamente al spinner de carga)
         await Swal.fire({
           position: "center",
           icon: "success",
@@ -285,7 +279,6 @@ const CrearVenta = () => {
           timer: 2000,
         });
 
-        // 7. RESETEO DE ESTADOS
         setPagos({
           efectivo: 0,
           tarjeta: 0,
@@ -306,13 +299,10 @@ const CrearVenta = () => {
         setCantidad(1);
         setEsCtaCte(false);
         setVueltoABilletera(false);
-
-        // 8. REFRESCAR TABLA ACTUAL
         fetchData();
       }
     } catch (e) {
       console.error(e);
-      // 9. Si hay error, cerramos el spinner y mostramos el error
       Swal.fire("Error", "Fallo al registrar la venta", "error");
     }
   };
@@ -344,7 +334,18 @@ const CrearVenta = () => {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [tmpVentas, totalPagado, totalFinal, vueltoFisico]);
+  }, [
+    tmpVentas,
+    totalPagado,
+    totalFinal,
+    vueltoFisico,
+    esCtaCte,
+    clienteSel,
+    pagos,
+    descPorcentaje,
+    descMonto,
+    vueltoABilletera,
+  ]); // 🚀 AGREGADO esCtaCte Y OTROS AQUÍ 🚀
 
   const addItem = async (codigoItem) => {
     try {

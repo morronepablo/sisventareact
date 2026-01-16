@@ -14,7 +14,6 @@ const CrearCompra = () => {
   const { user } = useAuth();
   const { refreshAll, arqueoAbierto } = useNotifications();
 
-  // URL dinámica según el entorno
   const API_URL =
     window.location.hostname === "localhost"
       ? "http://localhost:3001"
@@ -36,12 +35,10 @@ const CrearCompra = () => {
     },
   };
 
-  // --- ESTADOS ---
   const [productos, setProductos] = useState([]);
   const [proveedores, setProveedores] = useState([]);
   const [tmpCompras, setTmpCompras] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
-
   const [cantidad, setCantidad] = useState(1);
   const [codigo, setCodigo] = useState("");
   const [proveedorSeleccionado, setProveedorSeleccionado] = useState(null);
@@ -64,8 +61,6 @@ const CrearCompra = () => {
     banco: 0,
   });
 
-  // --- LÓGICA DE CARGA ---
-
   const fetchTmp = async () => {
     if (!user?.id) return;
     try {
@@ -85,7 +80,6 @@ const CrearCompra = () => {
   useEffect(() => {
     const inicializar = async () => {
       if (arqueoAbierto === null || !user) return;
-
       if (arqueoAbierto === false) {
         await Swal.fire({
           icon: "error",
@@ -97,7 +91,6 @@ const CrearCompra = () => {
         navigate("/compras/listado");
         return;
       }
-
       try {
         const [resP, resProv] = await Promise.all([
           api.get("/productos"),
@@ -114,50 +107,46 @@ const CrearCompra = () => {
     inicializar();
   }, [arqueoAbierto, user]);
 
-  // --- ACCIONES ---
-
   const handlePriceChange = async (id, nuevoPrecio) => {
-    // 1. Actualizamos el estado local inmediatamente para que el usuario pueda escribir
     const nuevasCompras = tmpCompras.map((item) => {
-      if (item.id === id) {
-        return { ...item, precio_compra: nuevoPrecio };
-      }
+      if (item.id === id) return { ...item, precio_compra: nuevoPrecio };
       return item;
     });
     setTmpCompras(nuevasCompras);
-
-    // 2. Calculamos el total nuevamente para que la UI se vea real
     const nuevoTotal = nuevasCompras.reduce(
       (acc, item) =>
         acc + parseFloat(item.cantidad) * parseFloat(item.precio_compra || 0),
       0
     );
     setFormData((prev) => ({ ...prev, precio_total: nuevoTotal }));
-
-    // 3. Enviamos al servidor en segundo plano (sin bloquear la escritura)
     try {
       await api.put(`/compras/tmp/price/${id}`, { precio_compra: nuevoPrecio });
     } catch (e) {
-      console.error("Error al guardar precio en servidor", e);
+      console.error("Error al guardar precio", e);
     }
   };
 
   const updateQty = async (id, currentQty, delta) => {
     const newQty = parseFloat(currentQty) + delta;
     if (newQty < 1) return;
-
     try {
       const res = await api.put(`/compras/tmp/${id}`, { cantidad: newQty });
-      if (res.data.success) {
-        fetchTmp();
-      }
+      if (res.data.success) fetchTmp();
     } catch (e) {
-      console.error(e);
       Swal.fire("Error", "No se pudo actualizar la cantidad", "error");
     }
   };
 
   const addItem = async (codigoItem) => {
+    // 🚀 LÓGICA BI: Obligamos a elegir proveedor antes para comparar precios
+    if (!proveedorSeleccionado) {
+      return Swal.fire(
+        "Atención",
+        "Primero seleccione un Proveedor para auditar los precios de costo.",
+        "warning"
+      );
+    }
+
     try {
       const p = productos.find((x) => x.codigo === codigoItem);
       if (p) {
@@ -165,6 +154,7 @@ const CrearCompra = () => {
           producto_id: p.id,
           cantidad: parseFloat(cantidad),
           usuario_id: user.id,
+          proveedor_id: proveedorSeleccionado.id, // 👈 Enviamos proveedor al backend
         });
         if (res.data.success) {
           setCodigo("");
@@ -188,7 +178,6 @@ const CrearCompra = () => {
       return Swal.fire("Error", "Seleccione un proveedor", "error");
     if (!formData.comprobante || !formData.numero)
       return Swal.fire("Error", "Complete los datos del comprobante", "error");
-
     try {
       const payload = {
         ...formData,
@@ -196,7 +185,7 @@ const CrearCompra = () => {
         id_proveedor: proveedorSeleccionado.id,
         usuario_id: user.id,
         empresa_id: user.empresa_id,
-        actualizar_precios: true, // 👈 Flag para que el backend recalcule venta
+        actualizar_precios: true,
       };
       const response = await api.post("/compras", payload);
       if (response.data.success) {
@@ -206,7 +195,7 @@ const CrearCompra = () => {
         await Swal.fire({
           icon: "success",
           title: "¡Éxito!",
-          text: "Compra registrada. Los precios de venta se han ajustado automáticamente.",
+          text: "Compra registrada correctamente.",
           showConfirmButton: false,
           timer: 2000,
         });
@@ -307,77 +296,104 @@ const CrearCompra = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {tmpCompras.map((it, i) => (
-                          <tr key={it.id}>
-                            <td className="text-center align-middle">
-                              {i + 1}
-                            </td>
-                            <td className="text-center align-middle">
-                              {it.codigo}
-                            </td>
-                            <td className="text-center align-middle">
-                              <div className="btn-group btn-group-sm">
-                                <button
-                                  className="btn btn-outline-secondary btn-xs"
-                                  onClick={() =>
-                                    updateQty(it.id, it.cantidad, -1)
-                                  }
-                                  disabled={it.cantidad <= 1}
-                                >
-                                  <i className="fas fa-minus"></i>
-                                </button>
-                                <span className="px-2 font-weight-bold">
-                                  {it.cantidad}
-                                </span>
-                                <button
-                                  className="btn btn-outline-secondary btn-xs"
-                                  onClick={() =>
-                                    updateQty(it.id, it.cantidad, 1)
-                                  }
-                                >
-                                  <i className="fas fa-plus"></i>
-                                </button>
-                              </div>
-                            </td>
-                            <td className="align-middle">{it.nombre}</td>
+                        {tmpCompras.map((it, i) => {
+                          // 🚀 LÓGICA BI: Detectar Traición (Aumento > 10%)
+                          const pAnt = parseFloat(it.precio_anterior || 0);
+                          const pAct = parseFloat(it.precio_compra || 0);
+                          const aumento =
+                            pAnt > 0 ? ((pAct - pAnt) / pAnt) * 100 : 0;
+                          const esTraicion = aumento > 10;
 
-                            {/* 🚀 COSTO UNITARIO EDITABLE EN GRILLA 🚀 */}
-                            <td
-                              className="text-right align-middle"
-                              style={{ width: "130px" }}
+                          return (
+                            <tr
+                              key={it.id}
+                              className={
+                                esTraicion
+                                  ? "bg-light-danger animate__animated animate__headShake"
+                                  : ""
+                              }
                             >
-                              <input
-                                type="number"
-                                className="form-control form-control-sm text-right font-weight-bold"
-                                step="0.01"
-                                value={it.precio_compra} // Vinculado al estado local
-                                onChange={(e) =>
-                                  handlePriceChange(it.id, e.target.value)
-                                }
-                                onFocus={(e) => e.target.select()} // Selecciona todo al hacer clic para facilitar edición
-                              />
-                            </td>
-
-                            <td className="text-right align-middle text-bold">
-                              ${" "}
-                              {(it.cantidad * it.precio_compra).toLocaleString(
-                                "es-AR",
-                                { minimumFractionDigits: 2 }
-                              )}
-                            </td>
-                            <td className="text-center align-middle">
-                              <button
-                                className="btn btn-danger btn-sm"
-                                onClick={async () => {
-                                  await api.delete(`/compras/tmp/${it.id}`);
-                                  fetchTmp();
-                                }}
+                              <td className="text-center align-middle">
+                                {i + 1}
+                              </td>
+                              <td className="text-center align-middle">
+                                {it.codigo}
+                              </td>
+                              <td className="text-center align-middle">
+                                <div className="btn-group btn-group-sm">
+                                  <button
+                                    className="btn btn-outline-secondary btn-xs"
+                                    onClick={() =>
+                                      updateQty(it.id, it.cantidad, -1)
+                                    }
+                                    disabled={it.cantidad <= 1}
+                                  >
+                                    <i className="fas fa-minus"></i>
+                                  </button>
+                                  <span className="px-2 font-weight-bold">
+                                    {it.cantidad}
+                                  </span>
+                                  <button
+                                    className="btn btn-outline-secondary btn-xs"
+                                    onClick={() =>
+                                      updateQty(it.id, it.cantidad, 1)
+                                    }
+                                  >
+                                    <i className="fas fa-plus"></i>
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="align-middle">
+                                <b>{it.nombre}</b>
+                                {esTraicion && (
+                                  <div className="text-danger small font-weight-bold mt-1">
+                                    <i className="fas fa-exclamation-triangle"></i>{" "}
+                                    ¡OJO! Subió un {aumento.toFixed(1)}% (Antes:
+                                    ${pAnt})
+                                  </div>
+                                )}
+                              </td>
+                              <td
+                                className="text-right align-middle"
+                                style={{ width: "130px" }}
                               >
-                                <i className="fas fa-trash"></i>
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
+                                <input
+                                  type="number"
+                                  className={`form-control form-control-sm text-right font-weight-bold ${
+                                    esTraicion
+                                      ? "is-invalid text-danger"
+                                      : "text-success"
+                                  }`}
+                                  step="0.01"
+                                  value={it.precio_compra}
+                                  onChange={(e) =>
+                                    handlePriceChange(it.id, e.target.value)
+                                  }
+                                  onFocus={(e) => e.target.select()}
+                                />
+                              </td>
+                              <td className="text-right align-middle text-bold">
+                                $
+                                {(
+                                  it.cantidad * it.precio_compra
+                                ).toLocaleString("es-AR", {
+                                  minimumFractionDigits: 2,
+                                })}
+                              </td>
+                              <td className="text-center align-middle">
+                                <button
+                                  className="btn btn-danger btn-sm"
+                                  onClick={async () => {
+                                    await api.delete(`/compras/tmp/${it.id}`);
+                                    fetchTmp();
+                                  }}
+                                >
+                                  <i className="fas fa-trash"></i>
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                       <tfoot>
                         <tr className="bg-light">
@@ -672,6 +688,12 @@ const CrearCompra = () => {
           </div>
         </div>
       </div>
+
+      {/* 🚀 ESTILOS PARA LA ANIMACIÓN DE TRAICIÓN 🚀 */}
+      <style>{`
+        .bg-light-danger { background-color: rgba(220, 53, 69, 0.1) !important; }
+        .is-invalid { border-color: #dc3545 !important; }
+      `}</style>
     </div>
   );
 };

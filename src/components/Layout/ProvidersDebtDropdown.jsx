@@ -35,7 +35,6 @@ const ProvidersDebtDropdown = () => {
         )}
       </a>
 
-      {/* Ajuste de ancho aquí: minWidth: "350px" */}
       <div
         className="dropdown-menu dropdown-menu-lg dropdown-menu-right"
         style={{ minWidth: "380px", padding: "0" }}
@@ -45,9 +44,14 @@ const ProvidersDebtDropdown = () => {
         </span>
         <div className="dropdown-divider"></div>
 
+        {/* CONTENEDOR CON SCROLL CONFIGURADO A 260px */}
         <div
-          className="dropdown-scroll"
-          style={{ maxHeight: "300px", overflowY: "auto" }}
+          className="providers-debt-scroll-container"
+          style={{
+            maxHeight: "160px",
+            overflowY: "auto",
+            overflowX: "hidden",
+          }}
         >
           {providersWithDebt.length === 0 ? (
             <div className="dropdown-item text-center py-3">
@@ -77,7 +81,7 @@ const ProvidersDebtDropdown = () => {
                       className="text-bold text-danger"
                       style={{ whiteSpace: "nowrap" }}
                     >
-                      ${" "}
+                      $
                       {parseFloat(p.deuda).toLocaleString("es-AR", {
                         minimumFractionDigits: 2,
                       })}
@@ -91,14 +95,13 @@ const ProvidersDebtDropdown = () => {
         </div>
 
         {count > 0 && (
-          <div className="dropdown-item text-center bg-gray-light py-2">
+          <div className="dropdown-item d-flex justify-content-between align-items-center bg-warning py-2 px-3 text-white border-top border-bottom">
             <span className="text-muted">Deuda acumulada: </span>
             <span
               className="text-bold text-danger"
               style={{ fontSize: "1.1rem" }}
             >
-              ${" "}
-              {totalDebt.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+              ${totalDebt.toLocaleString("es-AR", { minimumFractionDigits: 2 })}
             </span>
           </div>
         )}
@@ -112,14 +115,16 @@ const ProvidersDebtDropdown = () => {
         </Link>
       </div>
 
-      {/* Estilo para el scrollbar fino */}
       <style>{`
-        .dropdown-scroll::-webkit-scrollbar {
-          width: 5px;
+        .providers-debt-scroll-container::-webkit-scrollbar {
+          width: 6px;
         }
-        .dropdown-scroll::-webkit-scrollbar-thumb {
+        .providers-debt-scroll-container::-webkit-scrollbar-thumb {
           background: #ccc;
           border-radius: 10px;
+        }
+        .providers-debt-scroll-container::-webkit-scrollbar-thumb:hover {
+          background: #b3b3b3;
         }
       `}</style>
     </li>

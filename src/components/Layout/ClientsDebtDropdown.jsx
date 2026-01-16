@@ -44,9 +44,14 @@ const ClientsDebtDropdown = () => {
         </span>
         <div className="dropdown-divider"></div>
 
+        {/* CONTENEDOR CON SCROLL CONFIGURADO A 260px */}
         <div
-          className="dropdown-scroll"
-          style={{ maxHeight: "300px", overflowY: "auto" }}
+          className="clients-debt-scroll-container"
+          style={{
+            maxHeight: "160px",
+            overflowY: "auto",
+            overflowX: "hidden",
+          }}
         >
           {clientsWithDebt.length === 0 ? (
             <div className="dropdown-item text-center py-3">
@@ -88,7 +93,7 @@ const ClientsDebtDropdown = () => {
         </div>
 
         {count > 0 && (
-          <div className="dropdown-item text-center bg-gray-light py-2">
+          <div className="dropdown-item d-flex justify-content-between align-items-center bg-warning py-2 px-3 text-white border-top border-bottom">
             <span className="text-muted">Deuda Total: </span>
             <span
               className="text-bold text-danger"
@@ -107,6 +112,19 @@ const ClientsDebtDropdown = () => {
           <b>Ver todos los clientes</b>
         </Link>
       </div>
+
+      <style>{`
+        .clients-debt-scroll-container::-webkit-scrollbar {
+          width: 6px;
+        }
+        .clients-debt-scroll-container::-webkit-scrollbar-thumb {
+          background: #ccc;
+          border-radius: 10px;
+        }
+        .clients-debt-scroll-container::-webkit-scrollbar-thumb:hover {
+          background: #b3b3b3;
+        }
+      `}</style>
     </li>
   );
 };
