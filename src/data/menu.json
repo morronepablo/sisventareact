@@ -264,7 +264,7 @@
             },
             {
                 "id": "indice_cumplimiento",
-                "text": "Índice de Cumplimiento",
+                "text": "Semáforo Cumplimiento",
                 "icon": "fas fa-check-double",
                 "path": "/proveedores/cumplimiento"
             },

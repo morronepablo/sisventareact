@@ -71,6 +71,7 @@ import MovimientosProveedor from "./pages/proveedores/MovimientosProveedor";
 import InformeCuentasPorPagar from "./pages/proveedores/informes/InformeCuentasPorPagar";
 import RankingProveedoresBI from "./pages/proveedores/RankingProveedoresBI";
 import RadarInflacion from "./pages/proveedores/RadarInflacion";
+import SemaforoCumplimiento from "./pages/proveedores/SemaforoCumplimiento";
 
 // Compras
 import ListadoCompras from "./pages/compras/ListadoCompras";
@@ -286,6 +287,10 @@ const App = () => {
         <Route
           path="/proveedores/radar-inflacion"
           element={<RadarInflacion />}
+        />
+        <Route
+          path="/proveedores/cumplimiento"
+          element={<SemaforoCumplimiento />}
         />
 
         {/* Compras */}
