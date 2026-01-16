@@ -436,9 +436,16 @@
             },
             {
                 "id": "auditoria_tickets",
-                "text": "Auditor de Tickets (BI)",
+                "text": "Auditor de Tickets",
                 "icon": "fas fa-user-shield",
                 "path": "/ventas/auditoria",
+                "permiso": "ver_ventas"
+            },
+            {
+                "id": "podio_vendedores",
+                "text": "Podio de Vendedores",
+                "icon": "fas fa-trophy",
+                "path": "/ventas/podio",
                 "permiso": "ver_ventas"
             },
             {

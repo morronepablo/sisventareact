@@ -122,6 +122,7 @@ import Rentabilidad from "./pages/ventas/informes/Rentabilidad";
 import EstadoResultados from "./pages/ventas/informes/EstadoResultados";
 import MapaTesoro from "./pages/ventas/informes/MapaTesoro";
 import AnalistaPasarelas from "./pages/ventas/informes/AnalistaPasarelas";
+import PodioVendedores from "./pages/ventas/PodioVendedores";
 
 // Arqueos
 import ListadoArqueos from "./pages/arqueos/ListadoArqueos";
@@ -377,6 +378,7 @@ const App = () => {
         <Route path="/ventas/crear" element={<CrearVenta />} />
         <Route path="/ventas/ver/:id" element={<VerVenta />} />
         <Route path="/ventas/auditoria" element={<AuditorIntegridad />} />
+        <Route path="/ventas/podio" element={<PodioVendedores />} />
         <Route
           path="/ventas/informes/productos"
           element={<InformeProductosVentas />}
