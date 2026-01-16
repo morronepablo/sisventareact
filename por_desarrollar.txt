@@ -176,11 +176,6 @@ Impacto: Te obliga a diversificar proveedores para que el negocio no sea un reh�
 
 
 
-1. "El Alquimista de Combos" (Market Basket Analysis) 🧪🍔
-¿Sabías que en los supermercados se descubrió que los hombres que compran pañales los viernes suelen comprar también cerveza?
-La Lógica BI: El sistema barre todos tus tickets de venta buscando productos que se compran juntos con frecuencia.
-El Valor: El sistema te sugiere: "Che, detectamos que el 70% de los que compran 'Galletitas Urquiza' también llevan 'Jugo Minerva'. Armá un combo o ponelos cerca en el estante".
-Impacto: Subís el Ticket Promedio (hacés que cada cliente gaste más plata antes de irse).
 2. "El Mapa del Tesoro" (Heatmap Operativo) 🗺️⏱️
 ¿Realmente vale la pena tener abierto el local los martes a las 3 de la tarde?
 La Lógica BI: Cruza el volumen de ventas con el día de la semana y la hora exacta.

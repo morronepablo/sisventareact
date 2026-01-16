@@ -482,6 +482,13 @@
                         "icon": "fas fa-file-invoice-dollar",
                         "path": "/ventas/informes/estado-resultados",
                         "permiso": "ver_ventas"
+                    },
+                    {
+                        "id": "heatmap_ventas",
+                        "text": "Mapa del Tesoro",
+                        "icon": "fas fa-map-marked-alt",
+                        "path": "/ventas/informes/mapa-tesoro",
+                        "permiso": "ver_ventas"
                     }
                 ]
             }
