@@ -496,6 +496,13 @@
                         "icon": "fas fa-map-marked-alt",
                         "path": "/ventas/informes/mapa-tesoro",
                         "permiso": "ver_ventas"
+                    },
+                    {
+                        "id": "analista_pasarelas",
+                        "text": "Analista de Pasarelas",
+                        "icon": "fas fa-university",
+                        "path": "/ventas/informes/analista-pasarelas",
+                        "permiso": "ver_ventas"
                     }
                 ]
             }

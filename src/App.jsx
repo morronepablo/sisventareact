@@ -121,6 +121,7 @@ import DetalleInformeMovimientoStock from "./pages/ventas/informes/DetalleInform
 import Rentabilidad from "./pages/ventas/informes/Rentabilidad";
 import EstadoResultados from "./pages/ventas/informes/EstadoResultados";
 import MapaTesoro from "./pages/ventas/informes/MapaTesoro";
+import AnalistaPasarelas from "./pages/ventas/informes/AnalistaPasarelas";
 
 // Arqueos
 import ListadoArqueos from "./pages/arqueos/ListadoArqueos";
@@ -414,6 +415,10 @@ const App = () => {
           element={<EstadoResultados />}
         />
         <Route path="/ventas/informes/mapa-tesoro" element={<MapaTesoro />} />
+        <Route
+          path="/ventas/informes/analista-pasarelas"
+          element={<AnalistaPasarelas />}
+        />
 
         {/* Arqueos */}
         <Route path="/arqueos/listado" element={<ListadoArqueos />} />
