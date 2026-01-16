@@ -294,6 +294,13 @@
         "permiso": "ver_compras",
         "children": [
             {
+                "id": "ordenes_compra",
+                "text": "Ordenes de Compra",
+                "icon": "fas fa-file-invoice",
+                "path": "/compras/ordenes",
+                "permiso": "ver_compras"
+            },
+            {
                 "id": "listado",
                 "text": "Listado de Compras",
                 "icon": "fas fa-fw fa-list",

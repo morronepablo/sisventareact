@@ -83,6 +83,10 @@ import DetalleInformeProveedores from "./pages/compras/informes/DetalleInformePr
 import InformeNoPagadas from "./pages/compras/informes/InformeNoPagadas";
 import DetalleInformeNoPagadas from "./pages/compras/informes/DetalleInformeNoPagadas";
 import AuditoriaTraicion from "./pages/compras/AuditoriaTraicion";
+import ListadoOrdenes from "./pages/compras/ListadoOrdenes";
+import CrearOrdenCompra from "./pages/compras/CrearOrdenCompra";
+import VerOrdenCompra from "./pages/compras/VerOrdenCompra";
+import RecibirOrdenCompra from "./pages/compras/RecibirOrdenCompra";
 
 // Clientes
 import ListadoClientes from "./pages/clientes/ListadoClientes";
@@ -285,6 +289,7 @@ const App = () => {
         />
 
         {/* Compras */}
+        <Route path="/compras/ordenes" element={<ListadoOrdenes />} />
         <Route path="/compras/listado" element={<ListadoCompras />} />
         <Route path="/compras/crear" element={<CrearCompra />} />
         <Route path="/compras/ver/:id" element={<VerCompra />} />
@@ -315,6 +320,12 @@ const App = () => {
         <Route
           path="/compras/informes/no-pagadas/detalle"
           element={<DetalleInformeNoPagadas />}
+        />
+        <Route path="/compras/ordenes/crear" element={<CrearOrdenCompra />} />
+        <Route path="/compras/ordenes/ver/:id" element={<VerOrdenCompra />} />
+        <Route
+          path="/compras/ordenes/recibir/:id"
+          element={<RecibirOrdenCompra />}
         />
 
         {/* Clientes */}
