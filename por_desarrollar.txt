@@ -209,3 +209,25 @@ La Lógica BI: Una vista especial del Dashboard diseñada para pantalla completa
 El Valor: Gráficos que se actualizan solos cada 30 segundos (Socket.io), con alertas visuales cuando hay una "Venta de Oro" o cuando un indicador entra en rojo.
 Impacto: Control total sin tocar el mouse. El dueño mira la tele y sabe exactamente qué está pasando en su empresa en tiempo real.
 
+
+
+
+
+1. "El Simulador de Precios BI" (The Inflation Shield) 🛡️💵
+En Argentina, el dueño vive con la duda: ¿Si aumento un 10%, cuánto más gano? ¿Y si el proveedor me aumenta un 15% y yo no toco el precio, cuánto pierdo?
+La Lógica BI: Una pantalla con un "Slider" (una barrita) donde el dueño mueve el % de aumento proyectado.
+El Valor: El sistema recalcula en tiempo real toda tu ganancia proyectada del mes basándose en el volumen de ventas histórico.
+Impacto: El dueño puede ver: "Si aumento el 8%, mi ganancia neta sube $50.000 pero mi competitividad baja". Es jugar al ajedrez con los precios antes de cambiarlos.
+2. "El Podio de Vendedores" (Gamification Module) 🏆🎖️
+El personal rinde más cuando tiene objetivos claros y visuales.
+La Lógica BI: El sistema crea un ranking en tiempo real de los cajeros/vendedores basado en 3 métricas: Monto Total, Ticket Promedio y Cantidad de Ítems por venta.
+El Valor: Una visual de podio (Oro, Plata, Bronce).
+Impacto: Fomenta la competencia sana. El dueño puede decir: "Al que tenga el ticket promedio más alto a fin de mes, le doy un premio". Esto sube las ventas automáticamente.
+3. "Alerta de Traición" (Supplier Anomaly Detection) ⚠️🕵️
+A veces los proveedores te cambian el precio de un producto "en el medio" de la factura y no te das cuenta.
+La Lógica BI: Al cargar una compra, el sistema detecta si el precio unitario de este ítem es mayor al de la última factura de este mismo proveedor.
+El Valor: Un cartel rojo al momento de cargar la mercadería: "¡OJO! Este producto subió un 22% desde la última vez".
+Impacto: El dueño puede frenar la carga, llamar al proveedor y reclamar el precio en el momento, no un mes después cuando ya perdió la plata
+
+
+
