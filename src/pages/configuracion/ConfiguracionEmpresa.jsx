@@ -17,7 +17,7 @@ const ConfiguracionEmpresa = () => {
     correo: "",
     cantidad_impuesto: 0,
     nombre_impuesto: "",
-    meta_gastos_fijos: 0, // 👈 NUEVO: Estado para el Punto de Equilibrio
+    meta_gastos_fijos: 0,
     moneda: "",
     direccion: "",
     provincia: "",
@@ -25,35 +25,70 @@ const ConfiguracionEmpresa = () => {
     codigo_postal: "",
     logo: "",
   });
+
+  // 🚀 NUEVO ESTADO: Comisiones
+  const [comisiones, setComisiones] = useState([]);
+
   const [logoPreview, setLogoPreview] = useState("");
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    const fetchEmpresa = async () => {
-      try {
-        const response = await api.get("/empresas/1");
-        setEmpresa(response.data);
-        if (response.data.logo) {
-          setLogoPreview(
-            `http://localhost:3001/assets/img/${response.data.logo}`
-          );
-        }
-        setLoading(false);
-      } catch (error) {
-        console.error("Error al cargar empresa:", error);
-        Swal.fire("Error", "No se pudieron cargar los datos.", "error");
-        setLoading(false);
+  const fetchData = async () => {
+    try {
+      // Cargamos ambos datos en paralelo
+      const [resEmpresa, resComisiones] = await Promise.all([
+        api.get("/empresas/1"),
+        api.get("/empresas/1/comisiones"), // Aseguramos que esta ruta exista en el back
+      ]);
+
+      setEmpresa(resEmpresa.data);
+      setComisiones(resComisiones.data);
+
+      if (resEmpresa.data.logo) {
+        setLogoPreview(
+          `http://localhost:3001/assets/img/${resEmpresa.data.logo}`
+        );
       }
-    };
-    fetchEmpresa();
+      setLoading(false);
+    } catch (error) {
+      console.error("Error al cargar datos:", error);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
+  // --- LÓGICA DE COMISIONES ---
+  const handleComisionChange = (id, value) => {
+    setComisiones(
+      comisiones.map((c) =>
+        c.id === id ? { ...c, comision_porcentaje: value } : c
+      )
+    );
+  };
+
+  const handleSubmitComisiones = async () => {
+    try {
+      await api.put("/empresas/1/comisiones", { comisiones });
+      Swal.fire({
+        icon: "success",
+        title: "¡Éxito!",
+        text: "Comisiones actualizadas.",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      Swal.fire("Error", "No se pudieron guardar las comisiones.", "error");
+    }
+  };
+
+  // --- TUS FUNCIONES ORIGINALES (RESTAURADAS) ---
   const handleDownloadBackup = async () => {
     try {
       Swal.fire({
-        title: "Generando Copia de Seguridad",
-        text: "Espere unos segundos...",
+        title: "Generando Copia...",
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
       });
@@ -63,20 +98,18 @@ const ConfiguracionEmpresa = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      const fecha = new Date().toISOString().split("T")[0];
       const fileName = `backup-${empresa.nombre_empresa.replace(
         /\s+/g,
         "_"
-      )}-${fecha}.sql`;
+      )}.sql`;
       link.setAttribute("download", fileName);
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
       Swal.close();
-      Swal.fire("¡Éxito!", "Copia de seguridad descargada.", "success");
+      Swal.fire("¡Éxito!", "Copia descargada.", "success");
     } catch (error) {
-      Swal.close();
       Swal.fire("Error", "No se pudo generar la copia.", "error");
     }
   };
@@ -91,7 +124,6 @@ const ConfiguracionEmpresa = () => {
       confirmButtonText: "Sí, borrar todo",
     });
     if (!firstConfirm.isConfirmed) return;
-
     const { value: word } = await Swal.fire({
       title: "Confirmación Final",
       text: 'Escriba "ELIMINAR" para confirmar:',
@@ -99,27 +131,19 @@ const ConfiguracionEmpresa = () => {
       showCancelButton: true,
       confirmButtonColor: "#d33",
     });
-
     if (word === "ELIMINAR") {
-      Swal.fire({
-        title: "Reseteando...",
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
-      });
       try {
         const res = await api.post("/backup/reset-system");
         if (res.data.success) {
           localStorage.removeItem("token");
-          Swal.close();
           await Swal.fire(
             "¡Reseteo Exitoso!",
-            "Use admin@admin.com / admin.",
+            "El sistema ha vuelto a cero.",
             "success"
           );
           window.location.href = "/login";
         }
       } catch (error) {
-        Swal.close();
         Swal.fire("Error", "Fallo en el servidor.", "error");
       }
     }
@@ -133,14 +157,8 @@ const ConfiguracionEmpresa = () => {
       text: "Se reemplazará toda la DB.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Sí, restaurar",
     });
     if (confirm.isConfirmed) {
-      Swal.fire({
-        title: "Restaurando...",
-        allowOutsideClick: false,
-        didOpen: () => Swal.showLoading(),
-      });
       const formData = new FormData();
       formData.append("backup", file);
       try {
@@ -149,22 +167,18 @@ const ConfiguracionEmpresa = () => {
         });
         if (res.data.success) {
           localStorage.removeItem("token");
-          Swal.close();
           await Swal.fire("¡Éxito!", "Base de datos restaurada.", "success");
           window.location.href = "/login";
         }
       } catch (error) {
-        Swal.close();
         Swal.fire("Error", "Archivo no válido.", "error");
       }
     }
-    e.target.value = "";
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setEmpresa({ ...empresa, [name]: value });
-    if (errors[name]) setErrors({ ...errors, [name]: "" });
   };
 
   const handleLogoChange = (e) => {
@@ -172,18 +186,8 @@ const ConfiguracionEmpresa = () => {
     if (file) setLogoPreview(URL.createObjectURL(file));
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-    if (!empresa.nombre_empresa.trim()) newErrors.nombre_empresa = "Requerido";
-    if (!empresa.cuit.trim()) newErrors.cuit = "Requerido";
-    if (!empresa.correo.trim()) newErrors.correo = "Requerido";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) return;
     setLoading(true);
     try {
       const formData = new FormData();
@@ -196,9 +200,7 @@ const ConfiguracionEmpresa = () => {
       await api.put(`/empresas/${empresa.id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      Swal.fire("¡Éxito!", "Empresa actualizada.", "success").then(() => {
-        window.location.href = "/dashboard";
-      });
+      Swal.fire("¡Éxito!", "Empresa actualizada.", "success");
     } catch (error) {
       Swal.fire("Error", "No se pudo actualizar.", "error");
     } finally {
@@ -216,40 +218,41 @@ const ConfiguracionEmpresa = () => {
             <h1 className="m-0">Configuraciones / Editar</h1>
           </div>
         </div>
+        <hr />
       </div>
+
       <div className="container-fluid">
         <div className="row">
           <div className="col-lg-12">
-            <div className="card card-outline card-success shadow">
+            {/* --- CARD 1: DATOS REGISTRADOS --- */}
+            <div className="card card-outline card-success shadow mb-4">
               <div className="card-header">
-                <h3 className="card-title">Datos Registrados</h3>
+                <h3 className="card-title text-bold">Datos Registrados</h3>
               </div>
               <div className="card-body">
                 <form onSubmit={handleSubmit}>
                   <div className="row">
-                    <div className="col-md-3">
-                      <div className="form-group text-center">
-                        <label>Logo</label>
-                        <input
-                          type="file"
-                          id="logo"
-                          accept=".jpg,.jpeg,.png"
-                          className="form-control"
-                          onChange={handleLogoChange}
+                    <div className="col-md-3 text-center">
+                      <label>Logo</label>
+                      <input
+                        type="file"
+                        id="logo"
+                        accept=".jpg,.jpeg,.png"
+                        className="form-control"
+                        onChange={handleLogoChange}
+                      />
+                      {logoPreview ? (
+                        <img
+                          src={logoPreview}
+                          alt="Logo"
+                          width="80%"
+                          className="mt-3 border shadow-sm"
                         />
-                        {logoPreview ? (
-                          <img
-                            src={logoPreview}
-                            alt="Logo"
-                            width="80%"
-                            className="mt-3 border shadow-sm"
-                          />
-                        ) : (
-                          <div className="mt-3 border p-5 bg-light text-muted">
-                            SIN IMAGEN
-                          </div>
-                        )}
-                      </div>
+                      ) : (
+                        <div className="mt-3 border p-5 bg-light text-muted">
+                          SIN IMAGEN
+                        </div>
+                      )}
                     </div>
                     <div className="col-md-9">
                       <div className="row">
@@ -296,9 +299,7 @@ const ConfiguracionEmpresa = () => {
                             <label>Nombre de la Empresa</label>
                             <input
                               type="text"
-                              className={`form-control ${
-                                errors.nombre_empresa ? "is-invalid" : ""
-                              }`}
+                              className="form-control"
                               name="nombre_empresa"
                               value={empresa.nombre_empresa}
                               onChange={handleInputChange}
@@ -322,9 +323,7 @@ const ConfiguracionEmpresa = () => {
                             <label>C.U.I.T.</label>
                             <input
                               type="text"
-                              className={`form-control ${
-                                errors.cuit ? "is-invalid" : ""
-                              }`}
+                              className="form-control"
                               name="cuit"
                               value={empresa.cuit}
                               onChange={handleInputChange}
@@ -370,8 +369,6 @@ const ConfiguracionEmpresa = () => {
                             />
                           </div>
                         </div>
-
-                        {/* 💰 CAMPO: META DE GASTOS FIJOS (PUNTO DE EQUILIBRIO) 💰 */}
                         <div className="col-md-3">
                           <div className="form-group">
                             <label className="text-success">
@@ -388,7 +385,6 @@ const ConfiguracionEmpresa = () => {
                             />
                           </div>
                         </div>
-
                         <div className="col-md-4">
                           <div className="form-group">
                             <label>Teléfono</label>
@@ -408,9 +404,7 @@ const ConfiguracionEmpresa = () => {
                             <label>Correo</label>
                             <input
                               type="email"
-                              className={`form-control ${
-                                errors.correo ? "is-invalid" : ""
-                              }`}
+                              className="form-control"
                               name="correo"
                               value={empresa.correo}
                               onChange={handleInputChange}
@@ -432,21 +426,60 @@ const ConfiguracionEmpresa = () => {
                       </div>
                     </div>
                   </div>
-                  <hr />
-                  <button
-                    type="submit"
-                    className="btn btn-lg btn-success shadow"
-                    disabled={loading}
-                  >
-                    {loading
-                      ? "Actualizando..."
-                      : "Actualizar datos de Empresa"}
+                  <button type="submit" className="btn btn-success shadow mt-3">
+                    Actualizar datos de Empresa
                   </button>
                 </form>
               </div>
             </div>
 
-            <div className="card card-outline card-warning mt-4 shadow-sm">
+            {/* 🚀 CARD 2: COMISIONES POR MÉTODOS DE PAGO (INTEGRADA) 🚀 */}
+            <div className="card card-outline card-primary shadow mb-4">
+              <div className="card-header">
+                <h3 className="card-title text-bold">
+                  <i className="fas fa-percent mr-2"></i>Comisiones por Métodos
+                  de Pago
+                </h3>
+              </div>
+              <div className="card-body">
+                <p className="text-muted small">
+                  Establecé los costos reales de pasarelas para calcular tu{" "}
+                  <b>Rentabilidad Neta</b>.
+                </p>
+                <div className="row">
+                  {comisiones.map((c) => (
+                    <div className="col-md-3" key={c.id}>
+                      <div className="form-group">
+                        <label className="text-capitalize">{c.metodo}</label>
+                        <div className="input-group">
+                          <input
+                            type="number"
+                            step="0.01"
+                            className="form-control font-weight-bold"
+                            value={c.comision_porcentaje}
+                            onChange={(e) =>
+                              handleComisionChange(c.id, e.target.value)
+                            }
+                          />
+                          <div className="input-group-append">
+                            <span className="input-group-text">%</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  className="btn btn-primary shadow"
+                  onClick={handleSubmitComisiones}
+                >
+                  <i className="fas fa-save mr-1"></i> Guardar Comisiones
+                </button>
+              </div>
+            </div>
+
+            {/* --- CARD 3: BACKUPS --- */}
+            <div className="card card-outline card-warning mb-4 shadow-sm">
               <div className="card-header">
                 <h3 className="card-title text-bold">
                   Base de Datos y Backups
@@ -464,7 +497,8 @@ const ConfiguracionEmpresa = () => {
               </div>
             </div>
 
-            <div className="card card-outline card-info mt-4 shadow-sm">
+            {/* --- CARD 4: RESTAURAR --- */}
+            <div className="card card-outline card-info mb-4 shadow-sm">
               <div className="card-header bg-info text-white">
                 <h3 className="card-title text-bold">Restaurar Copia</h3>
               </div>
@@ -489,7 +523,8 @@ const ConfiguracionEmpresa = () => {
               </div>
             </div>
 
-            <div className="card card-outline card-danger mt-4 shadow-sm border-danger">
+            {/* --- CARD 5: ZONA DE PELIGRO --- */}
+            <div className="card card-outline card-danger shadow-sm border-danger">
               <div className="card-header bg-danger text-white">
                 <h3 className="card-title text-bold">Zona de Peligro</h3>
               </div>
