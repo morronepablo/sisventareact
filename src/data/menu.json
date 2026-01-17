@@ -171,6 +171,13 @@
                 "permiso": "ver_productos"
             },
             {
+                "id": "equity_shield",
+                "text": "Patrimonio Real (USD)",
+                "icon": "fas fa-shield-alt",
+                "path": "/productos/equity-shield",
+                "permiso": "ver_productos"
+            },
+            {
                 "id": "cementerio_mercaderia",
                 "text": "El Cementerio (BI)",
                 "icon": "fas fa-monument",

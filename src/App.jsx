@@ -61,6 +61,7 @@ import TermometroVentas from "./pages/productos/TermometroVentas";
 import OraculoStock from "./pages/productos/OraculoStock";
 import CementerioStock from "./pages/productos/CementerioStock";
 import LucroCesante from "./pages/productos/LucroCesante";
+import EquityShield from "./pages/productos/EquityShield";
 
 // Proveedores
 import ListadoProveedores from "./pages/proveedores/ListadoProveedores";
@@ -276,6 +277,7 @@ const App = () => {
         <Route path="/productos/oraculo" element={<OraculoStock />} />
         <Route path="/productos/cementerio" element={<CementerioStock />} />
         <Route path="/productos/lucro-cesante" element={<LucroCesante />} />
+        <Route path="/productos/equity-shield" element={<EquityShield />} />
 
         {/* Proveedores */}
         <Route path="/proveedores/listado" element={<ListadoProveedores />} />
