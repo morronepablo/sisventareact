@@ -1,5 +1,5 @@
 // src/pages/proveedores/MatrizDependencia.jsx
-/* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -12,6 +12,23 @@ const MatrizDependencia = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const spanishLanguage = {
+    processing: "Procesando...",
+    search: "Buscar:",
+    lengthMenu: "Mostrar _MENU_ registros",
+    info: "Mostrando _START_ a _END_ de _TOTAL_ proveedores",
+    infoEmpty: "Mostrando 0 a 0 de 0",
+    infoFiltered: "(filtrado de _MAX_)",
+    zeroRecords: "No se encontraron resultados",
+    emptyTable: "Sin datos",
+    paginate: {
+      first: "Primero",
+      previous: "Ant.",
+      next: "Sig.",
+      last: "Último",
+    },
+  };
+
   useEffect(() => {
     api
       .get("/proveedores/bi/dependencia")
@@ -21,6 +38,37 @@ const MatrizDependencia = () => {
       })
       .catch(() => setLoading(false));
   }, []);
+
+  // --- INICIALIZACIÓN DE DATATABLE ---
+  useEffect(() => {
+    if (!loading && data && data.proveedores.length > 0) {
+      const tableId = "#dependencia-table";
+      const $ = window.$;
+
+      const timer = setTimeout(() => {
+        if ($.fn.DataTable.isDataTable(tableId))
+          $(tableId).DataTable().destroy();
+
+        $(tableId).DataTable({
+          paging: true,
+          ordering: true,
+          order: [[1, "desc"]], // Ordenar por % de dependencia de mayor a menor
+          info: true,
+          autoWidth: false,
+          responsive: true,
+          pageLength: 5, // <--- Configuración de 5 filas solicitada
+          language: spanishLanguage,
+          dom: "rtp", // Solo tabla y paginación para mantener limpieza visual
+        });
+      }, 300);
+
+      return () => {
+        clearTimeout(timer);
+        if (window.$ && $.fn.DataTable.isDataTable(tableId))
+          $(tableId).DataTable().destroy();
+      };
+    }
+  }, [loading, data]);
 
   if (loading) return <LoadingSpinner />;
   if (!data) return <div className="p-3">Sin datos suficientes.</div>;
@@ -37,16 +85,13 @@ const MatrizDependencia = () => {
           "#17a2b8",
           "#6610f2",
           "#e83e8c",
+          "#20c997",
+          "#fd7e14",
         ],
+        borderWidth: 2,
       },
     ],
   };
-
-  const formatMoney = (val) =>
-    new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: "ARS",
-    }).format(val);
 
   return (
     <div className="container-fluid pt-3">
@@ -61,70 +106,90 @@ const MatrizDependencia = () => {
       <hr />
 
       <div className="row">
-        <div className="col-md-5">
+        {/* GRÁFICO DOUGHNUT */}
+        <div className="col-lg-5">
           <div className="card card-outline card-primary shadow-sm">
-            <div className="card-header">
+            <div className="card-header border-0">
               <h3 className="card-title text-bold">
                 Concentración de Utilidad
               </h3>
             </div>
             <div className="card-body">
-              <div style={{ height: "300px" }}>
+              <div style={{ height: "320px" }}>
                 <Doughnut
                   data={chartData}
-                  options={{ maintainAspectRatio: false }}
+                  options={{
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: {
+                        position: "bottom",
+                        labels: { boxWidth: 12, font: { size: 10 } },
+                      },
+                    },
+                  }}
                 />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="col-md-7">
+        {/* TABLA CON DATATABLE */}
+        <div className="col-lg-7">
           <div className="card card-outline card-danger shadow-sm">
-            <div className="card-header">
+            <div className="card-header border-0">
               <h3 className="card-title text-bold">
                 Semáforo de Riesgo Estratégico
               </h3>
             </div>
             <div className="card-body p-0">
-              <table className="table table-striped m-0">
+              <table id="dependencia-table" className="table table-hover m-0">
                 <thead>
-                  <tr>
+                  <tr className="text-sm">
                     <th>Proveedor</th>
-                    <th className="text-center">% Dependencia</th>
-                    <th>Nivel de Riesgo</th>
+                    <th className="text-center" style={{ width: "35%" }}>
+                      % Dependencia
+                    </th>
+                    <th className="text-center">Nivel de Riesgo</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.proveedores.map((p, i) => (
                     <tr key={i}>
-                      <td>
-                        <b>{p.proveedor_nombre}</b>
+                      <td className="align-middle">
+                        <span className="text-bold">{p.proveedor_nombre}</span>
                       </td>
-                      <td className="text-center">
-                        <div className="progress progress-xs">
+                      <td className="align-middle">
+                        <div className="d-flex align-items-center justify-content-between">
                           <div
-                            className={`progress-bar bg-${
-                              p.riesgo === "CRÍTICO"
-                                ? "danger"
-                                : p.riesgo === "MEDIO"
-                                ? "warning"
-                                : "success"
-                            }`}
-                            style={{ width: `${p.porcentaje}%` }}
-                          ></div>
+                            className="progress progress-xs flex-grow-1 mr-2"
+                            style={{ height: "6px" }}
+                          >
+                            <div
+                              className={`progress-bar bg-${
+                                p.riesgo === "CRÍTICO"
+                                  ? "danger"
+                                  : p.riesgo === "MEDIO"
+                                    ? "warning"
+                                    : "success"
+                              }`}
+                              style={{ width: `${p.porcentaje}%` }}
+                            ></div>
+                          </div>
+                          <span className="small text-bold">
+                            {p.porcentaje}%
+                          </span>
                         </div>
-                        <b>{p.porcentaje}%</b>
                       </td>
-                      <td>
+                      <td className="text-center align-middle">
                         <span
-                          className={`badge p-2 ${
+                          className={`badge shadow-sm w-100 ${
                             p.riesgo === "CRÍTICO"
                               ? "badge-danger"
                               : p.riesgo === "MEDIO"
-                              ? "badge-warning"
-                              : "badge-success"
+                                ? "badge-warning"
+                                : "badge-success"
                           }`}
+                          style={{ maxWidth: "80px" }}
                         >
                           {p.riesgo}
                         </span>
@@ -138,14 +203,17 @@ const MatrizDependencia = () => {
         </div>
       </div>
 
-      <div className="alert bg-dark text-white mt-4 shadow border-left-danger">
+      {/* ALERT DIAGNÓSTICO */}
+      <div className="alert bg-dark text-white mt-4 shadow-lg border-left-danger">
         <h5>
-          <i className="fas fa-exclamation-triangle text-danger mr-2"></i>
+          <i className="fas fa-microchip text-danger mr-2"></i>
           <b>Diagnóstico de supervivencia BI:</b>
         </h5>
-        {data.proveedores.some((p) => p.riesgo === "CRÍTICO")
-          ? "¡Peligro! Tenés proveedores con más del 50% de peso en tu ganancia. Si uno de ellos falla, tu negocio entra en colapso. Es urgente diversificar marcas."
-          : "Tu cartera de proveedores está diversificada. Ningún proveedor tiene el poder de comprometer tu operación por sí solo."}
+        <p className="mb-0">
+          {data.proveedores.some((p) => p.riesgo === "CRÍTICO")
+            ? "¡ATENCIÓN! Se detecta dependencia crítica (>50%). Tu rentabilidad está atada a un solo actor. Es imperativo buscar proveedores alternativos para mitigar el riesgo de quiebre operativo."
+            : "Estructura de proveedores saludable. La diversificación actual garantiza que ante la falta de un proveedor, el negocio mantenga su capacidad de generar utilidad neta."}
+        </p>
       </div>
     </div>
   );

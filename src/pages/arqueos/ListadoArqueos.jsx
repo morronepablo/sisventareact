@@ -18,6 +18,7 @@ const ListadoArqueos = () => {
   const spanishLanguage = {
     sProcessing: "Procesando...",
     sLengthMenu: "Mostrar _MENU_ registros",
+    info: "Mostrando _START_ a _END_ de _TOTAL_ arqueos",
     sZeroRecords: "No se encontraron resultados",
     sSearch: "Buscar:",
     oPaginate: {
@@ -70,7 +71,7 @@ const ListadoArqueos = () => {
         html += `<tr><td class="text-center"><span class="${
           m.tipo === "Ingreso" ? "text-success" : "text-danger"
         }"><b>${m.tipo}</b></span></td><td class="text-right">${formatMoney(
-          m.monto
+          m.monto,
         )}</td><td>${m.descripcion || ""}</td></tr>`;
       });
       html += "</tbody></table>";
@@ -82,7 +83,7 @@ const ListadoArqueos = () => {
     if (parseFloat(d.total_retiros) > 0) {
       html += `<div class="alert alert-warning py-1 px-2 text-xs mb-0 mt-2 shadow-sm">
                 <i class="fas fa-exclamation-triangle mr-1"></i> Se realizaron retiros de seguridad por: <b>${formatMoney(
-                  d.total_retiros
+                  d.total_retiros,
                 )}</b>
               </div>`;
     }
@@ -171,9 +172,9 @@ const ListadoArqueos = () => {
                 onClick={() =>
                   window.open(
                     `${API_URL}/api/arqueos/reporte?token=${localStorage.getItem(
-                      "token"
+                      "token",
                     )}`,
-                    "_blank"
+                    "_blank",
                   )
                 }
               >

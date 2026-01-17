@@ -143,6 +143,7 @@ import CrearCombo from "./pages/combos/CrearCombo";
 import VerCombo from "./pages/combos/VerCombo";
 import EditarCombo from "./pages/combos/EditarCombo";
 import SugeridorCombos from "./pages/combos/SugeridorCombos";
+import AnaliticaCombos from "./pages/combos/AnaliticaCombos";
 
 // Devoluciones
 import ListadoDevoluciones from "./pages/devoluciones/ListadoDevoluciones";
@@ -455,6 +456,14 @@ const App = () => {
         <Route path="/combos/ver/:id" element={<VerCombo />} />
         <Route path="/combos/editar/:id" element={<EditarCombo />} />
         <Route path="/combos/alquimista" element={<SugeridorCombos />} />
+        <Route
+          path="/combos/monitor-bi"
+          element={
+            <ProtectedRoute>
+              <AnaliticaCombos />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Devoluciones */}
         <Route path="/devoluciones/listado" element={<ListadoDevoluciones />} />

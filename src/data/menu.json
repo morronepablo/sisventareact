@@ -593,6 +593,13 @@
                 "icon": "fas fa-vials",
                 "path": "/combos/alquimista",
                 "permiso": "ver_combos"
+            },
+            {
+                "id": "monitor_combos_bi",
+                "text": "Monitor de Ventas",
+                "icon": "fas fa-chart-line",
+                "path": "/combos/monitor-bi",
+                "permiso": "ver_combos"
             }
         ]
     },
