@@ -138,15 +138,12 @@ const CrearCompra = () => {
   };
 
   const addItem = async (codigoItem) => {
-    // 🚀 LÓGICA BI: Obligamos a elegir proveedor antes para comparar precios
-    if (!proveedorSeleccionado) {
+    if (!proveedorSeleccionado)
       return Swal.fire(
         "Atención",
-        "Primero seleccione un Proveedor para auditar los precios de costo.",
+        "Seleccione un Proveedor para auditar precios.",
         "warning"
       );
-    }
-
     try {
       const p = productos.find((x) => x.codigo === codigoItem);
       if (p) {
@@ -154,7 +151,7 @@ const CrearCompra = () => {
           producto_id: p.id,
           cantidad: parseFloat(cantidad),
           usuario_id: user.id,
-          proveedor_id: proveedorSeleccionado.id, // 👈 Enviamos proveedor al backend
+          proveedor_id: proveedorSeleccionado.id,
         });
         if (res.data.success) {
           setCodigo("");
@@ -177,7 +174,7 @@ const CrearCompra = () => {
     if (!proveedorSeleccionado)
       return Swal.fire("Error", "Seleccione un proveedor", "error");
     if (!formData.comprobante || !formData.numero)
-      return Swal.fire("Error", "Complete los datos del comprobante", "error");
+      return Swal.fire("Error", "Complete datos del comprobante", "error");
     try {
       const payload = {
         ...formData,
@@ -297,21 +294,24 @@ const CrearCompra = () => {
                       </thead>
                       <tbody>
                         {tmpCompras.map((it, i) => {
-                          // 🚀 LÓGICA BI: Detectar Traición (Aumento > 10%)
                           const pAnt = parseFloat(it.precio_anterior || 0);
                           const pAct = parseFloat(it.precio_compra || 0);
                           const aumento =
                             pAnt > 0 ? ((pAct - pAnt) / pAnt) * 100 : 0;
                           const esTraicion = aumento > 10;
 
+                          // 🚀 LÓGICA EL NEGOCIADOR: ¿Hay alguien más barato?
+                          const mPre = parseFloat(it.mejor_precio || 0);
+                          const esMasBaratoEnOtroLado =
+                            mPre > 0 &&
+                            pAct > mPre &&
+                            it.mejor_proveedor !==
+                              proveedorSeleccionado?.empresa;
+
                           return (
                             <tr
                               key={it.id}
-                              className={
-                                esTraicion
-                                  ? "bg-light-danger animate__animated animate__headShake"
-                                  : ""
-                              }
+                              className={esTraicion ? "bg-light-danger" : ""}
                             >
                               <td className="text-center align-middle">
                                 {i + 1}
@@ -348,8 +348,16 @@ const CrearCompra = () => {
                                 {esTraicion && (
                                   <div className="text-danger small font-weight-bold mt-1">
                                     <i className="fas fa-exclamation-triangle"></i>{" "}
-                                    ¡OJO! Subió un {aumento.toFixed(1)}% (Antes:
-                                    ${pAnt})
+                                    ¡TRAICIÓN! Subió un {aumento.toFixed(1)}%
+                                    (Antes: ${pAnt})
+                                  </div>
+                                )}
+                                {/* 🤝 VISUAL DEL NEGOCIADOR 🤝 */}
+                                {esMasBaratoEnOtroLado && (
+                                  <div className="text-primary small font-weight-bold mt-1">
+                                    <i className="fas fa-handshake"></i> OJO:{" "}
+                                    <b>{it.mejor_proveedor}</b> lo vendió a{" "}
+                                    <b>${mPre}</b>
                                   </div>
                                 )}
                               </td>
@@ -412,12 +420,6 @@ const CrearCompra = () => {
                         </tr>
                       </tfoot>
                     </table>
-                    <button
-                      className="btn btn-secondary btn-sm mt-2"
-                      onClick={() => navigate("/compras/listado")}
-                    >
-                      <i className="fas fa-reply"></i> Volver
-                    </button>
                   </div>
 
                   <div className="col-md-4">
@@ -689,7 +691,6 @@ const CrearCompra = () => {
         </div>
       </div>
 
-      {/* 🚀 ESTILOS PARA LA ANIMACIÓN DE TRAICIÓN 🚀 */}
       <style>{`
         .bg-light-danger { background-color: rgba(220, 53, 69, 0.1) !important; }
         .is-invalid { border-color: #dc3545 !important; }
