@@ -35,7 +35,7 @@ const AsistenteCompra = () => {
   const filtered = datos.filter(
     (p) =>
       p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.codigo.toLowerCase().includes(searchTerm.toLowerCase())
+      p.codigo.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const indexOfLastItem = currentPage * entriesPerPage;
@@ -104,25 +104,77 @@ const AsistenteCompra = () => {
           </div>
 
           <div className="table-responsive">
-            <table className="table table-bordered table-hover table-striped">
+            <table className="table table-bordered table-hover table-striped shadow-sm">
               <thead className="thead-dark text-center text-sm">
                 <tr>
-                  <th>Producto</th>
+                  <th style={{ width: "25%" }}>Producto / Clase BI</th>
                   <th>Stock Actual</th>
                   <th>Venta Prom.</th>
                   <th>Autonomía</th>
                   <th>Urgencia</th>
                   <th className="bg-primary">Sugerencia Compra</th>
                   <th>Inversión Est.</th>
+                  <th className="bg-success">Ganancia Proyectada (ROI)</th>
                 </tr>
               </thead>
               <tbody>
                 {currentItems.length > 0 ? (
                   currentItems.map((p) => (
-                    <tr key={p.id}>
+                    <tr
+                      key={p.id}
+                      className={p.clase_bcg === "PERRO" ? "opacity-75" : ""}
+                    >
                       <td className="align-middle">
-                        <div className="text-bold">{p.nombre}</div>
-                        <small className="text-muted">{p.codigo}</small>
+                        <div className="d-flex justify-content-between align-items-start">
+                          <div>
+                            <div
+                              className="text-bold text-uppercase"
+                              style={{ fontSize: "0.9rem" }}
+                            >
+                              {p.nombre}
+                            </div>
+                            <small className="text-muted font-weight-bold">
+                              {p.codigo}
+                            </small>
+                          </div>
+                          {/* BADGES MATRIZ BCG */}
+                          <div className="ml-2">
+                            {p.clase_bcg === "ESTRELLA" && (
+                              <span
+                                className="badge badge-warning shadow-sm px-2 py-1"
+                                title="Alta Rotación / Alto Margen"
+                              >
+                                <i className="fas fa-star mr-1"></i> ESTRELLA
+                              </span>
+                            )}
+                            {p.clase_bcg === "VACA LECHERA" && (
+                              <span
+                                className="badge badge-primary shadow-sm px-2 py-1"
+                                title="Alta Rotación / Bajo Margen"
+                              >
+                                <i className="fas fa-hand-holding-usd mr-1"></i>{" "}
+                                VACA
+                              </span>
+                            )}
+                            {p.clase_bcg === "INCÓGNITA" && (
+                              <span
+                                className="badge badge-info shadow-sm px-2 py-1"
+                                title="Baja Rotación / Alto Margen"
+                              >
+                                <i className="fas fa-question-circle mr-1"></i>{" "}
+                                INCÓGNITA
+                              </span>
+                            )}
+                            {p.clase_bcg === "PERRO" && (
+                              <span
+                                className="badge badge-secondary shadow-sm px-2 py-1"
+                                title="Baja Rotación / Bajo Margen"
+                              >
+                                <i className="fas fa-paw mr-1"></i> PERRO
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </td>
                       <td className="text-center align-middle">
                         <span
@@ -133,26 +185,31 @@ const AsistenteCompra = () => {
                         </span>
                       </td>
                       <td className="text-center align-middle font-italic text-sm">
-                        {p.vpd} <small>{p.unidad}/día</small>
+                        <div className="text-bold">{p.vpd}</div>
+                        <small className="text-muted">{p.unidad}/día</small>
                       </td>
-                      <td className="text-center align-middle text-bold text-primary">
+                      <td
+                        className={`text-center align-middle text-bold ${p.dias_autonomia <= 7 ? "text-danger" : "text-primary"}`}
+                      >
                         {p.dias_autonomia > 365
                           ? "+1 año"
                           : `${p.dias_autonomia} días`}
                       </td>
                       <td className="text-center align-middle">
                         {p.urgencia === "CRÍTICA" && (
-                          <span className="badge badge-danger px-3">
+                          <span className="badge badge-danger px-3 shadow-sm">
                             CRÍTICA
                           </span>
                         )}
                         {p.urgencia === "MEDIA" && (
-                          <span className="badge badge-warning px-3 text-white">
+                          <span className="badge badge-warning px-3 text-white shadow-sm">
                             MEDIA
                           </span>
                         )}
                         {p.urgencia === "BAJA" && (
-                          <span className="badge badge-success px-3">BAJA</span>
+                          <span className="badge badge-success px-3 shadow-sm">
+                            BAJA
+                          </span>
                         )}
                         {p.urgencia === "STOCK ESTANCADO" && (
                           <span className="badge badge-dark px-3 opacity-50">
@@ -163,10 +220,16 @@ const AsistenteCompra = () => {
                       <td className="text-center align-middle bg-light font-weight-bold">
                         {p.sugerencia_compra > 0 ? (
                           <span
-                            className="text-primary"
+                            className={
+                              p.clase_bcg === "ESTRELLA"
+                                ? "text-warning"
+                                : "text-primary"
+                            }
                             style={{ fontSize: "1.1rem" }}
                           >
-                            <i className="fas fa-plus-circle mr-1"></i>{" "}
+                            <i
+                              className={`fas ${p.clase_bcg === "ESTRELLA" ? "fa-fire" : "fa-plus-circle"} mr-1`}
+                            ></i>{" "}
                             {p.sugerencia_compra} {p.unidad}
                           </span>
                         ) : (
@@ -180,12 +243,38 @@ const AsistenteCompra = () => {
                           ? formatMoney(p.inversion_estimada)
                           : "-"}
                       </td>
+                      {/* COLUMNA BI: GANANCIA PROYECTADA */}
+                      <td className="text-center align-middle bg-light">
+                        {p.roi_proyectado > 0 ? (
+                          <div className="d-flex flex-column">
+                            <span
+                              className="text-success text-bold"
+                              style={{ fontSize: "1.05rem" }}
+                            >
+                              {formatMoney(p.roi_proyectado)}
+                            </span>
+                            <small
+                              className="text-muted"
+                              style={{ fontSize: "0.7rem" }}
+                            >
+                              Margen:{" "}
+                              <span className="text-dark font-weight-bold">
+                                {p.margen_percent}%
+                              </span>
+                            </small>
+                          </div>
+                        ) : (
+                          <span className="text-muted">-</span>
+                        )}
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="7" className="text-center py-4 text-muted">
-                      No se encontraron productos.
+                    <td colSpan="8" className="text-center py-5 text-muted">
+                      <i className="fas fa-box-open fa-3x mb-3 d-block opacity-25"></i>
+                      No se encontraron productos para los criterios de
+                      búsqueda.
                     </td>
                   </tr>
                 )}

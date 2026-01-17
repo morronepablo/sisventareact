@@ -41,7 +41,7 @@ const MainLayout = () => {
         e.preventDefault();
         navigate("/devoluciones/crear");
       }
-      if (e.key === "F9") {
+      if (e.key === "F9" && !e.ctrlKey) {
         e.preventDefault();
         navigate("/proveedores/listado");
       }
@@ -54,7 +54,7 @@ const MainLayout = () => {
         navigate("/dashboard");
       }
 
-      // ✨ ATAJO SEGURO: CTRL + SHIFT + A
+      // ✨ ATAJO SEGURO: CTRL + SHIFT + S
       if (e.ctrlKey && e.shiftKey && (e.key === "S" || e.key === "s")) {
         e.preventDefault();
 
@@ -107,7 +107,7 @@ const MainLayout = () => {
       "sidebar-mini",
       "layout-fixed",
       "layout-navbar-fixed",
-      "layout-footer-fixed"
+      "layout-footer-fixed",
     );
     if (isDesktopCollapsed) document.body.classList.add("sidebar-collapse");
     else document.body.classList.remove("sidebar-collapse");
@@ -121,7 +121,7 @@ const MainLayout = () => {
         "layout-navbar-fixed",
         "layout-footer-fixed",
         "sidebar-collapse",
-        "sidebar-open"
+        "sidebar-open",
       );
     };
   }, [isDesktopCollapsed, isMobileOpen]);

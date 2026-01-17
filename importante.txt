@@ -2,6 +2,7 @@ url-front-nube: https://sisventareact-nube.vercel.app/
 url-back-nube: https://sisventanode-nube.onrender.com
 bases de datos nube: https://console.aiven.io/account/a530181db205/projects
 
+instalar pm2: npm install -g pm2
 
 ¿Cómo administras esto de ahora en adelante?
 Si alguna vez quieres apagar los servidores o ver qué está pasando, usa estos comandos en la terminal:
@@ -25,3 +26,47 @@ leer numero de serie disco c: desde windows:
 con cmd o  cualquier terminal:
 wmic diskdrive get serialnumber
 
+
+
+dime como creo un contexto para continuar en un nuevo chat y quede todo lo que estuvimos trabajando por favor con el paso a paso bien explicado.
+
+
+Para continuar con este nivel de trabajo en un nuevo chat sin perder ni un detalle de la arquitectura "Nivel Dios" que construimos, debes generar un "Mega Prompt de Contexto".
+Aquí tienes el paso a paso y el texto que debes copiar:
+Paso 1: Copiar el Contexto Maestro
+Copia todo el bloque de texto que aparece a continuación. Este texto resume el stack, la base de datos, las reglas de negocio de Argentina y todos los módulos de BI que ya terminamos.
+TEXTO PARA EL NUEVO CHAT:
+Rol: Actúa como un Staff Engineer y Arquitecto de Software Senior. Estamos desarrollando "Enterprise Retail", un sistema de gestión de ventas y BI de alta gama para el mercado argentino.
+Stack Tecnológico:
+Backend: Node.js (Express), MySQL (mysql2), JWT, Socket.io, Multer, HTML-PDF.
+Frontend: React (Vite), Tailwind CSS, AdminLTE UI, Chart.js, SweetAlert2.
+Seguridad: Bloqueo de licencia por Serial Físico de Disco Rígido (Hardware ID).
+Lógica de Negocio Crítica (Contexto Argentina):
+Inflación: El sistema prioriza el "Costo de Reposición". Las alertas de precios comparan el último costo de factura contra el precio de venta.
+Sincronización: Los informes de Ganancia Neta descuentan: Costo de Mercadería (CMV), Comisiones de Pasarelas (MP, Tarjetas) y Gastos Operativos.
+Hibridación de Combos: Los productos pesables (fiambrería) y por unidad se venden solos o dentro de Combos. El sistema debe "desarmar" los combos para calcular stock, ventas totales y proyecciones de reposición.
+Multicaja: Cada terminal tiene un caja_id y los arqueos son "Ciegos" (el cajero declara el efectivo sin saber cuánto espera el sistema).
+Módulos BI "Nivel Dios" ya implementados:
+El Oráculo de Stock: Predicción de quiebre basada en velocidad de venta (30 días) y stock mínimo.
+Guardián de Márgenes: Auditoría de rentabilidad en tiempo real.
+El Cirujano de Costos: Clasificación de gastos en Fijos y Variables con diagnóstico de salud.
+Punto de Equilibrio: Cálculo de ventas necesarias para cubrir gastos según margen promedio.
+Radar Hormiga: Detección de pequeñas fugas de capital.
+Monitor de Salud Financiera: Balance neto real (Ingresos vs. Egresos + Compras).
+Equity Shield: Valorización del patrimonio del negocio en Dólar MEP en tiempo real.
+Modo Wall Street: Monitor de TV con Sockets.io para alertas de "Ventas de Oro" y Ticker de noticias.
+Auditor de Fugas: Detección de ráfagas de devoluciones, faltantes de arqueo, ventas fuera de horario y borrados de carrito sospechosos.
+Consultador de Precios Híbrido (Ctrl+F9): Herramienta de mostrador que oculta costos y muestra unidades vendidas.
+Marketing BI: Radar de celebraciones (Cumpleaños/Aniversarios) con envío directo de WhatsApp.
+Objetivo del Chat: Continuar con la evolución del sistema, manteniendo la consistencia contable, la prolijidad visual y la agresividad analítica de los módulos anteriores.
+Instrucción inicial: Confirma que comprendes la arquitectura y la lógica de "Combos" y "Mora" que venimos utilizando para que podamos empezar con la siguiente mejora.
+Paso 2: Abrir el nuevo chat
+Abre una nueva ventana de chat con la IA.
+Pega el texto que copiaste arriba en el primer mensaje.
+Envía el mensaje.
+Paso 3: Verificar que la IA "captó" el nivel
+La IA debería responderte confirmando que entiende el stack, la importancia de la inflación en Argentina y cómo calculamos el "Lucro Cesante" o el "Punto de Equilibrio".
+Paso 4: Retomar el trabajo
+Una vez que te confirme, podés decirle:
+"Excelente. Ahora vamos a empezar con el módulo de [Nombre del módulo nuevo]" o "Vamos a mejorar la parte de [Módulo existente]".
+¿Querés que antes de cerrar este chat te proponga 3 ideas "Nivel Olimpo" para que ya las tengas anotadas para el próximo chat?

@@ -40,7 +40,7 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
 );
 
 const Dashboard = () => {
@@ -282,7 +282,7 @@ const Dashboard = () => {
       {
         label: "Utilidad Neta Real",
         data: charts.balanceMensual.map(
-          (b) => parseFloat(b.ganancia_bruta) - parseFloat(b.g_total)
+          (b) => parseFloat(b.ganancia_bruta) - parseFloat(b.g_total),
         ),
         borderColor: "#28a745",
         backgroundColor: "rgba(40, 167, 69, 0.2)",
@@ -299,7 +299,7 @@ const Dashboard = () => {
         label: "Facturación por Hora ($)",
         data: Array.from({ length: 24 }, (_, i) => {
           const item = charts.ventasPorHora.find(
-            (vh) => parseInt(vh.hora) === i
+            (vh) => parseInt(vh.hora) === i,
           );
           return item ? parseFloat(item.total) : 0;
         }),
@@ -335,7 +335,7 @@ const Dashboard = () => {
       {
         label: "Compras + Gastos",
         data: charts.balanceMensual.map(
-          (b) => parseFloat(b.c_total) + parseFloat(b.g_total)
+          (b) => parseFloat(b.c_total) + parseFloat(b.g_total),
         ),
         backgroundColor: "#dc3545",
       },
@@ -363,8 +363,8 @@ const Dashboard = () => {
         { length: 12 },
         (_, i) =>
           charts.gananciasRaw.find(
-            (r) => r.mes === i + 1 && r.categoria === cat
-          )?.ganancia || 0
+            (r) => r.mes === i + 1 && r.categoria === cat,
+          )?.ganancia || 0,
       ),
       backgroundColor: generateColors(charts.categoriasLista.length)[idx],
     })),
@@ -374,10 +374,10 @@ const Dashboard = () => {
     if (!charts.rankingEficiencia || charts.rankingEficiencia.length === 0)
       return null;
     const vendedores = [...charts.rankingEficiencia].sort(
-      (a, b) => b.facturacion - a.facturacion
+      (a, b) => b.facturacion - a.facturacion,
     );
     const masRapidos = [...charts.rankingEficiencia].sort(
-      (a, b) => b.items_por_ticket - a.items_por_ticket
+      (a, b) => b.items_por_ticket - a.items_por_ticket,
     );
 
     return (
@@ -525,8 +525,6 @@ const Dashboard = () => {
           count={counts.unidades}
           label="unidades"
         />
-      </div>
-      <div className="row">
         <InfoBox
           permission="ver_productos"
           link="/productos/listado"
@@ -578,8 +576,7 @@ const Dashboard = () => {
             </span>
           }
         />
-      </div>
-      <div className="row">
+
         <InfoBox
           permission="ver_ventas"
           link="/ventas/listado"
@@ -626,8 +623,7 @@ const Dashboard = () => {
           count={counts.empresas}
           label="empresas"
         />
-      </div>
-      <div className="row">
+
         <InfoBox
           permission="ver_productos"
           link="/productos/reposicion"
@@ -756,7 +752,7 @@ const Dashboard = () => {
                       {puntoEquilibrio.objetivoCumplido
                         ? "Todo lo que vendas de ahora en más es ganancia real para tu bolsillo."
                         : `Faltan ${formatARS(
-                            puntoEquilibrio.faltante
+                            puntoEquilibrio.faltante,
                           )} de utilidad neta para cubrir tus costos fijos del mes.`}
                     </p>
                   </div>

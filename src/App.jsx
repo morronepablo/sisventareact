@@ -62,6 +62,7 @@ import OraculoStock from "./pages/productos/OraculoStock";
 import CementerioStock from "./pages/productos/CementerioStock";
 import LucroCesante from "./pages/productos/LucroCesante";
 import EquityShield from "./pages/productos/EquityShield";
+import OptimizadorMix from "./pages/productos/OptimizadorMix";
 
 // Proveedores
 import ListadoProveedores from "./pages/proveedores/ListadoProveedores";
@@ -279,6 +280,14 @@ const App = () => {
         <Route path="/productos/cementerio" element={<CementerioStock />} />
         <Route path="/productos/lucro-cesante" element={<LucroCesante />} />
         <Route path="/productos/equity-shield" element={<EquityShield />} />
+        <Route
+          path="/productos/optimizador-mix"
+          element={
+            <ProtectedRoute>
+              <OptimizadorMix />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Proveedores */}
         <Route path="/proveedores/listado" element={<ListadoProveedores />} />

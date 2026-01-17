@@ -234,6 +234,13 @@
                 "permiso": "ver_productos"
             },
             {
+                "id": "optimizador_mix",
+                "text": "Optimizador de Mix",
+                "icon": "fas fa-chart-pie",
+                "path": "/productos/optimizador-mix",
+                "permiso": "ver_productos"
+            },
+            {
                 "id": "actualizacion_masiva",
                 "text": "Ajus. Masivo Precios",
                 "icon": "fas fa-percentage",

@@ -269,3 +269,11 @@ Impacto: Optimizás la atención. Podés descubrir que necesitás otra terminal 
 
 
 
+
+
+2. Una Vista Nueva: "Auditoría de Portfolio" (La Estrategia)
+Aquí sí crearía una vista nueva (podrías llamarla "Matriz de Rentabilidad" o "Mapa de Inversión"). Esta no es para "comprar", sino para "decidir qué vender".
+Por qué una vista nueva para esto:
+Análisis Visual: Aquí usaríamos un gráfico de burbujas (Chart.js) donde el eje X es la "Rotación" y el eje Y es el "Margen %".
+Toma de Decisiones: En esta vista, el sistema te diría: "Che, tenés 50 productos 'Perro' que te están ocupando 20 metros de estantería y te rinden menos que un plazo fijo. Liquidalos". Esto en la pantalla de compras (Imagen 3) estorbaría, pero en una pantalla de BI es oro puro.
+
