@@ -19,3 +19,9 @@ pm2 start server.js
 
 arrancar Front:
 pm2 start node_modules/vite/bin/vite.js --name "sistema-frontend"
+
+leer numero de serie disco c: desde windows:
+
+con cmd o  cualquier terminal:
+wmic diskdrive get serialnumber
+

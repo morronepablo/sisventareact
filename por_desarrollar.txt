@@ -253,3 +253,19 @@ Impacto: El dueño entiende que el stock quebrado es pérdida de dinero real, no
 
 
 
+
+
+
+1. "Monitor de Valorización de Activos" (Equity Shield) 💰📈
+En Argentina, el dueño no sabe si es más rico o más pobre que ayer por la devaluación.
+La Lógica BI: El sistema suma el valor de todo tu stock al costo de hoy y lo convierte a Dólar MEP o Blue (usando una API de cotización en tiempo real).
+El Valor: Un gráfico que muestra: "Hoy tu mercadería vale USD 15.000. Ayer valía USD 15.200. Perdiste valor real aunque tengas la misma cantidad de latas".
+Impacto: El dueño entiende cuándo tiene que dejar de ahorrar en pesos y comprar mercadería "clavo" para proteger el capital. Es un monitor de patrimonio real.
+2. "El Semáforo de Velocidad de Caja" (Eficiencia de Operación) ⏱️⚡
+¿Sabés cuánto tarda un cajero en cobrar un ticket? ¿Sabés cuánta plata perdés por las colas largas?
+La Lógica BI: El sistema mide el tiempo exacto desde que se escanea el primer producto hasta que se presiona F5 (Finalizar).
+El Valor: Un ranking de "Velocidad de Atención". Si el Cajero A tarda 40 segundos por cliente y el Cajero B tarda 2 minutos, tenés un cuello de botella.
+Impacto: Optimizás la atención. Podés descubrir que necesitás otra terminal de cobro porque los sábados el tiempo de espera sube un 300%.
+
+
+
