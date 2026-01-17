@@ -14,7 +14,7 @@ const CierreArqueo = () => {
   const [loading, setLoading] = useState(true);
   const [arqueoInfo, setArqueoInfo] = useState(null);
 
-  // Totales sistema
+  // Totales sistema (Solo informativos)
   const [cards, setCards] = useState(0);
   const [mp, setMp] = useState(0);
   const [transfer, setTransfer] = useState(0);
@@ -99,56 +99,85 @@ const CierreArqueo = () => {
     coins.c050 * 0.5 +
     coins.c025 * 0.25;
 
-  const totalContado = totalCash + cards + mp + transfer;
+  // 🚀 LÓGICA CORREGIDA: El total contado para el cierre es SOLO EL EFECTIVO 🚀
+  const totalContadoEfectivo = totalCash;
+  const totalOtrosMedios = cards + mp + transfer;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    Swal.fire({
+
+    // 1. Preguntamos antes de proceder
+    const confirm = await Swal.fire({
       title: "¿Confirmar cierre de caja?",
-      text: "Se registrará el cierre comparando lo contado contra el sistema.",
+      text: "Se comparará tu efectivo contado contra el saldo esperado del sistema.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Sí, cerrar caja",
-      cancelButtonText: "Revisar",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        try {
-          const res = await api.put(`/arqueos/cierre/${id}`, {
-            fecha_cierre: fechaCierre,
-            monto_final: totalContado,
-            ventas_efectivo: totalCash,
-            ventas_tarjeta: cards,
-            ventas_mercadopago: mp,
-            ventas_transferencia: transfer,
-          });
+      confirmButtonColor: "#28a745",
+      confirmButtonText: "Sí, cerrar ahora",
+      cancelButtonText: "Revisar conteo",
+    });
 
+    if (confirm.isConfirmed) {
+      try {
+        // 2. Enviamos los datos al servidor
+        const res = await api.put(`/arqueos/cierre/${id}`, {
+          fecha_cierre: fechaCierre,
+          monto_final: totalContadoEfectivo, // El efectivo físico contado
+          ventas_efectivo: totalCash,
+          ventas_tarjeta: cards,
+          ventas_mercadopago: mp,
+          ventas_transferencia: transfer,
+        });
+
+        if (res.data.success) {
           if (refreshAll) refreshAll();
           window.dispatchEvent(new Event("forceRefreshNotifications"));
 
-          const dif = res.data.diferencia;
-          let msg = "Caja cerrada correctamente.";
-          if (dif < 0)
-            msg = `Cierre registrado con FALTANTE de: ${formatMoney(
-              Math.abs(dif)
-            )}`;
-          else if (dif > 0)
-            msg = `Cierre registrado con SOBRANTE de: ${formatMoney(dif)}`;
+          // 3. 🚀 LÓGICA DE AUDITORÍA VISUAL 🚀
+          const dif = parseFloat(res.data.diferencia);
+          let configAlerta = {
+            icon: "success",
+            title: "¡Caja Cerrada!",
+            text: "El conteo coincide perfectamente con el sistema.",
+            timer: 4000,
+          };
 
-          await Swal.fire({
-            position: "center",
-            icon: Math.abs(dif) > 10 ? "error" : "success",
-            title: "Resultado del Arqueo",
-            text: msg,
-            timer: 2000,
-            showConfirmButton: false,
-          }).then(() => {
-            navigate("/arqueos/listado");
-          });
-        } catch (error) {
-          Swal.fire("Error", "Fallo al cerrar", "error");
+          if (dif < 0) {
+            // HAY FALTANTE
+            configAlerta = {
+              icon: "error",
+              title: "CIERRE CON FALTANTE",
+              html: `<h2 class="text-danger">${formatMoney(
+                dif
+              )}</h2><p>El efectivo contado es menor al esperado por el sistema.</p>`,
+              confirmButtonText: "Aceptar",
+            };
+          } else if (dif > 0) {
+            // HAY SOBRANTE
+            configAlerta = {
+              icon: "warning",
+              title: "CIERRE CON SOBRANTE",
+              html: `<h2 class="text-warning">+ ${formatMoney(
+                dif
+              )}</h2><p>Hay más efectivo en caja de lo que el sistema registró.</p>`,
+              confirmButtonText: "Aceptar",
+            };
+          }
+
+          // 4. Mostramos el resultado del "juicio" del arqueo
+          await Swal.fire(configAlerta);
+
+          // 5. Navegamos al listado
+          navigate("/arqueos/listado");
         }
+      } catch (error) {
+        Swal.fire(
+          "Error",
+          "No se pudo procesar el cierre. Verifique su conexión.",
+          "error"
+        );
       }
-    });
+    }
   };
 
   if (loading) return <LoadingSpinner />;
@@ -161,7 +190,7 @@ const CierreArqueo = () => {
         </h1>
         <hr />
         <div className="row">
-          {/* COLUMNA IZQUIERDA: RESUMEN Y FECHAS */}
+          {/* COLUMNA IZQUIERDA */}
           <div className="col-md-4">
             <div className="card card-outline card-primary shadow">
               <div className="card-header">
@@ -169,8 +198,8 @@ const CierreArqueo = () => {
               </div>
               <div className="card-body">
                 <div className="alert alert-info py-2 small mb-3">
-                  Ingrese el efectivo físico. El sistema ajustará
-                  automáticamente los retiros realizados.
+                  Declare únicamente el <b>efectivo físico</b> en el contador de
+                  la derecha.
                 </div>
 
                 <div className="form-group mb-2">
@@ -180,7 +209,6 @@ const CierreArqueo = () => {
                   </div>
                 </div>
 
-                {/* 🚀 FECHA DE CIERRE RESTAURADA 🚀 */}
                 <div className="form-group mb-3">
                   <label className="text-xs">FECHA DE CIERRE</label>
                   <input
@@ -193,24 +221,24 @@ const CierreArqueo = () => {
 
                 <div className="form-group mb-2">
                   <label className="text-xs text-uppercase font-weight-bold">
-                    Total Contado Actual
+                    Efectivo Contado Actual
                   </label>
                   <div
                     className="h3 text-center p-3 rounded font-weight-bold shadow-sm"
                     style={{
                       backgroundColor: "#f8f9fa",
-                      border: "2px dashed #007bff",
-                      color: "#007bff",
+                      border: "2px dashed #28a745",
+                      color: "#28a745",
                     }}
                   >
-                    {formatMoney(totalContado)}
+                    {formatMoney(totalContadoEfectivo)}
                   </div>
                 </div>
 
                 {totalRetiros > 0 && (
                   <div className="bg-warning p-2 rounded mb-3 text-center shadow-sm border border-warning">
                     <small className="d-block text-uppercase font-weight-bold text-dark">
-                      Retiros de Seguridad Realizados
+                      Retiros de Seguridad
                     </small>
                     <span className="h5 text-bold">
                       - {formatMoney(totalRetiros)}
@@ -239,7 +267,9 @@ const CierreArqueo = () => {
           <div className="col-md-8">
             <div className="card card-outline card-primary shadow">
               <div className="card-header">
-                <h3 className="card-title text-bold">Contador Físico</h3>
+                <h3 className="card-title text-bold">
+                  Contador de Efectivo Físico
+                </h3>
               </div>
               <div className="card-body">
                 <div className="row">
@@ -329,15 +359,17 @@ const CierreArqueo = () => {
                       </tbody>
                     </table>
                     <hr />
+                    {/* SECCIÓN INFORMATIVA (No suma al total principal) */}
                     <div className="bg-light p-3 rounded border shadow-sm">
-                      <div className="d-flex justify-content-between mb-2">
-                        <span className="small font-weight-bold text-muted">
-                          TARJETAS:
-                        </span>
+                      <p className="text-center text-muted small text-bold mb-2">
+                        SISTEMA (PARA INFORMAR)
+                      </p>
+                      <div className="d-flex justify-content-between mb-1">
+                        <span className="small text-muted">TARJETAS:</span>
                         <span className="text-bold">{formatMoney(cards)}</span>
                       </div>
-                      <div className="d-flex justify-content-between mb-2">
-                        <span className="small font-weight-bold text-primary">
+                      <div className="d-flex justify-content-between mb-1">
+                        <span className="small text-primary">
                           MERCADO PAGO:
                         </span>
                         <span className="text-bold text-primary">
@@ -345,7 +377,7 @@ const CierreArqueo = () => {
                         </span>
                       </div>
                       <div className="d-flex justify-content-between">
-                        <span className="small font-weight-bold text-muted">
+                        <span className="small text-muted">
                           TRANSFERENCIAS:
                         </span>
                         <span className="text-bold">
@@ -355,13 +387,20 @@ const CierreArqueo = () => {
                     </div>
 
                     <div className="bg-dark p-3 rounded mt-3 shadow">
-                      <div className="d-flex justify-content-between small mb-1">
-                        <span>Total Efectivo:</span>{" "}
-                        <b>{formatMoney(totalCash)}</b>
+                      <div className="d-flex justify-content-between mb-1">
+                        <span className="text-success text-bold">
+                          Total Efectivo:
+                        </span>
+                        <b
+                          className="text-success"
+                          style={{ fontSize: "1.2rem" }}
+                        >
+                          {formatMoney(totalCash)}
+                        </b>
                       </div>
                       <div className="d-flex justify-content-between small text-info border-top pt-1 mt-1">
-                        <span>Total Otros Medios:</span>{" "}
-                        <b>{formatMoney(totalContado - totalCash)}</b>
+                        <span>Total Medios Digitales:</span>
+                        <b>{formatMoney(totalOtrosMedios)}</b>
                       </div>
                     </div>
                   </div>

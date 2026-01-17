@@ -164,6 +164,13 @@
                 "permiso": "ver_productos"
             },
             {
+                "id": "lucro_cesante",
+                "text": "Venta Perdida (BI)",
+                "icon": "fas fa-fire-alt",
+                "path": "/productos/lucro-cesante",
+                "permiso": "ver_productos"
+            },
+            {
                 "id": "cementerio_mercaderia",
                 "text": "El Cementerio (BI)",
                 "icon": "fas fa-monument",

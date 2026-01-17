@@ -60,6 +60,7 @@ import RadarPareto from "./pages/productos/RadarPareto";
 import TermometroVentas from "./pages/productos/TermometroVentas";
 import OraculoStock from "./pages/productos/OraculoStock";
 import CementerioStock from "./pages/productos/CementerioStock";
+import LucroCesante from "./pages/productos/LucroCesante";
 
 // Proveedores
 import ListadoProveedores from "./pages/proveedores/ListadoProveedores";
@@ -274,6 +275,7 @@ const App = () => {
         <Route path="/productos/termometro" element={<TermometroVentas />} />
         <Route path="/productos/oraculo" element={<OraculoStock />} />
         <Route path="/productos/cementerio" element={<CementerioStock />} />
+        <Route path="/productos/lucro-cesante" element={<LucroCesante />} />
 
         {/* Proveedores */}
         <Route path="/proveedores/listado" element={<ListadoProveedores />} />
