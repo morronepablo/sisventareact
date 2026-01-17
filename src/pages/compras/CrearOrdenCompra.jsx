@@ -1,32 +1,54 @@
 // src/pages/compras/CrearOrdenCompra.jsx
-/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/set-state-in-effect */
-import React, { useState, useEffect } from "react";
+/* eslint-disable no-unused-vars */
+import React, { useState, useEffect, useRef } from "react";
 import api from "../../services/api";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
+// --- ESTILOS UNIFORMES PARA SELECT2 ---
+const select2CustomStyles = `
+  .select2-container .select2-selection--single {
+    height: 38px !important;
+    display: flex !important;
+    align-items: center !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 4px !important;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 38px !important;
+    padding-left: 12px !important;
+    color: #495057 !important;
+  }
+  .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px !important;
+  }
+`;
+
 const CrearOrdenCompra = () => {
   const navigate = useNavigate();
+  const selectProvRef = useRef(null);
+
   const [loading, setLoading] = useState(true);
   const [proveedores, setProveedores] = useState([]);
   const [productos, setProductos] = useState([]);
   const [totalEstimado, setTotalEstimado] = useState(0);
 
-  // Estado del Formulario
   const [proveedorSel, setProveedorSel] = useState("");
   const [fecha, setFecha] = useState(() => {
     const hoy = new Date();
-    const year = hoy.getFullYear();
-    const month = String(hoy.getMonth() + 1).padStart(2, "0");
-    const day = String(hoy.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`; // Esto garantiza YYYY-MM-DD en horario local
+    const options = {
+      timeZone: "America/Argentina/Buenos_Aires",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    };
+    return new Intl.DateTimeFormat("en-CA", options).format(hoy);
   });
   const [observaciones, setObservaciones] = useState("");
   const [itemsPedido, setItemsPedido] = useState([]);
 
-  // Estado para agregar ítem
   const [busqueda, setBusqueda] = useState("");
   const [cantidad, setCantidad] = useState(1);
 
@@ -49,12 +71,35 @@ const CrearOrdenCompra = () => {
     fetchData();
   }, []);
 
+  // --- INICIALIZACIÓN DE SELECT2 ---
+  useEffect(() => {
+    if (!loading && proveedores.length > 0) {
+      const $select = window.$(selectProvRef.current);
+      $select.select2({
+        placeholder: "-- Seleccionar Proveedor --",
+        width: "100%",
+        allowClear: true,
+      });
+
+      $select.on("change", (e) => {
+        setProveedorSel(e.target.value);
+      });
+
+      return () => {
+        if ($select.data("select2")) {
+          $select.select2("destroy");
+        }
+      };
+    }
+  }, [loading, proveedores]);
+
+  // --- CORRECCIÓN AQUÍ: setTotalEstimado ---
   useEffect(() => {
     const total = itemsPedido.reduce(
       (sum, item) => sum + item.cantidad * item.precio_compra,
-      0
+      0,
     );
-    setTotalEstimado(total);
+    setTotalEstimado(total); // <-- Antes decía setTotalEstimated
   }, [itemsPedido]);
 
   const agregarItem = (producto) => {
@@ -64,8 +109,8 @@ const CrearOrdenCompra = () => {
         itemsPedido.map((it) =>
           it.producto_id === producto.id
             ? { ...it, cantidad: it.cantidad + parseFloat(cantidad) }
-            : it
-        )
+            : it,
+        ),
       );
     } else {
       setItemsPedido([
@@ -92,7 +137,7 @@ const CrearOrdenCompra = () => {
       return Swal.fire(
         "Atención",
         "Seleccione un proveedor y al menos un producto",
-        "warning"
+        "warning",
       );
     }
 
@@ -106,11 +151,13 @@ const CrearOrdenCompra = () => {
 
       const res = await api.post("/ordenes-compra", payload);
       if (res.data.success) {
-        Swal.fire(
-          "¡Éxito!",
-          "Orden de Compra generada correctamente",
-          "success"
-        );
+        Swal.fire({
+          icon: "success",
+          title: "¡Éxito!",
+          text: "Orden de Compra generada correctamente",
+          timer: 2000,
+          showConfirmButton: false,
+        });
         navigate("/compras/ordenes");
       }
     } catch (error) {
@@ -122,6 +169,7 @@ const CrearOrdenCompra = () => {
 
   return (
     <div className="content-header">
+      <style>{select2CustomStyles}</style>
       <div className="container-fluid">
         <div className="row mb-2">
           <div className="col-sm-6">
@@ -134,21 +182,23 @@ const CrearOrdenCompra = () => {
         <hr />
 
         <div className="row">
-          {/* COLUMNA IZQUIERDA: DATOS DE CABECERA */}
           <div className="col-md-4">
             <div className="card card-outline card-primary shadow-sm">
               <div className="card-header">
-                <h3 className="card-title text-bold">Datos del Pedido</h3>
+                <h3 className="card-title text-bold text-primary">
+                  Datos del Pedido
+                </h3>
               </div>
               <div className="card-body">
                 <div className="form-group">
-                  <label>Proveedor</label>
+                  <label className="font-weight-bold">Proveedor *</label>
                   <select
+                    ref={selectProvRef}
                     className="form-control"
                     value={proveedorSel}
                     onChange={(e) => setProveedorSel(e.target.value)}
                   >
-                    <option value="">-- Seleccionar --</option>
+                    <option value=""></option>
                     {proveedores.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.empresa}
@@ -157,7 +207,7 @@ const CrearOrdenCompra = () => {
                   </select>
                 </div>
                 <div className="form-group">
-                  <label>Fecha de Pedido</label>
+                  <label className="font-weight-bold">Fecha de Pedido</label>
                   <input
                     type="date"
                     className="form-control"
@@ -166,39 +216,50 @@ const CrearOrdenCompra = () => {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Notas / Observaciones</label>
+                  <label className="font-weight-bold">Notas</label>
                   <textarea
                     className="form-control"
                     rows="3"
                     value={observaciones}
                     onChange={(e) => setObservaciones(e.target.value)}
-                    placeholder="Ej: Entrega por la mañana..."
                   ></textarea>
                 </div>
                 <div className="form-group">
-                  <label>Total Estimado</label>
-                  <input
-                    type="text"
-                    className="form-control text-right font-weight-bold"
-                    value={`$ ${totalEstimado.toLocaleString()}`}
-                    readOnly
-                  />
+                  <label className="font-weight-bold text-success">
+                    Total Estimado
+                  </label>
+                  <div className="input-group">
+                    <div className="input-group-prepend">
+                      <span className="input-group-text bg-success text-white">
+                        $
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      className="form-control text-right font-weight-bold"
+                      value={totalEstimado.toLocaleString("es-AR", {
+                        minimumFractionDigits: 2,
+                      })}
+                      readOnly
+                    />
+                  </div>
                 </div>
               </div>
             </div>
             <button
-              className="btn btn-primary btn-block btn-lg shadow"
+              className="btn btn-primary btn-block btn-lg shadow mt-3"
               onClick={handleGuardarOC}
             >
               <i className="fas fa-save mr-2"></i> REGISTRAR PEDIDO
             </button>
           </div>
 
-          {/* COLUMNA DERECHA: DETALLE DE PRODUCTOS */}
           <div className="col-md-8">
             <div className="card card-outline card-success shadow-sm">
               <div className="card-header">
-                <h3 className="card-title text-bold">Ítems del Pedido</h3>
+                <h3 className="card-title text-bold text-success">
+                  Ítems del Pedido
+                </h3>
                 <div className="card-tools">
                   <button
                     className="btn btn-success btn-sm"
@@ -210,11 +271,11 @@ const CrearOrdenCompra = () => {
                 </div>
               </div>
               <div className="card-body p-0">
-                <table className="table table-striped m-0">
+                <table className="table table-striped m-0 text-sm">
                   <thead className="bg-light">
                     <tr>
                       <th>Producto</th>
-                      <th className="text-center" style={{ width: "150px" }}>
+                      <th className="text-center" style={{ width: "120px" }}>
                         Cantidad
                       </th>
                       <th className="text-right">Costo Est.</th>
@@ -237,23 +298,29 @@ const CrearOrdenCompra = () => {
                                   i.producto_id === it.producto_id
                                     ? {
                                         ...i,
-                                        cantidad: parseFloat(e.target.value),
+                                        cantidad:
+                                          parseFloat(e.target.value) || 0,
                                       }
-                                    : i
-                                )
+                                    : i,
+                                ),
                               )
                             }
                           />
                         </td>
                         <td className="text-right align-middle">
-                          $ {parseFloat(it.precio_compra).toLocaleString()}
+                          ${" "}
+                          {parseFloat(it.precio_compra).toLocaleString("es-AR")}
                         </td>
-                        <td className="text-right align-middle font-weight-bold">
-                          $ {(it.cantidad * it.precio_compra).toLocaleString()}
+                        <td className="text-right align-middle font-weight-bold text-success">
+                          ${" "}
+                          {(it.cantidad * it.precio_compra).toLocaleString(
+                            "es-AR",
+                            { minimumFractionDigits: 2 },
+                          )}
                         </td>
                         <td className="text-center align-middle">
                           <button
-                            className="btn btn-danger btn-sm"
+                            className="btn btn-outline-danger btn-sm"
                             onClick={() => eliminarItem(it.producto_id)}
                           >
                             <i className="fas fa-times"></i>
@@ -264,7 +331,7 @@ const CrearOrdenCompra = () => {
                     {itemsPedido.length === 0 && (
                       <tr>
                         <td colSpan="5" className="text-center py-4 text-muted">
-                          No hay productos agregados al pedido
+                          No hay productos agregados
                         </td>
                       </tr>
                     )}
@@ -276,50 +343,64 @@ const CrearOrdenCompra = () => {
         </div>
       </div>
 
-      {/* MODAL BÚSQUEDA DE PRODUCTOS */}
+      {/* MODAL BÚSQUEDA */}
       <div className="modal fade" id="modal-busqueda-prod" tabIndex="-1">
         <div className="modal-dialog modal-lg">
           <div className="modal-content">
             <div className="modal-header bg-success text-white">
-              <h5 className="modal-title">Buscar Producto para Pedido</h5>
+              <h5 className="modal-title font-weight-bold">Buscar Producto</h5>
               <button className="close text-white" data-dismiss="modal">
                 ×
               </button>
             </div>
             <div className="modal-body">
-              <div className="input-group mb-3">
-                <input
-                  type="text"
-                  className="form-control"
-                  placeholder="Nombre o código..."
-                  value={busqueda}
-                  onChange={(e) => setBusqueda(e.target.value)}
-                />
-              </div>
-              <div style={{ maxHeight: "300px", overflowY: "auto" }}>
-                <table className="table table-sm table-hover">
+              <input
+                type="text"
+                className="form-control mb-3"
+                placeholder="Nombre o código..."
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+              />
+              <div style={{ maxHeight: "350px", overflowY: "auto" }}>
+                <table className="table table-sm table-hover table-striped">
                   <thead>
                     <tr>
                       <th>Producto</th>
-                      <th>Stock</th>
-                      <th>Acción</th>
+                      <th className="text-center">Stock</th>
+                      <th className="text-right">Costo</th>
+                      <th className="text-center">Acción</th>
                     </tr>
                   </thead>
                   <tbody>
                     {productos
-                      .filter((p) =>
-                        p.nombre.toLowerCase().includes(busqueda.toLowerCase())
+                      .filter(
+                        (p) =>
+                          p.nombre
+                            .toLowerCase()
+                            .includes(busqueda.toLowerCase()) ||
+                          p.codigo
+                            .toLowerCase()
+                            .includes(busqueda.toLowerCase()),
                       )
                       .map((p) => (
                         <tr key={p.id}>
-                          <td>{p.nombre}</td>
-                          <td>{p.stock}</td>
-                          <td style={{ width: "120px" }}>
+                          <td className="align-middle">{p.nombre}</td>
+                          <td className="text-center align-middle">
+                            <span
+                              className={`badge ${p.stock <= p.stock_minimo ? "badge-danger" : "badge-secondary"}`}
+                            >
+                              {p.stock}
+                            </span>
+                          </td>
+                          <td className="text-right align-middle">
+                            $ {parseFloat(p.precio_compra).toLocaleString()}
+                          </td>
+                          <td className="text-center align-middle">
                             <button
                               className="btn btn-primary btn-xs"
                               onClick={() => agregarItem(p)}
                             >
-                              <i className="fas fa-plus"></i> Agregar
+                              <i className="fas fa-plus mr-1"></i> Agregar
                             </button>
                           </td>
                         </tr>

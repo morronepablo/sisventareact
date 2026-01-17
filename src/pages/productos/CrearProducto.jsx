@@ -4,6 +4,17 @@ import api from "../../services/api";
 import Swal from "sweetalert2";
 
 const CrearProducto = () => {
+  const getArgentinaDate = () => {
+    const ahora = new Date();
+    const opciones = {
+      timeZone: "America/Argentina/Buenos_Aires",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    };
+    // 'en-CA' devuelve naturalmente YYYY-MM-DD
+    return new Intl.DateTimeFormat("en-CA", opciones).format(ahora);
+  };
   const [categoria_id, setCategoriaId] = useState("");
   const [unidad_id, setUnidadId] = useState("");
   const [codigo, setCodigo] = useState("");
@@ -17,7 +28,7 @@ const CrearProducto = () => {
   const [aplicar_porcentaje, setAplicarPorcentaje] = useState(false);
   const [valor_porcentaje, setValorPorcentaje] = useState("0");
   const [precio_venta, setPrecioVenta] = useState("0");
-  const [fecha_ingreso, setFechaIngreso] = useState("");
+  const [fecha_ingreso, setFechaIngreso] = useState(getArgentinaDate());
   const [imagen, setImagen] = useState(null);
   const [loading, setLoading] = useState(false);
   const [categorias, setCategorias] = useState([]);
@@ -110,7 +121,7 @@ const CrearProducto = () => {
       Swal.fire(
         "Error",
         error.response?.data?.message || "Error al crear producto",
-        "error"
+        "error",
       );
     } finally {
       setLoading(false);
