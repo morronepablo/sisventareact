@@ -463,6 +463,13 @@
                 "permiso": "ver_ventas"
             },
             {
+                "id": "velocidad_caja",
+                "text": "Velocidad de Caja",
+                "icon": "fas fa-tachometer-alt",
+                "path": "/ventas/velocidad",
+                "permiso": "ver_ventas"
+            },
+            {
                 "id": "wall_street",
                 "text": "Modo Wall Street (TV)",
                 "icon": "fas fa-tv",
