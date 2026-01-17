@@ -231,3 +231,25 @@ Impacto: El dueño puede frenar la carga, llamar al proveedor y reclamar el prec
 
 
 
+
+
+
+1. "El Centinela de Carrito" (Prevención de Robo Interno) 🕵️‍♂️🚫
+Este es el terror de los empleados "avivados".
+El Problema: Un cajero escanea 5 productos frente al cliente, le cobra los 5, pero antes de cerrar la venta borra 2 productos del carrito y se guarda esa diferencia.
+La Lógica BI: El sistema registra en una tabla oculta cada vez que un ítem es borrado del carrito de ventas una vez escaneado.
+El Valor: Un informe que le dice al dueño: "El cajero 'Juan' borró productos de carritos por un valor de $15.000 esta semana. 80% de los borrados fueron después de pedir el total".
+Impacto: Detectás el robo hormiga en el acto.
+2. "El Negociador Automático" (Supplier Comparison) 🤝💰
+Si tenés el mismo producto con 2 o 3 proveedores distintos, el sistema tiene que ayudarte a elegir.
+La Lógica BI: Cuando estás cargando una compra, el sistema busca el precio de ese mismo producto en otros proveedores (basándose en las últimas facturas de ellos).
+El Valor: Al cargar el precio, salta un cartel: "¡OJO! Le estás comprando a 'Minerva Srl' a $1.000, pero hace 5 días 'Distribuidora X' te lo vendió a $850. Estás pagando un 17% de más".
+Impacto: El dueño deja de comprar "por costumbre" y empieza a comprar por rentabilidad.
+3. "El Predictor de Agotamiento" (Venta Perdida) 📉⌛
+No es solo saber qué falta, sino cuánta plata estás perdiendo por no tenerlo.
+La Lógica BI: Cruza la velocidad de venta diaria con los días que el producto estuvo en stock cero.
+El Valor: Un informe de "Lucro Cesante": "Este mes el producto 'Coca Cola 2L' estuvo 5 días sin stock. Basado en tu promedio, dejaste de vender $45.000".
+Impacto: El dueño entiende que el stock quebrado es pérdida de dinero real, no solo un estante vacío.
+
+
+
