@@ -316,6 +316,13 @@
                         "icon": "fas fa-file-invoice-dollar",
                         "path": "/proveedores/informes/cuentas-por-pagar",
                         "permiso": "ver_proveedores"
+                    },
+                    {
+                        "id": "aging_deuda_prov",
+                        "text": "Antigüedad de Deuda",
+                        "icon": "fas fa-hourglass-half",
+                        "path": "/proveedores/informes/aging-deuda",
+                        "permiso": "ver_proveedores"
                     }
                 ]
             }

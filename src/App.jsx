@@ -77,6 +77,7 @@ import RankingProveedoresBI from "./pages/proveedores/RankingProveedoresBI";
 import RadarInflacion from "./pages/proveedores/RadarInflacion";
 import SemaforoCumplimiento from "./pages/proveedores/SemaforoCumplimiento";
 import MatrizDependencia from "./pages/proveedores/MatrizDependencia";
+import AuditoriaDeudaProveedores from "./pages/proveedores/AuditoriaDeudaProveedores";
 
 // Compras
 import ListadoCompras from "./pages/compras/ListadoCompras";
@@ -320,6 +321,10 @@ const App = () => {
         <Route
           path="/proveedores/dependencia"
           element={<MatrizDependencia />}
+        />
+        <Route
+          path="/proveedores/informes/aging-deuda"
+          element={<AuditoriaDeudaProveedores />}
         />
 
         {/* Compras */}
