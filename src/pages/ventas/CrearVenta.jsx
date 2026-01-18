@@ -170,14 +170,14 @@ const CrearVenta = () => {
           api.get(`/ventas/tmp?usuario_id=${user.id}`),
           fetch("https://dolarapi.com/v1/dolares/bolsa")
             .then((r) => r.json())
-            .catch(() => ({ compra: 1499.5 })),
+            .catch(() => ({ venta: 1499.5 })),
           api.get("/promociones").catch(() => ({ data: [] })),
         ]);
       setProductos(resP.data);
       setClientes(resCl.data);
       setCombos(resCo.data);
       setTmpVentas(resTmp.data);
-      setDolar(resDolar.compra || 1499.5);
+      setDolar(resDolar.venta || 1499.5);
       setPromos(resPromos.data);
       setLoading(false);
     } catch (e) {

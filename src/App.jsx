@@ -181,6 +181,7 @@ import WhatsAppConfig from "./pages/configuracion/WhatsAppConfig";
 
 import WallStreetLayout from "./layouts/WallStreetLayout"; // 👈 Agregar import
 import DashboardWallStreet from "./pages/DashboardWallStreet"; // 👈 Agregar import
+import OracleEye from "./pages/OracleEye";
 
 // 👇 IMPORTACIÓN DE COMPONENTES DE RUTA
 import ProtectedRoute from "./utils/ProtectedRoute";
@@ -533,6 +534,7 @@ const App = () => {
           element={<DashboardWallStreet />}
         />
       </Route>
+      <Route path="/dashboard/oracle-eye" element={<OracleEye />} />
 
       {/* Redirección final para cualquier ruta desconocida fuera del layout */}
       <Route path="*" element={<Navigate to="/login" replace />} />

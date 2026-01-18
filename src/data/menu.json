@@ -505,6 +505,13 @@
                 "permiso": "ver_ventas"
             },
             {
+                "id": "oracle_eye",
+                "text": "Oracle Eye (BI)",
+                "icon": "fas fa-brain text-info",
+                "path": "/dashboard/oracle-eye",
+                "permiso": "ver_ventas"
+            },
+            {
                 "id": "informes",
                 "text": "Informes",
                 "icon": "fas fa-fw fa-chart-bar",
