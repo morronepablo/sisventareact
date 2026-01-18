@@ -63,6 +63,7 @@ import CementerioStock from "./pages/productos/CementerioStock";
 import LucroCesante from "./pages/productos/LucroCesante";
 import EquityShield from "./pages/productos/EquityShield";
 import OptimizadorMix from "./pages/productos/OptimizadorMix";
+import MonitorRotacion from "./pages/productos/MonitorRotacion";
 
 // Proveedores
 import ListadoProveedores from "./pages/proveedores/ListadoProveedores";
@@ -283,13 +284,10 @@ const App = () => {
         <Route path="/productos/cementerio" element={<CementerioStock />} />
         <Route path="/productos/lucro-cesante" element={<LucroCesante />} />
         <Route path="/productos/equity-shield" element={<EquityShield />} />
+        <Route path="/productos/optimizador-mix" element={<OptimizadorMix />} />
         <Route
-          path="/productos/optimizador-mix"
-          element={
-            <ProtectedRoute>
-              <OptimizadorMix />
-            </ProtectedRoute>
-          }
+          path="/productos/monitor-rotacion"
+          element={<MonitorRotacion />}
         />
 
         {/* Proveedores */}

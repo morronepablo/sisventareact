@@ -27,7 +27,17 @@ const MainLayout = () => {
       }
       if (e.key === "F2") {
         e.preventDefault();
-        navigate("/compras/crear");
+
+        if (e.ctrlKey && e.shiftKey) {
+          // CTRL + SHIFT + F2 => Órdenes de Compra
+          navigate("/compras/ordenes");
+        } else if (e.shiftKey) {
+          // SHIFT + F2 => Listado de Compras
+          navigate("/compras/listado");
+        } else {
+          // F2 solo => Crear Compra
+          navigate("/compras/crear");
+        }
       }
       if (e.key === "F4") {
         e.preventDefault();
@@ -76,11 +86,6 @@ const MainLayout = () => {
       if (e.shiftKey && e.key === "F1") {
         e.preventDefault();
         navigate("/ventas/listado");
-      }
-      // ✨ ATAJO SEGURO: SHIFT + F2
-      if (e.shiftKey && e.key === "F2") {
-        e.preventDefault();
-        navigate("/compras/listado");
       }
       // ✨ ATAJO SEGURO: SHIFT + F6
       if (e.shiftKey && e.key === "F6") {

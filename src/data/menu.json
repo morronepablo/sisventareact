@@ -185,6 +185,13 @@
                 "permiso": "ver_productos"
             },
             {
+                "id": "monitor_rotacion",
+                "text": "Monitor de Rotación",
+                "icon": "fas fa-sync-alt",
+                "path": "/productos/monitor-rotacion",
+                "permiso": "ver_productos"
+            },
+            {
                 "id": "termometro_ventas",
                 "text": "Termómetro BI",
                 "icon": "fas fa-thermometer-half",
