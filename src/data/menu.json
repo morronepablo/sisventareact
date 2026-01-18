@@ -329,13 +329,6 @@
                 "permiso": "ver_compras"
             },
             {
-                "id": "asistente_compra",
-                "text": "Asistente de Compra",
-                "icon": "fas fa-robot",
-                "path": "/compras/asistente",
-                "permiso": "ver_compras"
-            },
-            {
                 "id": "listado",
                 "text": "Listado de Compras",
                 "icon": "fas fa-fw fa-list",
@@ -343,10 +336,31 @@
                 "permiso": "ver_compras"
             },
             {
+                "id": "asistente_compra",
+                "text": "Asistente de Compra",
+                "icon": "fas fa-robot",
+                "path": "/compras/asistente",
+                "permiso": "ver_compras"
+            },
+            {
                 "id": "auditoria_traicion",
                 "text": "Alerta de Traición (BI)",
                 "icon": "fas fa-exclamation-triangle",
                 "path": "/compras/auditoria-traicion",
+                "permiso": "ver_compras"
+            },
+            {
+                "id": "auditoria_productos",
+                "text": "Auditoría de Productos",
+                "icon": "fas fa-clipboard-check",
+                "path": "/compras/auditoria-productos",
+                "permiso": "ver_compras"
+            },
+            {
+                "id": "radar_arbitraje",
+                "text": "Radar de Arbitraje",
+                "icon": "fas fa-balance-scale",
+                "path": "/compras/radar-arbitraje",
                 "permiso": "ver_compras"
             },
             {

@@ -93,6 +93,8 @@ import CrearOrdenCompra from "./pages/compras/CrearOrdenCompra";
 import VerOrdenCompra from "./pages/compras/VerOrdenCompra";
 import RecibirOrdenCompra from "./pages/compras/RecibirOrdenCompra";
 import AsistenteCompra2 from "./pages/compras/AsistenteCompra";
+import AuditoriaProductosComprados from "./pages/compras/AuditoriaProductosComprados";
+import RadarArbitrajeCostos from "./pages/compras/RadarArbitrajeCostos";
 
 // Clientes
 import ListadoClientes from "./pages/clientes/ListadoClientes";
@@ -361,6 +363,14 @@ const App = () => {
           element={<RecibirOrdenCompra />}
         />
         <Route path="/compras/asistente" element={<AsistenteCompra2 />} />
+        <Route
+          path="/compras/auditoria-productos"
+          element={<AuditoriaProductosComprados />}
+        />
+        <Route
+          path="/compras/radar-arbitraje"
+          element={<RadarArbitrajeCostos />}
+        />
 
         {/* Clientes */}
         <Route path="/clientes/listado" element={<ListadoClientes />} />
