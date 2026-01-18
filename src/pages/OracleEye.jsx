@@ -1,4 +1,5 @@
 // src/pages/OracleEye.jsx
+/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/set-state-in-effect */
 import React, { useEffect, useState, useCallback } from "react";
 import { Line, Doughnut, Radar, Bar, Pie } from "react-chartjs-2";
@@ -57,6 +58,13 @@ const OracleEye = () => {
   const gastosReales = parseFloat(data.gastos_mes || 0);
   const gananciaNeta = ingresos - costos - gastosReales;
 
+  const formatMoney = (v) =>
+    new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+      maximumFractionDigits: 0,
+    }).format(v || 0);
+
   return (
     <div
       className={`bg-black text-white px-2 ${isUpdating ? "neon-flicker" : ""}`}
@@ -67,20 +75,14 @@ const OracleEye = () => {
         overflow: "hidden",
       }}
     >
-      {/* 1. HEADER (Con ícono de SEÑAL y Efecto Latido) */}
       <style>{`
-        .pulse-live {
-          animation: pulse-live 2s infinite;
-          box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
-        }
+        .pulse-live { animation: pulse-live 2s infinite; box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
         @keyframes pulse-live {
           0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
           70% { transform: scale(1.05); box-shadow: 0 0 15px 10px rgba(40, 167, 69, 0); }
           100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
         }
-        .pulse-sync {
-          animation: pulse-sync 0.5s infinite;
-        }
+        .pulse-sync { animation: pulse-sync 0.5s infinite; }
         @keyframes pulse-sync {
           0% { background-color: #ffc107; box-shadow: 0 0 5px #ffc107; }
           50% { background-color: #fd7e14; box-shadow: 0 0 20px #fd7e14; }
@@ -88,8 +90,11 @@ const OracleEye = () => {
         }
         .neon-flicker { animation: flicker 0.3s ease-in-out; }
         @keyframes flicker { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+        .shadow-inset { box-shadow: inset 0 2px 4px rgba(0,0,0,0.5); }
+        .bg-gradient-info { background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%); }
       `}</style>
 
+      {/* 1. HEADER */}
       <div
         className="d-flex justify-content-between align-items-center px-2 border-bottom border-secondary"
         style={{ height: "60px" }}
@@ -144,8 +149,8 @@ const OracleEye = () => {
           <div className="col-lg-7 p-1 h-100">
             <div className="card bg-dark border-secondary h-100 m-0 shadow-sm">
               <div className="card-header border-0 bg-transparent py-1">
-                <h6 className="text-bold m-0 text-info text-xs text-uppercase">
-                  Rendimiento: Hoy vs Ayer
+                <h6 className="text-bold m-0 text-info text-xs">
+                  RENDIMIENTO: HOY VS AYER
                 </h6>
               </div>
               <div className="card-body p-1" style={{ position: "relative" }}>
@@ -206,8 +211,8 @@ const OracleEye = () => {
           <div className="col-lg-5 p-1 h-100">
             <div className="card bg-dark border-secondary h-100 m-0 shadow-sm">
               <div className="card-header border-0 bg-transparent py-1 text-warning text-center">
-                <h6 className="text-bold m-0 text-xs text-uppercase">
-                  Distribución de Ingresos (Hoy)
+                <h6 className="text-bold m-0 text-xs">
+                  DISTRIBUCIÓN DE INGRESOS (HOY)
                 </h6>
               </div>
               <div
@@ -216,7 +221,8 @@ const OracleEye = () => {
               >
                 <Pie
                   data={{
-                    labels: data.pagosMix?.map((p) => p.label) || [],
+                    labels:
+                      data.pagosMix?.map((p) => p.label.toUpperCase()) || [],
                     datasets: [
                       {
                         data: data.pagosMix?.map((p) => p.value) || [],
@@ -254,8 +260,8 @@ const OracleEye = () => {
         <div className="row m-0" style={{ height: "30%" }}>
           <div className="col-lg-3 p-1 h-100">
             <div className="card bg-dark border-secondary h-100 m-0 shadow-sm">
-              <div className="card-header border-0 bg-transparent text-warning text-xs text-bold py-1 text-uppercase">
-                Top Categorías (Hoy)
+              <div className="card-header border-0 bg-transparent text-warning text-xs text-bold py-1">
+                TOP CATEGORÍAS (HOY)
               </div>
               <div className="card-body py-1 px-3 d-flex flex-column justify-content-center">
                 {data.categorias.map((c, i) => (
@@ -292,8 +298,8 @@ const OracleEye = () => {
           </div>
           <div className="col-lg-6 p-1 h-100">
             <div className="card bg-dark border-secondary h-100 m-0 shadow-sm">
-              <div className="card-header border-0 bg-transparent text-success text-xs text-center text-bold py-1 text-uppercase">
-                Performance Terminales (Monto vs Tickets)
+              <div className="card-header border-0 bg-transparent text-success text-xs text-center text-bold py-1">
+                TERMINALES (MONTO VS TICKETS)
               </div>
               <div className="card-body p-1" style={{ position: "relative" }}>
                 <Bar
@@ -347,10 +353,11 @@ const OracleEye = () => {
                 className="card-body d-flex flex-column align-items-center justify-content-center p-1"
                 style={{ position: "relative" }}
               >
-                <div style={{ width: "90px", height: "90px" }}>
+                {/* 🚀 CONTENEDOR AGRANDADO DE 95px A 160px */}
+                <div style={{ width: "160px", height: "160px" }}>
                   <Doughnut
                     data={{
-                      labels: ["G", "C", "GF"],
+                      labels: ["Ganancia", "Costo", "Gastos"],
                       datasets: [
                         {
                           data: [
@@ -364,20 +371,41 @@ const OracleEye = () => {
                       ],
                     }}
                     options={{
-                      cutout: "70%",
-                      plugins: { legend: { display: false } },
+                      cutout: "80%", // Anillo más fino y moderno
+                      maintainAspectRatio: false,
+                      plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                          enabled: true,
+                          backgroundColor: "rgba(0, 0, 0, 0.9)",
+                          titleFont: { size: 12, weight: "bold" },
+                          bodyFont: { size: 14, weight: "bold" },
+                          padding: 10,
+                          displayColors: false,
+                          callbacks: {
+                            title: (context) => context[0].label,
+                            label: (context) =>
+                              `$ ${Math.round(context.raw).toLocaleString("es-AR")}`,
+                          },
+                        },
+                      },
                     }}
                   />
                 </div>
-                <div className="mt-1 text-center">
-                  <h6
+
+                {/* TEXTO INFERIOR AJUSTADO */}
+                <div className="mt-2 text-center">
+                  <h5
                     className="text-success text-bold mb-0"
-                    style={{ fontSize: "0.9rem" }}
+                    style={{ fontSize: "1.1rem" }}
                   >
-                    $ {Math.round(gananciaNeta).toLocaleString()}
-                  </h6>
-                  <small className="text-muted" style={{ fontSize: "0.5rem" }}>
-                    GANANCIA NETO
+                    $ {Math.round(gananciaNeta).toLocaleString("es-AR")}
+                  </h5>
+                  <small
+                    className="text-muted text-bold text-uppercase"
+                    style={{ fontSize: "0.55rem", letterSpacing: "1px" }}
+                  >
+                    Ganancia Neta
                   </small>
                 </div>
               </div>
@@ -387,10 +415,11 @@ const OracleEye = () => {
 
         {/* FILA 3: SALUD | SEMANAL */}
         <div className="row m-0" style={{ height: "33%" }}>
+          {/* ... Mismo contenido que el anterior ... */}
           <div className="col-lg-6 p-1 h-100">
             <div className="card bg-dark border-secondary h-100 m-0 shadow-sm">
-              <div className="card-header border-0 bg-transparent text-danger text-center text-xs text-bold py-1 text-uppercase">
-                Salud Operativa General
+              <div className="card-header border-0 bg-transparent text-danger text-center text-xs text-bold py-1">
+                SALUD OPERATIVA GENERAL
               </div>
               <div
                 className="card-body p-1 d-flex justify-content-center"
@@ -435,8 +464,8 @@ const OracleEye = () => {
           </div>
           <div className="col-lg-6 p-1 h-100">
             <div className="card bg-dark border-secondary h-100 m-0 shadow-sm">
-              <div className="card-header border-0 bg-transparent text-info text-center text-xs text-bold py-1 text-uppercase">
-                Inercia Semanal (7 Días)
+              <div className="card-header border-0 bg-transparent text-info text-center text-xs text-bold py-1">
+                INERCIA SEMANAL (7 DÍAS)
               </div>
               <div className="card-body p-1" style={{ position: "relative" }}>
                 <Bar
@@ -479,7 +508,7 @@ const OracleEye = () => {
       {/* TICKER */}
       <div
         className="bg-info py-1 border-top border-dark"
-        style={{ height: "35px" }}
+        style={{ height: "35px", minHeight: "35px" }}
       >
         <marquee
           className="text-black text-bold text-uppercase pt-1"
