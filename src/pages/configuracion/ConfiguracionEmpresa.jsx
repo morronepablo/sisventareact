@@ -46,7 +46,7 @@ const ConfiguracionEmpresa = () => {
 
       if (resEmpresa.data.logo) {
         setLogoPreview(
-          `http://localhost:3001/assets/img/${resEmpresa.data.logo}`
+          `http://localhost:3001/assets/img/${resEmpresa.data.logo}`,
         );
       }
       setLoading(false);
@@ -64,8 +64,8 @@ const ConfiguracionEmpresa = () => {
   const handleComisionChange = (id, value) => {
     setComisiones(
       comisiones.map((c) =>
-        c.id === id ? { ...c, comision_porcentaje: value } : c
-      )
+        c.id === id ? { ...c, comision_porcentaje: value } : c,
+      ),
     );
   };
 
@@ -88,29 +88,41 @@ const ConfiguracionEmpresa = () => {
   const handleDownloadBackup = async () => {
     try {
       Swal.fire({
-        title: "Generando Copia...",
+        title: "Generando Copia de Seguridad...",
+        text: "Esto puede demorar unos segundos dependiendo del tamaño de la base.",
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
       });
+
       const response = await api.get("/backup/download", {
         responseType: "blob",
       });
+
+      // Lógica de fecha y hora local (Argentina)
+      const ahora = new Date();
+      const fecha = ahora.toISOString().split("T")[0]; // YYYY-MM-DD
+      const hora = ahora.getHours().toString().padStart(2, "0");
+      const mins = ahora.getMinutes().toString().padStart(2, "0");
+      const timestamp = `${fecha}_${hora}-${mins}`;
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement("a");
       link.href = url;
-      const fileName = `backup-${empresa.nombre_empresa.replace(
-        /\s+/g,
-        "_"
-      )}.sql`;
+
+      // Nombre del archivo: backup-Empresa_Nombre-2026-01-18_15-30.sql
+      const nombreLimpio = empresa.nombre_empresa.replace(/\s+/g, "_");
+      const fileName = `backup-${nombreLimpio}-${timestamp}.sql`;
+
       link.setAttribute("download", fileName);
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
+
       Swal.close();
-      Swal.fire("¡Éxito!", "Copia descargada.", "success");
+      Swal.fire("¡Éxito!", `Copia descargada: ${fileName}`, "success");
     } catch (error) {
-      Swal.fire("Error", "No se pudo generar la copia.", "error");
+      Swal.fire("Error", "Fallo al generar el backup en el servidor.", "error");
     }
   };
 
@@ -139,7 +151,7 @@ const ConfiguracionEmpresa = () => {
           await Swal.fire(
             "¡Reseteo Exitoso!",
             "El sistema ha vuelto a cero.",
-            "success"
+            "success",
           );
           window.location.href = "/login";
         }
