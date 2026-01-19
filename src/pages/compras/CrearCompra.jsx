@@ -61,6 +61,13 @@ const CrearCompra = () => {
     banco: 0,
   });
 
+  const formatMoney = (val) =>
+    new Intl.NumberFormat("es-AR", {
+      style: "currency",
+      currency: "ARS",
+      minimumFractionDigits: 2,
+    }).format(val || 0);
+
   const fetchTmp = async () => {
     if (!user?.id) return;
     try {
@@ -69,7 +76,7 @@ const CrearCompra = () => {
       const total = res.data.reduce(
         (acc, item) =>
           acc + parseFloat(item.cantidad) * parseFloat(item.precio_compra),
-        0
+        0,
       );
       setFormData((prev) => ({ ...prev, precio_total: total }));
     } catch (e) {
@@ -116,7 +123,7 @@ const CrearCompra = () => {
     const nuevoTotal = nuevasCompras.reduce(
       (acc, item) =>
         acc + parseFloat(item.cantidad) * parseFloat(item.precio_compra || 0),
-      0
+      0,
     );
     setFormData((prev) => ({ ...prev, precio_total: nuevoTotal }));
     try {
@@ -142,7 +149,7 @@ const CrearCompra = () => {
       return Swal.fire(
         "Atención",
         "Seleccione un Proveedor para auditar precios.",
-        "warning"
+        "warning",
       );
     try {
       const p = productos.find((x) => x.codigo === codigoItem);
@@ -203,6 +210,39 @@ const CrearCompra = () => {
     }
   };
 
+  // ✅ NUEVO: Manejo de F5 con validaciones
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "F5") {
+        e.preventDefault();
+
+        if (tmpCompras.length === 0) {
+          Swal.fire("Atención", "No hay productos para registrar.", "warning");
+          return;
+        }
+
+        if (!proveedorSeleccionado) {
+          Swal.fire(
+            "Atención",
+            "Debe seleccionar un proveedor antes de registrar la compra.",
+            "warning",
+          );
+          return;
+        }
+
+        const modal = document.getElementById("modal-pagos");
+        if (modal && !modal.classList.contains("show")) {
+          window.$("#modal-pagos").modal("show");
+        } else {
+          handleConfirmarCompra();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
+  }, [tmpCompras, proveedorSeleccionado]);
+
   useEffect(() => {
     if (!loadingData && productos.length > 0) {
       const timer = setTimeout(() => {
@@ -226,475 +266,574 @@ const CrearCompra = () => {
   return (
     <div className="content-header">
       <div className="container-fluid">
-        <h1>
-          <b>Registro de una nueva compra</b>
-        </h1>
+        <div className="row mb-2">
+          <div className="col-sm-6">
+            <h1>
+              <b>Registro de una nueva compra</b>
+            </h1>
+          </div>
+          <div className="col-sm-6 text-right">
+            <span className="badge badge-secondary p-2 ml-1 shadow-sm">
+              SHIFT+F2: Listado Compras
+            </span>
+            <span className="badge badge-danger p-2 ml-1 shadow-sm">
+              F5: Registrar Compra
+            </span>
+          </div>
+        </div>
         <hr />
         <div className="row">
-          <div className="col-md-12">
-            <div className="card card-outline card-primary shadow-sm">
-              <div className="card-header">
-                <h3 className="card-title">Ingrese los datos</h3>
-              </div>
+          {/* 🎨 PANEL IZQUIERDO: PRODUCTOS */}
+          <div className="col-md-8">
+            <div
+              className="card card-outline shadow-lg h-100"
+              style={{
+                backgroundColor: "#1e2229",
+                borderTop: "4px solid #00f2fe",
+                borderLeft: "none",
+                borderRight: "none",
+                borderBottom: "none",
+              }}
+            >
               <div className="card-body">
-                <div className="row">
-                  <div className="col-md-8">
-                    <div className="row">
-                      <div className="col-md-2">
-                        <label>Cant.*</label>
-                        <input
-                          type="number"
-                          className="form-control text-center"
-                          style={{ backgroundColor: "rgba(233,231,16,0.15)" }}
-                          value={cantidad}
-                          onChange={(e) => setCantidad(e.target.value)}
-                        />
-                      </div>
-                      <div className="col-md-7">
-                        <label>Código / Nombre</label>
-                        <div className="input-group">
-                          <input
-                            type="text"
-                            className="form-control"
-                            value={codigo}
-                            onChange={(e) => setCodigo(e.target.value)}
-                            onKeyDown={handleAddProduct}
-                            autoFocus
-                            placeholder="Escanee o escriba código..."
-                          />
-                          <div className="input-group-append">
-                            <button
-                              className="btn btn-primary"
-                              data-toggle="modal"
-                              data-target="#modal-productos"
-                            >
-                              <i className="fa fa-search"></i>
-                            </button>
-                            <button
-                              className="btn btn-success"
-                              onClick={() => navigate("/productos/crear")}
-                            >
-                              <i className="fas fa-plus"></i>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <table className="table table-striped table-bordered table-sm mt-3">
-                      <thead className="thead-dark text-center">
-                        <tr>
-                          <th>Nro.</th>
-                          <th>Código</th>
-                          <th style={{ width: "120px" }}>Cant.</th>
-                          <th>Producto</th>
-                          <th style={{ width: "130px" }}>Costo Unit.</th>
-                          <th>Total</th>
-                          <th>Acción</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {tmpCompras.map((it, i) => {
-                          const pAnt = parseFloat(it.precio_anterior || 0);
-                          const pAct = parseFloat(it.precio_compra || 0);
-                          const aumento =
-                            pAnt > 0 ? ((pAct - pAnt) / pAnt) * 100 : 0;
-                          const esTraicion = aumento > 10;
-
-                          // 🚀 LÓGICA EL NEGOCIADOR: ¿Hay alguien más barato?
-                          const mPre = parseFloat(it.mejor_precio || 0);
-                          const esMasBaratoEnOtroLado =
-                            mPre > 0 &&
-                            pAct > mPre &&
-                            it.mejor_proveedor !==
-                              proveedorSeleccionado?.empresa;
-
-                          return (
-                            <tr
-                              key={it.id}
-                              className={esTraicion ? "bg-light-danger" : ""}
-                            >
-                              <td className="text-center align-middle">
-                                {i + 1}
-                              </td>
-                              <td className="text-center align-middle">
-                                {it.codigo}
-                              </td>
-                              <td className="text-center align-middle">
-                                <div className="btn-group btn-group-sm">
-                                  <button
-                                    className="btn btn-outline-secondary btn-xs"
-                                    onClick={() =>
-                                      updateQty(it.id, it.cantidad, -1)
-                                    }
-                                    disabled={it.cantidad <= 1}
-                                  >
-                                    <i className="fas fa-minus"></i>
-                                  </button>
-                                  <span className="px-2 font-weight-bold">
-                                    {it.cantidad}
-                                  </span>
-                                  <button
-                                    className="btn btn-outline-secondary btn-xs"
-                                    onClick={() =>
-                                      updateQty(it.id, it.cantidad, 1)
-                                    }
-                                  >
-                                    <i className="fas fa-plus"></i>
-                                  </button>
-                                </div>
-                              </td>
-                              <td className="align-middle">
-                                <b>{it.nombre}</b>
-                                {esTraicion && (
-                                  <div className="text-danger small font-weight-bold mt-1">
-                                    <i className="fas fa-exclamation-triangle"></i>{" "}
-                                    ¡TRAICIÓN! Subió un {aumento.toFixed(1)}%
-                                    (Antes: ${pAnt})
-                                  </div>
-                                )}
-                                {/* 🤝 VISUAL DEL NEGOCIADOR 🤝 */}
-                                {esMasBaratoEnOtroLado && (
-                                  <div className="text-primary small font-weight-bold mt-1">
-                                    <i className="fas fa-handshake"></i> OJO:{" "}
-                                    <b>{it.mejor_proveedor}</b> lo vendió a{" "}
-                                    <b>${mPre}</b>
-                                  </div>
-                                )}
-                              </td>
-                              <td
-                                className="text-right align-middle"
-                                style={{ width: "130px" }}
-                              >
-                                <input
-                                  type="number"
-                                  className={`form-control form-control-sm text-right font-weight-bold ${
-                                    esTraicion
-                                      ? "is-invalid text-danger"
-                                      : "text-success"
-                                  }`}
-                                  step="0.01"
-                                  value={it.precio_compra}
-                                  onChange={(e) =>
-                                    handlePriceChange(it.id, e.target.value)
-                                  }
-                                  onFocus={(e) => e.target.select()}
-                                />
-                              </td>
-                              <td className="text-right align-middle text-bold">
-                                $
-                                {(
-                                  it.cantidad * it.precio_compra
-                                ).toLocaleString("es-AR", {
-                                  minimumFractionDigits: 2,
-                                })}
-                              </td>
-                              <td className="text-center align-middle">
-                                <button
-                                  className="btn btn-danger btn-sm"
-                                  onClick={async () => {
-                                    await api.delete(`/compras/tmp/${it.id}`);
-                                    fetchTmp();
-                                  }}
-                                >
-                                  <i className="fas fa-trash"></i>
-                                </button>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                      <tfoot>
-                        <tr className="bg-light">
-                          <td colSpan="5" className="text-right">
-                            <b>TOTAL COMPRA</b>
-                          </td>
-                          <td className="text-right text-primary">
-                            <b>
-                              ${" "}
-                              {formData.precio_total.toLocaleString("es-AR", {
-                                minimumFractionDigits: 2,
-                              })}
-                            </b>
-                          </td>
-                          <td></td>
-                        </tr>
-                      </tfoot>
-                    </table>
+                <div className="row mb-3">
+                  <div className="col-md-2">
+                    <label className="text-muted text-xs mb-1">Cant.*</label>
+                    <input
+                      type="number"
+                      className="form-control form-control-sm bg-dark text-white text-center"
+                      value={cantidad}
+                      onChange={(e) => setCantidad(e.target.value)}
+                      style={{ fontSize: "1rem" }}
+                    />
                   </div>
-
-                  <div className="col-md-4">
-                    <div className="row mb-3">
-                      <div className="col-md-6">
+                  <div className="col-md-7">
+                    <label className="text-muted text-xs mb-1">
+                      Código / Nombre
+                    </label>
+                    <div className="input-group">
+                      <div className="input-group-prepend">
+                        <span className="input-group-text bg-dark text-white">
+                          <i className="fas fa-barcode"></i>
+                        </span>
+                      </div>
+                      <input
+                        type="text"
+                        className="form-control form-control-sm bg-dark text-white"
+                        value={codigo}
+                        onChange={(e) => setCodigo(e.target.value)}
+                        onKeyDown={handleAddProduct}
+                        autoFocus
+                        placeholder="Escanee o escriba código..."
+                        style={{ fontSize: "1rem" }}
+                      />
+                      <div className="input-group-append">
                         <button
-                          className="btn btn-primary btn-block"
+                          className="btn btn-primary btn-sm"
                           data-toggle="modal"
-                          data-target="#modal-proveedores"
+                          data-target="#modal-productos"
+                          style={{ fontSize: "1rem" }}
                         >
-                          Buscar Proveedor
+                          <i className="fas fa-search"></i>
+                        </button>
+                        <button
+                          className="btn btn-success btn-sm"
+                          onClick={() => navigate("/productos/crear")}
+                          style={{ fontSize: "1rem" }}
+                        >
+                          <i className="fas fa-plus"></i>
                         </button>
                       </div>
-                      <div className="col-md-6">
-                        <input
-                          type="text"
-                          className="form-control bg-light"
-                          value={proveedorSeleccionado?.empresa || ""}
-                          readOnly
-                        />
-                      </div>
                     </div>
-                    <div className="row">
-                      <div className="col-md-4">
-                        <label>Fecha</label>
-                        <input
-                          type="date"
-                          className="form-control"
-                          value={formData.fecha}
-                          onChange={(e) =>
-                            setFormData({ ...formData, fecha: e.target.value })
-                          }
-                        />
-                      </div>
-                      <div className="col-md-4">
-                        <label>Tipo</label>
-                        <select
-                          className="form-control"
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              comprobante: e.target.value,
-                            })
-                          }
-                        >
-                          <option value="">-</option>
-                          <option value="FACTURA">FACTURA</option>
-                          <option value="RECIBO">RECIBO</option>
-                        </select>
-                      </div>
-                      <div className="col-md-4">
-                        <label>N°</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          onChange={(e) =>
-                            setFormData({ ...formData, numero: e.target.value })
-                          }
-                        />
-                      </div>
-                    </div>
-                    <div className="alert alert-warning text-center mt-4">
-                      <small>TOTAL A PAGAR</small>
-                      <h3>
-                        <b>
+                  </div>
+                </div>
+
+                <div className="table-responsive mt-3">
+                  <table className="table table-sm table-striped table-bordered">
+                    {/* 👇 CABECERA CON COLOR AZUL CIAN (#00f2fe) */}
+                    <thead
+                      className="text-center"
+                      style={{ backgroundColor: "#2d323b", color: "#00f2fe" }}
+                    >
+                      <tr>
+                        <th>Nro.</th>
+                        <th>Código</th>
+                        <th style={{ width: "120px" }}>Cant.</th>
+                        <th>Producto</th>
+                        <th style={{ width: "130px" }}>Costo Unit.</th>
+                        <th>Total</th>
+                        <th>Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tmpCompras.map((it, i) => {
+                        const pAnt = parseFloat(it.precio_anterior || 0);
+                        const pAct = parseFloat(it.precio_compra || 0);
+                        const aumento =
+                          pAnt > 0 ? ((pAct - pAnt) / pAnt) * 100 : 0;
+                        const esTraicion = aumento > 10;
+
+                        // 🚀 LÓGICA EL NEGOCIADOR: ¿Hay alguien más barato?
+                        const mPre = parseFloat(it.mejor_precio || 0);
+                        const esMasBaratoEnOtroLado =
+                          mPre > 0 &&
+                          pAct > mPre &&
+                          it.mejor_proveedor !== proveedorSeleccionado?.empresa;
+
+                        return (
+                          <tr
+                            key={it.id}
+                            className={esTraicion ? "bg-light-danger" : ""}
+                            style={{
+                              backgroundColor: "#2d323b",
+                              color: "white",
+                            }}
+                          >
+                            <td className="text-center align-middle">
+                              {i + 1}
+                            </td>
+                            <td className="text-center align-middle">
+                              {it.codigo}
+                            </td>
+                            <td className="text-center align-middle">
+                              <div className="btn-group btn-group-sm">
+                                <button
+                                  className="btn btn-outline-secondary btn-xs"
+                                  onClick={() =>
+                                    updateQty(it.id, it.cantidad, -1)
+                                  }
+                                  disabled={it.cantidad <= 1}
+                                  style={{ fontSize: "0.8rem" }}
+                                >
+                                  -
+                                </button>
+                                <span
+                                  className="px-2 font-weight-bold align-self-center"
+                                  style={{ fontSize: "0.9rem" }}
+                                >
+                                  {it.cantidad}
+                                </span>
+                                <button
+                                  className="btn btn-outline-secondary btn-xs"
+                                  onClick={() =>
+                                    updateQty(it.id, it.cantidad, 1)
+                                  }
+                                  style={{ fontSize: "0.8rem" }}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </td>
+                            <td className="align-middle">
+                              <b>{it.nombre}</b>
+                              {esTraicion && (
+                                <div className="text-danger small font-weight-bold mt-1">
+                                  <i className="fas fa-exclamation-triangle"></i>{" "}
+                                  ¡TRAICIÓN! Subió un {aumento.toFixed(1)}%
+                                  (Antes: ${pAnt})
+                                </div>
+                              )}
+                              {/* 🤝 VISUAL DEL NEGOCIADOR 🤝 */}
+                              {esMasBaratoEnOtroLado && (
+                                <div className="text-primary small font-weight-bold mt-1">
+                                  <i className="fas fa-handshake"></i> OJO:{" "}
+                                  <b>{it.mejor_proveedor}</b> lo vendió a{" "}
+                                  <b>${mPre}</b>
+                                </div>
+                              )}
+                            </td>
+                            <td
+                              className="text-right align-middle"
+                              style={{ width: "130px" }}
+                            >
+                              <input
+                                type="number"
+                                className={`form-control form-control-sm text-right font-weight-bold ${
+                                  esTraicion
+                                    ? "is-invalid text-danger"
+                                    : "text-success"
+                                }`}
+                                step="0.01"
+                                value={it.precio_compra}
+                                onChange={(e) =>
+                                  handlePriceChange(it.id, e.target.value)
+                                }
+                                onFocus={(e) => e.target.select()}
+                                style={{ fontSize: "0.9rem" }}
+                              />
+                            </td>
+                            <td className="text-right align-middle text-bold">
+                              $
+                              {(it.cantidad * it.precio_compra).toLocaleString(
+                                "es-AR",
+                                { minimumFractionDigits: 2 },
+                              )}
+                            </td>
+                            <td className="text-center align-middle">
+                              <button
+                                className="btn btn-danger btn-sm"
+                                onClick={async () => {
+                                  await api.delete(`/compras/tmp/${it.id}`);
+                                  fetchTmp();
+                                }}
+                                style={{ fontSize: "0.8rem" }}
+                              >
+                                <i className="fas fa-trash"></i>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                    {/* 👇 FILA DE TOTALES CON COLOR AMARILLO BRILLANTE */}
+                    <tfoot className="bg-dark">
+                      <tr className="text-bold" style={{ color: "#ffc107" }}>
+                        <td colSpan="5" className="text-right">
+                          TOTAL COMPRA
+                        </td>
+                        <td className="text-right">
                           ${" "}
                           {formData.precio_total.toLocaleString("es-AR", {
                             minimumFractionDigits: 2,
                           })}
-                        </b>
-                      </h3>
-                    </div>
-                    <button
-                      className="btn btn-primary btn-lg btn-block mt-3"
-                      data-toggle="modal"
-                      data-target="#modal-pagos"
-                    >
-                      <i className="fa-regular fa-floppy-disk"></i> Registrar
-                      Compra
-                    </button>
-                  </div>
+                        </td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+                  </table>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* MODAL PAGO */}
-      <div className="modal fade" id="modal-pagos" tabIndex="-1">
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header bg-primary text-white">
-              <h5>Registrar Pago Inicial</h5>
-              <button className="close text-white" data-dismiss="modal">
-                ×
-              </button>
-            </div>
-            <div className="modal-body">
-              {["efectivo", "tarjeta", "mercadopago", "banco"].map((m) => (
-                <div className="form-group row" key={m}>
-                  <label className="col-sm-5 text-capitalize">{m}</label>
-                  <div className="col-sm-7 input-group">
-                    <input
-                      type="number"
-                      className="form-control text-right"
-                      value={pagos[m]}
-                      onChange={(e) =>
-                        setPagos({ ...pagos, [m]: e.target.value })
-                      }
-                    />
-                    <div className="input-group-append">
-                      <button
-                        className="btn btn-primary"
-                        onClick={() =>
-                          setPagos({
-                            efectivo: 0,
-                            tarjeta: 0,
-                            mercadopago: 0,
-                            banco: 0,
-                            [m]: formData.precio_total,
-                          })
-                        }
-                      >
-                        $
-                      </button>
+          {/* 🚀 PANEL DERECHO: DATOS DE LA COMPRA */}
+          <div className="col-md-4">
+            <div
+              className="card card-outline card-dark shadow-lg h-100"
+              style={{
+                backgroundColor: "#1e2229",
+                borderTop: "4px solid #00f2fe",
+              }}
+            >
+              <div className="card-body">
+                <div className="row mb-3">
+                  <div className="col-9">
+                    <button
+                      className="btn btn-primary btn-sm btn-block shadow-sm"
+                      data-toggle="modal"
+                      data-target="#modal-proveedores"
+                    >
+                      <i className="fas fa-search mr-1"></i> BUSCAR PROVEEDOR
+                    </button>
+                  </div>
+                  <div className="col-3">
+                    <button
+                      className="btn btn-success btn-sm btn-block shadow-sm"
+                      onClick={() => navigate("/proveedores/crear")}
+                    >
+                      <i className="fas fa-plus"></i>
+                    </button>
+                  </div>
+                </div>
+                <div className="row mb-2">
+                  <div className="col-md-12">
+                    <label className="text-muted text-xs mb-1">
+                      PROVEEDOR SELECCIONADO
+                    </label>
+                    <div
+                      className="bg-black p-2 rounded border border-secondary text-info text-bold text-uppercase"
+                      style={{ fontSize: "0.9rem" }}
+                    >
+                      {proveedorSeleccionado?.empresa || "Ninguno seleccionado"}
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" data-dismiss="modal">
-                Cancelar
-              </button>
-              <button
-                className="btn btn-primary"
-                onClick={handleConfirmarCompra}
-              >
-                Confirmar
-              </button>
+
+                <div className="form-group mt-3">
+                  <label className="text-muted text-xs text-bold text-uppercase">
+                    TOTAL A PAGAR
+                  </label>
+                  <div
+                    className="p-3 text-right rounded shadow-inset"
+                    style={{
+                      backgroundColor: "#000",
+                      border: "1px solid #28a745",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "2.8rem",
+                        fontWeight: "900",
+                        color: "#28a745",
+                        letterSpacing: "-1px",
+                      }}
+                    >
+                      {formatMoney(formData.precio_total)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="row mb-3">
+                  <div className="col-md-4">
+                    <label className="text-muted text-xs">Fecha</label>
+                    <input
+                      type="date"
+                      className="form-control form-control-sm bg-dark text-white"
+                      value={formData.fecha}
+                      onChange={(e) =>
+                        setFormData({ ...formData, fecha: e.target.value })
+                      }
+                      style={{ fontSize: "0.9rem" }}
+                    />
+                  </div>
+                  <div className="col-md-4">
+                    <label className="text-muted text-xs">Tipo</label>
+                    <select
+                      className="form-control form-control-sm bg-dark text-white"
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          comprobante: e.target.value,
+                        })
+                      }
+                      style={{ fontSize: "0.9rem" }}
+                    >
+                      <option value="">-</option>
+                      <option value="FACTURA">FACTURA</option>
+                      <option value="RECIBO">RECIBO</option>
+                    </select>
+                  </div>
+                  <div className="col-md-4">
+                    <label className="text-muted text-xs">N°</label>
+                    <input
+                      type="text"
+                      className="form-control form-control-sm bg-dark text-white"
+                      onChange={(e) =>
+                        setFormData({ ...formData, numero: e.target.value })
+                      }
+                      style={{ fontSize: "0.9rem" }}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  className="btn btn-primary btn-block btn-lg shadow-lg mt-3 text-bold"
+                  data-toggle="modal"
+                  data-target="#modal-pagos"
+                  style={{
+                    height: "70px",
+                    fontSize: "1.6rem",
+                    border: "none",
+                    background:
+                      "linear-gradient(180deg, #007bff 0%, #0056b3 100%)",
+                  }}
+                >
+                  <i className="fa-regular fa-floppy-disk mr-2"></i> REGISTRAR
+                  (F5)
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* MODAL PRODUCTOS */}
-      <div className="modal fade" id="modal-productos" tabIndex="-1">
-        <div className="modal-dialog modal-xl modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header bg-info text-white">
-              <h5>Listado de Productos</h5>
-              <button className="close text-white" data-dismiss="modal">
-                ×
-              </button>
-            </div>
-            <div className="modal-body">
-              <table
-                id="prod-table"
-                className="table table-striped table-bordered table-sm"
-                style={{ width: "100%" }}
-              >
-                <thead className="text-center">
-                  <tr>
-                    <th>Acción</th>
-                    <th>Imagen</th>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>Stock</th>
-                    <th>Costo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {productos.map((p) => (
-                    <tr key={p.id}>
-                      <td className="text-center align-middle">
+        {/* --- MODALES --- */}
+        <div className="modal fade" id="modal-pagos" tabIndex="-1">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content shadow-lg">
+              <div className="modal-header bg-primary text-white">
+                <h5>Registrar Pago Inicial</h5>
+                <button className="close text-white" data-dismiss="modal">
+                  ×
+                </button>
+              </div>
+              <div className="modal-body">
+                {["efectivo", "tarjeta", "mercadopago", "banco"].map((m) => (
+                  <div className="form-group row mb-2" key={m}>
+                    <label className="col-sm-5 text-capitalize text-bold">
+                      {m}
+                    </label>
+                    <div className="col-sm-7 input-group">
+                      <input
+                        type="number"
+                        className="form-control text-right font-weight-bold"
+                        style={{
+                          backgroundColor:
+                            m === "efectivo"
+                              ? "#d4edda"
+                              : m === "banco"
+                                ? "#e1f5fe"
+                                : "#e9ecef",
+                          fontSize: "1.4rem",
+                          height: "45px",
+                        }}
+                        value={pagos[m]}
+                        onChange={(e) =>
+                          setPagos({ ...pagos, [m]: e.target.value })
+                        }
+                      />
+                      <div className="input-group-append">
                         <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => {
-                            addItem(p.codigo);
-                            window.$("#modal-productos").modal("hide");
-                          }}
+                          className="btn btn-primary"
+                          onClick={() =>
+                            setPagos({
+                              efectivo: 0,
+                              tarjeta: 0,
+                              mercadopago: 0,
+                              banco: 0,
+                              [m]: formData.precio_total,
+                            })
+                          }
                         >
-                          <i className="fas fa-check"></i>
+                          $
                         </button>
-                      </td>
-                      <td className="text-center align-middle">
-                        {p.imagen ? (
-                          <img
-                            src={
-                              p.imagen.startsWith("http")
-                                ? p.imagen
-                                : `${API_URL}${p.imagen}`
-                            }
-                            width="40px"
-                            height="40px"
-                            className="rounded shadow-sm"
-                            style={{ objectFit: "cover" }}
-                          />
-                        ) : (
-                          <small className="text-muted">N/A</small>
-                        )}
-                      </td>
-                      <td className="text-center align-middle">{p.codigo}</td>
-                      <td className="align-middle">{p.nombre}</td>
-                      <td className="text-center align-middle">{p.stock}</td>
-                      <td className="text-right align-middle">
-                        ${" "}
-                        {parseFloat(p.precio_compra).toLocaleString("es-AR", {
-                          minimumFractionDigits: 2,
-                        })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" data-dismiss="modal">
+                  Cancelar
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={handleConfirmarCompra}
+                >
+                  Confirmar
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* MODAL PROVEEDORES */}
-      <div className="modal fade" id="modal-proveedores" tabIndex="-1">
-        <div className="modal-dialog modal-xl modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header bg-info text-white">
-              <h5>Listado de Proveedores</h5>
-              <button className="close text-white" data-dismiss="modal">
-                ×
-              </button>
-            </div>
-            <div className="modal-body">
-              <table
-                id="prov-table"
-                className="table table-striped table-bordered table-sm"
-                style={{ width: "100%" }}
-              >
-                <thead className="text-center">
-                  <tr>
-                    <th>Acción</th>
-                    <th>Empresa</th>
-                    <th>Marca</th>
-                    <th>Contacto</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {proveedores.map((pr) => (
-                    <tr key={pr.id}>
-                      <td className="text-center align-middle">
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => {
-                            setProveedorSeleccionado(pr);
-                            window.$("#modal-proveedores").modal("hide");
-                          }}
-                        >
-                          <i className="fas fa-check"></i>
-                        </button>
-                      </td>
-                      <td className="align-middle">{pr.empresa}</td>
-                      <td className="align-middle">{pr.marca}</td>
-                      <td className="align-middle">{pr.contacto}</td>
+        {/* MODAL PRODUCTOS (ESTILO ORIGINAL) */}
+        <div className="modal fade" id="modal-productos" tabIndex="-1">
+          <div className="modal-dialog modal-xl modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-info text-white">
+                <h5>Listado de Productos</h5>
+                <button className="close text-white" data-dismiss="modal">
+                  ×
+                </button>
+              </div>
+              <div className="modal-body">
+                <table
+                  id="prod-table"
+                  className="table table-striped table-bordered table-sm w-100"
+                >
+                  <thead className="text-center">
+                    <tr>
+                      <th>Acción</th>
+                      <th>Imagen</th>
+                      <th>Código</th>
+                      <th>Nombre</th>
+                      <th>Stock</th>
+                      <th>Costo</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {productos.map((p) => (
+                      <tr key={p.id}>
+                        <td className="text-center align-middle">
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => {
+                              addItem(p.codigo);
+                              window.$("#modal-productos").modal("hide");
+                            }}
+                          >
+                            <i className="fas fa-check"></i>
+                          </button>
+                        </td>
+                        <td className="text-center align-middle">
+                          {p.imagen ? (
+                            <img
+                              src={
+                                p.imagen.startsWith("http")
+                                  ? p.imagen
+                                  : `${API_URL}${p.imagen}`
+                              }
+                              width="40px"
+                              height="40px"
+                              className="rounded shadow-sm"
+                              style={{ objectFit: "cover" }}
+                            />
+                          ) : (
+                            <small className="text-muted">N/A</small>
+                          )}
+                        </td>
+                        <td className="text-center align-middle">{p.codigo}</td>
+                        <td className="align-middle">{p.nombre}</td>
+                        <td className="text-center align-middle">{p.stock}</td>
+                        <td className="text-right align-middle">
+                          ${" "}
+                          {parseFloat(p.precio_compra).toLocaleString("es-AR", {
+                            minimumFractionDigits: 2,
+                          })}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <style>{`
-        .bg-light-danger { background-color: rgba(220, 53, 69, 0.1) !important; }
-        .is-invalid { border-color: #dc3545 !important; }
-      `}</style>
+        {/* MODAL PROVEEDORES (ESTILO ORIGINAL) */}
+        <div className="modal fade" id="modal-proveedores" tabIndex="-1">
+          <div className="modal-dialog modal-xl modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-info text-white">
+                <h5>Listado de Proveedores</h5>
+                <button className="close text-white" data-dismiss="modal">
+                  ×
+                </button>
+              </div>
+              <div className="modal-body">
+                <table
+                  id="prov-table"
+                  className="table table-striped table-bordered table-sm w-100"
+                >
+                  <thead className="text-center">
+                    <tr>
+                      <th>Acción</th>
+                      <th>Empresa</th>
+                      <th>Marca</th>
+                      <th>Contacto</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {proveedores.map((pr) => (
+                      <tr key={pr.id}>
+                        <td className="text-center align-middle">
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => {
+                              setProveedorSeleccionado(pr);
+                              window.$("#modal-proveedores").modal("hide");
+                            }}
+                          >
+                            <i className="fas fa-check"></i>
+                          </button>
+                        </td>
+                        <td className="align-middle">{pr.empresa}</td>
+                        <td className="align-middle">{pr.marca}</td>
+                        <td className="align-middle">{pr.contacto}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <style>{`
+          .bg-light-danger { background-color: rgba(220, 53, 69, 0.1) !important; }
+          .is-invalid { border-color: #dc3545 !important; }
+        `}</style>
+      </div>
     </div>
   );
 };

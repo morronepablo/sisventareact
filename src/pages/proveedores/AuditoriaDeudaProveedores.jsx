@@ -8,6 +8,7 @@ import { Chart as ChartJS, registerables } from "chart.js";
 
 ChartJS.register(...registerables);
 
+// --- ESTILOS DE ARQUITECTURA VISUAL (MÁRGENES CORREGIDOS) ---
 const dataTableStyles = `
   #aging-table_wrapper .dataTables_info { padding: 15px !important; font-size: 0.85rem; color: #6c757d; }
   #aging-table_wrapper .dataTables_paginate { padding: 10px 15px !important; }
@@ -43,12 +44,23 @@ const AuditoriaDeudaProveedores = () => {
         $(tableId).DataTable({
           paging: true,
           ordering: true,
+          // 🚀 ORDENACIÓN POR DEFECTO: COLUMNA 2 (Antigüedad) DESCENDENTE 🚀
+          order: [[2, "desc"]],
           info: true,
+          autoWidth: false,
+          responsive: true,
           pageLength: 5,
           language: {
             info: "Mostrando _START_ a _END_ de _TOTAL_ comprobantes",
+            paginate: { previous: "Anterior", next: "Siguiente" },
           },
           dom: "rtip",
+          drawCallback: function () {
+            if ($ && $.fn.tooltip) {
+              $('[data-toggle="tooltip"]').tooltip("dispose");
+              $('[data-toggle="tooltip"]').tooltip({ boundary: "window" });
+            }
+          },
         });
       }, 300);
       return () => {
@@ -65,7 +77,6 @@ const AuditoriaDeudaProveedores = () => {
       currency: "ARS",
     }).format(v || 0);
 
-  // Totales para el gráfico
   const agingTotals = {
     "0-7 días": 0,
     "8-15 días": 0,
@@ -87,7 +98,7 @@ const AuditoriaDeudaProveedores = () => {
         Pasivos
       </h1>
       <p className="text-muted text-uppercase small font-weight-bold">
-        Auditoría de Envejecimiento de Deuda
+        Auditoría de Envejecimiento de Deuda con Proveedores
       </p>
       <hr />
 
@@ -165,7 +176,7 @@ const AuditoriaDeudaProveedores = () => {
                     id="aging-table"
                     className="table table-hover table-striped mb-0"
                   >
-                    <thead className="thead-dark text-xs text-center">
+                    <thead className="thead-dark text-center text-sm">
                       <tr>
                         <th>Proveedor / Factura</th>
                         <th>Emisión</th>
@@ -191,6 +202,10 @@ const AuditoriaDeudaProveedores = () => {
                             )}
                           </td>
                           <td className="text-center align-middle">
+                            {/* 💡 Sort Key Invisible para que DataTable ordene por número puro */}
+                            <span style={{ display: "none" }}>
+                              {String(f.dias_deuda).padStart(5, "0")}
+                            </span>
                             <span
                               className={`badge badge-${f.color_tramo} px-3 py-1 shadow-sm`}
                             >
@@ -207,6 +222,8 @@ const AuditoriaDeudaProveedores = () => {
                           <td className="text-center align-middle">
                             <button
                               className="btn btn-xs btn-primary shadow-sm"
+                              data-toggle="tooltip"
+                              title="Ir a Módulo de Pagos"
                               onClick={() =>
                                 (window.location.href = `/proveedores/pagos/${f.proveedor_id}`)
                               }
@@ -225,8 +242,8 @@ const AuditoriaDeudaProveedores = () => {
             <div className="col-lg-4">
               <div className="card card-dark shadow">
                 <div className="card-header border-0 bg-transparent text-center py-2">
-                  <h3 className="card-title text-bold text-xs">
-                    DISTRIBUCIÓN DE PASIVOS
+                  <h3 className="card-title text-bold text-xs text-uppercase">
+                    Distribución de Pasivos
                   </h3>
                 </div>
                 <div className="card-body">
@@ -263,7 +280,7 @@ const AuditoriaDeudaProveedores = () => {
                   <div className="alert bg-black border-secondary mt-3 mb-0 text-center py-2">
                     <p className="small mb-0 text-muted italic">
                       <i className="fas fa-info-circle mr-1 text-info"></i>
-                      Monto total por rango de antigüedad.
+                      Resumen de deuda por rango de vencimiento.
                     </p>
                   </div>
                 </div>

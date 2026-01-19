@@ -57,7 +57,7 @@ const AsistenteCompra = () => {
         <div className="card-header border-0">
           <h3 className="card-title text-bold">
             <i className="fas fa-robot mr-2 text-primary"></i>
-            Sugerencias de Reabastecimiento (31 de 31 productos)
+            Sugerencias de Reabastecimiento
           </h3>
         </div>
 

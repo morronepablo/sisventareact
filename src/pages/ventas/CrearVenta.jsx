@@ -434,7 +434,7 @@ const CrearVenta = () => {
               CTRL+F9: Consultar
             </span>
             <span className="badge badge-secondary p-2 ml-1 shadow-sm">
-              F3: Listado Ventas
+              SHIFT+F1: Listado Ventas
             </span>
             <span className="badge badge-danger p-2 ml-1 shadow-sm">
               F5: Registrar Venta
@@ -446,48 +446,63 @@ const CrearVenta = () => {
         </div>
         <hr />
         <div className="row">
+          {/* 🎨 PANEL IZQUIERDO CON ESTILO OSCURO */}
           <div className="col-md-8">
-            <div className="card card-outline card-primary shadow-sm">
+            <div
+              className="card card-outline shadow-lg h-100"
+              style={{
+                backgroundColor: "#1e2229",
+                borderTop: "4px solid #00f2fe",
+                borderLeft: "none",
+                borderRight: "none",
+                borderBottom: "none",
+              }}
+            >
               <div className="card-body">
                 <div className="row mb-3">
                   <div className="col-md-2">
-                    <label>Cantidad *</label>
+                    <label className="text-muted text-xs mb-1">
+                      Cantidad *
+                    </label>
                     <input
                       type="number"
-                      className="form-control text-center"
+                      className="form-control form-control-sm bg-dark text-white text-center"
                       value={cantidad}
                       onChange={(e) => setCantidad(e.target.value)}
-                      style={{ backgroundColor: "rgba(233,231,16,0.15)" }}
+                      style={{ fontSize: "1rem" }}
                     />
                   </div>
                   <div className="col-md-7">
-                    <label>Código</label>
+                    <label className="text-muted text-xs mb-1">Código</label>
                     <div className="input-group">
                       <div className="input-group-prepend">
-                        <span className="input-group-text">
+                        <span className="input-group-text bg-dark text-white">
                           <i className="fas fa-barcode"></i>
                         </span>
                       </div>
                       <input
                         type="text"
-                        className="form-control"
+                        className="form-control form-control-sm bg-dark text-white"
                         value={codigo}
                         onChange={(e) => setCodigo(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && addItem(codigo)}
                         autoFocus
                         placeholder="Código o nombre..."
+                        style={{ fontSize: "1rem" }}
                       />
                       <div className="input-group-append">
                         <button
-                          className="btn btn-primary"
+                          className="btn btn-primary btn-sm"
                           data-toggle="modal"
                           data-target="#modal-productos"
+                          style={{ fontSize: "1rem" }}
                         >
                           <i className="fas fa-search"></i>
                         </button>
                         <button
-                          className="btn btn-success"
+                          className="btn btn-success btn-sm"
                           onClick={() => navigate("/productos/crear")}
+                          style={{ fontSize: "1rem" }}
                         >
                           <i className="fas fa-plus"></i>
                         </button>
@@ -495,9 +510,14 @@ const CrearVenta = () => {
                     </div>
                   </div>
                 </div>
-                <div className="table-responsive">
+
+                <div className="table-responsive mt-3">
                   <table className="table table-sm table-striped table-bordered">
-                    <thead className="thead-dark text-center">
+                    {/* 👇 CABECERA CON FONDO OSCURO Y TEXTO AZUL CIAN (#00f2fe) */}
+                    <thead
+                      className="text-center"
+                      style={{ backgroundColor: "#2d323b", color: "#00f2fe" }}
+                    >
                       <tr>
                         <th>Nro.</th>
                         <th>Código</th>
@@ -516,7 +536,13 @@ const CrearVenta = () => {
                           it.precio_venta || it.combo_precio,
                         );
                         return (
-                          <tr key={it.id}>
+                          <tr
+                            key={it.id}
+                            style={{
+                              backgroundColor: "#2d323b",
+                              color: "white",
+                            }}
+                          >
                             <td className="text-center align-middle">
                               {i + 1}
                             </td>
@@ -534,10 +560,14 @@ const CrearVenta = () => {
                                       })
                                       .then(fetchData)
                                   }
+                                  style={{ fontSize: "0.8rem" }}
                                 >
                                   -
                                 </button>
-                                <span className="px-2 font-weight-bold align-self-center">
+                                <span
+                                  className="px-2 font-weight-bold align-self-center"
+                                  style={{ fontSize: "0.9rem" }}
+                                >
                                   {it.cantidad}
                                 </span>
                                 <button
@@ -549,6 +579,7 @@ const CrearVenta = () => {
                                       })
                                       .then(fetchData)
                                   }
+                                  style={{ fontSize: "0.8rem" }}
                                 >
                                   +
                                 </button>
@@ -557,7 +588,10 @@ const CrearVenta = () => {
                             <td className="align-middle">
                               {it.nombre || it.combo_nombre}
                               {ahorro > 0 && (
-                                <span className="badge badge-success ml-2">
+                                <span
+                                  className="badge badge-success ml-2"
+                                  style={{ fontSize: "0.7rem" }}
+                                >
                                   PROMO
                                 </span>
                               )}
@@ -571,11 +605,14 @@ const CrearVenta = () => {
                             <td className="text-right align-middle text-bold">
                               {ahorro > 0 ? (
                                 <div>
-                                  <del className="text-muted small">
+                                  <del
+                                    className="text-muted small"
+                                    style={{ fontSize: "0.8rem" }}
+                                  >
                                     {formatMoney(it.cantidad * precioBase)}
                                   </del>
                                   <br />
-                                  <span>
+                                  <span style={{ fontSize: "0.9rem" }}>
                                     {formatMoney(
                                       it.cantidad * precioBase - ahorro,
                                     )}
@@ -592,6 +629,7 @@ const CrearVenta = () => {
                                   await api.delete(`/ventas/tmp/${it.id}`);
                                   fetchData();
                                 }}
+                                style={{ fontSize: "0.8rem" }}
                               >
                                 <i className="fas fa-trash"></i>
                               </button>
@@ -600,18 +638,17 @@ const CrearVenta = () => {
                         );
                       })}
                     </tbody>
-                    <tfoot className="bg-light">
-                      <tr className="text-bold">
+                    {/* 👇 FILA DE TOTALES CON COLOR AMARILLO BRILLANTE */}
+                    <tfoot className="bg-dark">
+                      <tr className="text-bold" style={{ color: "#ffc107" }}>
                         <td colSpan="2" className="text-right">
                           Total Cant.
                         </td>
-                        <td className="text-center text-primary">
-                          {totalCantidad}
-                        </td>
+                        <td className="text-center">{totalCantidad}</td>
                         <td colSpan="3" className="text-right">
                           Subtotal
                         </td>
-                        <td className="text-right text-primary">
+                        <td className="text-right">
                           {formatMoney(subtotalBruto)}
                         </td>
                         <td></td>
@@ -623,7 +660,7 @@ const CrearVenta = () => {
             </div>
           </div>
 
-          {/* 🚀 LADO DERECHO: PANEL "THE ORACLE" 🚀 */}
+          {/* 🚀 LADO DERECHO: PANEL "THE ORACLE" */}
           <div className="col-md-4">
             <div
               className="card card-outline card-dark shadow-lg h-100"
@@ -670,7 +707,7 @@ const CrearVenta = () => {
                   </div>
                 </div>
 
-                {/* INFO PUNTOS Y BILLETERA (ESTILO ORIGINAL RESTAURADO) */}
+                {/* INFO PUNTOS Y BILLETERA */}
                 {clienteSel.id !== 1 && (
                   <div className="mt-2 animate__animated animate__fadeIn">
                     <div
@@ -808,7 +845,7 @@ const CrearVenta = () => {
           </div>
         </div>
 
-        {/* --- 🛡️ MODALES ORIGINALES REINSTAURADOS 🛡️ --- */}
+        {/* --- MODALES --- */}
         <div className="modal fade" id="modal-consultador" tabIndex="-1">
           <div className="modal-dialog modal-dialog-centered modal-lg">
             <div
@@ -944,7 +981,7 @@ const CrearVenta = () => {
           </div>
         </div>
 
-        {/* 💳 MODAL PAGOS (CON SWITCH CORREGIDO) 💳 */}
+        {/* 💳 MODAL PAGOS (CORREGIDO Y ESTILIZADO) */}
         <div className="modal fade" id="modal-pagos" tabIndex="-1">
           <div className="modal-dialog modal-dialog-centered">
             <div className="modal-content shadow-lg">
@@ -1048,7 +1085,6 @@ const CrearVenta = () => {
                   </div>
                 </div>
 
-                {/* 🚀 CAMPOS DE DÓLAR RESTAURADOS 🚀 */}
                 <div className="form-group row">
                   <label className="col-sm-5 text-bold text-info">
                     Precio Dólar
@@ -1114,7 +1150,7 @@ const CrearVenta = () => {
                   </div>
                 </div>
 
-                {/* ✅ SWITCH: Cargar vuelto a billetera (solo si aplica) */}
+                {/* ✅ SWITCH: Cargar vuelto a billetera */}
                 {clienteSel.id !== 1 && vueltoFisicoReal > 0 && (
                   <div className="form-group row align-items-center">
                     <label className="col-sm-5 text-bold">
@@ -1158,6 +1194,7 @@ const CrearVenta = () => {
           </div>
         </div>
 
+        {/* Otros modales sin cambios visuales */}
         <div className="modal fade" id="modal-productos" tabIndex="-1">
           <div className="modal-dialog modal-xl modal-dialog-centered">
             <div className="modal-content">

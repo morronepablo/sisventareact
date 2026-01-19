@@ -63,6 +63,7 @@ const ListadoOrdenes = () => {
       const table = $(tableId).DataTable({
         paging: true,
         ordering: true,
+        order: [[0, "desc"]],
         info: true,
         responsive: true,
         pageLength: 10,
@@ -173,7 +174,7 @@ const ListadoOrdenes = () => {
                             title="Recibir Orden"
                             onClick={() =>
                               navegarSinTooltips(
-                                `/compras/ordenes/recibir/${o.id}`
+                                `/compras/ordenes/recibir/${o.id}`,
                               )
                             }
                           >
