@@ -61,9 +61,11 @@ const CrearVenta = () => {
     puntos: 0,
     saldo_billetera: 0,
   });
+
   const [deudaInfo, setDeudaInfo] = useState({ deuda_total: 0, dias_mora: 0 });
   const [descPorcentaje, setDescPorcentaje] = useState(0);
   const [descMonto, setDescMonto] = useState(0);
+
   const [pagos, setPagos] = useState({
     efectivo: 0,
     tarjeta: 0,
@@ -71,8 +73,10 @@ const CrearVenta = () => {
     transferencia: 0,
     billetera: 0,
   });
+
   const [esCtaCte, setEsCtaCte] = useState(false);
   const [vueltoABilletera, setVueltoABilletera] = useState(false);
+
   const [nuevoCliente, setNuevoCliente] = useState({
     nombre_cliente: "",
     cuil_codigo: "",
@@ -107,6 +111,7 @@ const CrearVenta = () => {
     (acc, it) => acc + parseFloat(it.cantidad),
     0,
   );
+
   const subtotalBruto = tmpVentas.reduce((acc, it) => {
     let precio = parseFloat(it.precio_venta || it.combo_precio || 0);
     if (it.aplicar_porcentaje)
@@ -120,44 +125,43 @@ const CrearVenta = () => {
     (acc, it) => acc + calcularAhorroItem(it),
     0,
   );
+
   const totalDescuentoManual =
     (subtotalBruto - ahorroTotalPromos) *
       (parseFloat(descPorcentaje || 0) / 100) +
     parseFloat(descMonto || 0);
+
   const totalFinal = Math.max(
     subtotalBruto - ahorroTotalPromos - totalDescuentoManual,
     0,
   );
+
   const totalDolares = totalFinal / dolar;
 
   const totalPagado = Object.values(pagos).reduce(
     (a, b) => parseFloat(a || 0) + parseFloat(b || 0),
     0,
   );
+
   const montoSaldar = Math.max(totalFinal - totalPagado, 0);
 
   const otrosMediosSinBilletera =
     parseFloat(pagos.tarjeta || 0) +
     parseFloat(pagos.mercadopago || 0) +
     parseFloat(pagos.transferencia || 0);
+
   const saldoUsadoBilletera = parseFloat(pagos.billetera || 0);
 
   const efectivoNecesario = Math.max(
     totalFinal - otrosMediosSinBilletera - saldoUsadoBilletera,
     0,
   );
-  const vueltoFisico =
+
+  // ✅ CORRECCIÓN: Vuelto físico real (sin manipulaciones)
+  const vueltoFisicoReal =
     parseFloat(pagos.efectivo) > efectivoNecesario
       ? parseFloat(pagos.efectivo) - efectivoNecesario
       : 0;
-  const montoCargarBilletera = Math.max(
-    parseFloat(pagos.efectivo || 0) - (totalFinal - otrosMediosSinBilletera),
-    0,
-  );
-  const saldoNetoMostrado = Math.max(
-    montoCargarBilletera - saldoUsadoBilletera,
-    0,
-  );
 
   const fetchData = async () => {
     if (!user) return;
@@ -170,14 +174,14 @@ const CrearVenta = () => {
           api.get(`/ventas/tmp?usuario_id=${user.id}`),
           fetch("https://dolarapi.com/v1/dolares/bolsa")
             .then((r) => r.json())
-            .catch(() => ({ venta: 1499.5 })),
+            .catch(() => ({ venta: 1476.1 })),
           api.get("/promociones").catch(() => ({ data: [] })),
         ]);
       setProductos(resP.data);
       setClientes(resCl.data);
       setCombos(resCo.data);
       setTmpVentas(resTmp.data);
-      setDolar(resDolar.venta || 1499.5);
+      setDolar(resDolar.venta || 1476.1);
       setPromos(resPromos.data);
       setLoading(false);
     } catch (e) {
@@ -219,8 +223,12 @@ const CrearVenta = () => {
     try {
       const pagosSaneados = {
         ...pagos,
-        efectivo: Math.max(parseFloat(pagos.efectivo || 0) - vueltoFisico, 0),
+        efectivo: Math.max(
+          parseFloat(pagos.efectivo || 0) - vueltoFisicoReal,
+          0,
+        ),
       };
+
       const payload = {
         cliente_id: clienteSel.id,
         fecha,
@@ -237,7 +245,8 @@ const CrearVenta = () => {
             ? clienteSel.puntos
             : 0,
         cargar_vuelto_billetera: vueltoABilletera,
-        vuelto_monto: montoCargarBilletera,
+        // ✅ Enviamos el vuelto real al backend
+        vuelto_monto: vueltoFisicoReal,
       };
 
       const res = await api.post("/ventas", payload);
@@ -317,7 +326,6 @@ const CrearVenta = () => {
         );
         return;
       }
-
       if (e.key === "F5") {
         e.preventDefault();
         if (tmpVentas.length > 0) {
@@ -347,7 +355,7 @@ const CrearVenta = () => {
     tmpVentas,
     totalPagado,
     totalFinal,
-    vueltoFisico,
+    vueltoFisicoReal,
     esCtaCte,
     clienteSel,
     pagos,
@@ -437,7 +445,6 @@ const CrearVenta = () => {
           </div>
         </div>
         <hr />
-
         <div className="row">
           <div className="col-md-8">
             <div className="card card-outline card-primary shadow-sm">
@@ -616,22 +623,29 @@ const CrearVenta = () => {
             </div>
           </div>
 
+          {/* 🚀 LADO DERECHO: PANEL "THE ORACLE" 🚀 */}
           <div className="col-md-4">
-            <div className="card shadow-sm">
+            <div
+              className="card card-outline card-dark shadow-lg h-100"
+              style={{
+                backgroundColor: "#1e2229",
+                borderTop: "4px solid #00f2fe",
+              }}
+            >
               <div className="card-body">
                 <div className="row mb-3">
                   <div className="col-9">
                     <button
-                      className="btn btn-primary btn-sm btn-block"
+                      className="btn btn-primary btn-sm btn-block shadow-sm"
                       data-toggle="modal"
                       data-target="#modal-clientes"
                     >
-                      <i className="fas fa-search"></i> Buscar Cliente
+                      <i className="fas fa-search mr-1"></i> BUSCAR CLIENTE
                     </button>
                   </div>
                   <div className="col-3">
                     <button
-                      className="btn btn-success btn-sm btn-block"
+                      className="btn btn-success btn-sm btn-block shadow-sm"
                       data-toggle="modal"
                       data-target="#modal-crear-cliente"
                     >
@@ -640,156 +654,180 @@ const CrearVenta = () => {
                   </div>
                 </div>
                 <div className="row mb-2">
-                  <div className="col-md-7">
-                    <label>
-                      <small>Cliente</small>
+                  <div className="col-md-12">
+                    <label className="text-muted text-xs mb-1">
+                      CLIENTE SELECCIONADO
                     </label>
-                    <input
-                      type="text"
-                      className="form-control form-control-sm bg-light"
-                      value={clienteSel.nombre_cliente}
-                      readOnly
-                    />
-                  </div>
-                  <div className="col-md-5">
-                    <label>
-                      <small>C.U.I.T.</small>
-                    </label>
-                    <input
-                      type="text"
-                      className="form-control form-control-sm bg-light"
-                      value={clienteSel.cuil_codigo}
-                      readOnly
-                    />
+                    <div
+                      className="bg-black p-2 rounded border border-secondary text-info text-bold text-uppercase"
+                      style={{ fontSize: "0.9rem" }}
+                    >
+                      {clienteSel.nombre_cliente}{" "}
+                      <small className="float-right text-muted">
+                        {clienteSel.cuil_codigo}
+                      </small>
+                    </div>
                   </div>
                 </div>
+
+                {/* INFO PUNTOS Y BILLETERA (ESTILO ORIGINAL RESTAURADO) */}
                 {clienteSel.id !== 1 && (
-                  <div
-                    className="alert alert-info p-2 text-center mb-2"
-                    style={{ border: "1px dashed #007bff" }}
-                  >
-                    <i className="fas fa-star text-warning"></i> Puntos:{" "}
-                    <b>{clienteSel.puntos || 0}</b> (
-                    {formatMoney(clienteSel.puntos)})
-                    {clienteSel.puntos > 0 && (
-                      <button
-                        className="btn btn-xs btn-primary ml-2"
-                        onClick={() => setDescMonto(clienteSel.puntos)}
-                      >
-                        Canjear
-                      </button>
+                  <div className="mt-2 animate__animated animate__fadeIn">
+                    <div
+                      className="d-flex justify-content-between mb-1 p-2 rounded"
+                      style={{
+                        border: "1px dashed #ffc107",
+                        backgroundColor: "rgba(255,193,7,0.05)",
+                      }}
+                    >
+                      <span className="text-warning small text-bold">
+                        🌟 PUNTOS: {clienteSel.puntos} (
+                        {formatMoney(clienteSel.puntos)})
+                      </span>
+                      {clienteSel.puntos > 0 && (
+                        <button
+                          className="btn btn-xs btn-warning text-bold px-2"
+                          onClick={() => setDescMonto(clienteSel.puntos)}
+                        >
+                          CANJEAR
+                        </button>
+                      )}
+                    </div>
+                    {parseFloat(clienteSel.saldo_billetera) > 0 && (
+                      <div className="p-2 rounded mb-2 border border-success text-success small text-bold">
+                        <i className="fas fa-wallet mr-1"></i> BILLETERA:{" "}
+                        {formatMoney(clienteSel.saldo_billetera)}
+                      </div>
                     )}
                   </div>
                 )}
-                {clienteSel.id !== 1 &&
-                  parseFloat(clienteSel.saldo_billetera) > 0 && (
-                    <div className="alert alert-success p-2 text-center mb-2 shadow-sm border-0 animate__animated animate__fadeIn">
-                      <i className="fas fa-wallet mr-1"></i> Billetera:{" "}
-                      <b>{formatMoney(clienteSel.saldo_billetera)}</b>
-                    </div>
-                  )}
 
-                <div className="form-group">
-                  <label>
-                    <small>Precio Total a Pagar</small>
+                <div className="form-group mt-3">
+                  <label className="text-muted text-xs text-bold text-uppercase">
+                    Total Neto a Cobrar
                   </label>
-                  <input
-                    type="text"
-                    className="form-control text-right font-weight-bold text-white bg-success"
-                    style={{ fontSize: "2rem", height: "auto" }}
-                    value={formatMoney(totalFinal)}
-                    readOnly
-                  />
+                  <div
+                    className="p-3 text-right rounded shadow-inset"
+                    style={{
+                      backgroundColor: "#000",
+                      border: "1px solid #28a745",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "2.8rem",
+                        fontWeight: "900",
+                        color: "#28a745",
+                        letterSpacing: "-1px",
+                      }}
+                    >
+                      {formatMoney(totalFinal)}
+                    </span>
+                  </div>
                 </div>
-                <div className="row mb-2">
+
+                <div className="row mb-3">
                   <div className="col-6">
-                    <label>
-                      <small>Desc. %</small>
-                    </label>
+                    <label className="text-muted text-xs">DESC. %</label>
                     <input
                       type="number"
-                      className="form-control form-control-sm text-right"
+                      className="form-control form-control-sm bg-dark text-white text-right border-secondary"
                       value={descPorcentaje}
                       onChange={(e) => setDescPorcentaje(e.target.value)}
                     />
                   </div>
                   <div className="col-6">
-                    <label>
-                      <small>Desc. $</small>
-                    </label>
+                    <label className="text-muted text-xs">DESC. $</label>
                     <input
                       type="number"
-                      className="form-control form-control-sm text-right"
+                      className="form-control form-control-sm bg-dark text-white text-right border-secondary"
                       value={descMonto}
                       onChange={(e) => setDescMonto(e.target.value)}
                     />
                   </div>
                 </div>
-                <div className="form-group">
-                  <label>
-                    <small>Precio Dólar</small>
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control text-right font-weight-bold bg-info text-white"
-                    value={formatMoney(dolar)}
-                    readOnly
-                  />
-                </div>
-                <div className="form-group">
-                  <label>
-                    <small>Precio Total USD</small>
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control text-right font-weight-bold text-white bg-primary"
-                    value={`$USD ${totalDolares.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
-                    readOnly
-                  />
-                </div>
-                <div
-                  className={`p-2 text-right border rounded mb-3 text-white font-weight-bold ${deudaInfo.deuda_total > 0 ? "bg-danger" : "bg-success"}`}
-                >
-                  <small>CTA CTE DEL CLIENTE</small>
-                  <div className="h6 m-0">
-                    {formatMoney(deudaInfo.deuda_total)} ({deudaInfo.dias_mora}{" "}
-                    días mora)
+
+                <div className="row mb-3">
+                  <div className="col-6">
+                    <label className="text-muted text-xs text-uppercase text-bold">
+                      Dólar MEP (Vta)
+                    </label>
+                    <div className="p-2 bg-black border border-info rounded text-right text-info text-bold shadow-sm">
+                      {formatMoney(dolar)}
+                    </div>
+                  </div>
+                  <div className="col-6">
+                    <label className="text-muted text-xs text-uppercase text-bold">
+                      Total USD
+                    </label>
+                    <div className="p-2 bg-black border border-primary rounded text-right text-primary text-bold shadow-sm">
+                      U$D {totalDolares.toFixed(2)}
+                    </div>
                   </div>
                 </div>
+
+                <div
+                  className={`p-3 text-right border rounded mb-3 ${
+                    deudaInfo.deuda_total > 0
+                      ? "border-danger"
+                      : "border-success"
+                  }`}
+                  style={{ backgroundColor: "#000", borderStyle: "dashed" }}
+                >
+                  <small className="text-muted text-uppercase text-bold">
+                    Estado Cuenta Corriente
+                  </small>
+                  <div
+                    className={`h4 m-0 font-weight-bold ${
+                      deudaInfo.deuda_total > 0 ? "text-danger" : "text-success"
+                    }`}
+                  >
+                    {formatMoney(deudaInfo.deuda_total)}
+                  </div>
+                  <small className="text-muted font-italic">
+                    {deudaInfo.dias_mora} días de mora acumulada
+                  </small>
+                </div>
+
                 <button
-                  className="btn btn-primary btn-block btn-lg shadow-sm"
+                  className="btn btn-success btn-block btn-lg shadow-lg mt-3 text-bold"
                   data-toggle="modal"
                   data-target="#modal-pagos"
+                  style={{
+                    height: "70px",
+                    fontSize: "1.6rem",
+                    border: "none",
+                    background:
+                      "linear-gradient(180deg, #28a745 0%, #218838 100%)",
+                  }}
                 >
-                  <i className="fas fa-cash-register"></i> Registrar (F5)
+                  <i className="fas fa-save mr-2"></i> REGISTRAR (F5)
                 </button>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* 🕵️‍♂️ MODAL CONSULTADOR HÍBRIDO 🕵️‍♂️ */}
-      <div className="modal fade" id="modal-consultador" tabIndex="-1">
-        <div className="modal-dialog modal-dialog-centered modal-lg">
-          <div
-            className="modal-content shadow-lg border-0"
-            style={{ borderRadius: "15px" }}
-          >
+        {/* --- 🛡️ MODALES ORIGINALES REINSTAURADOS 🛡️ --- */}
+        <div className="modal fade" id="modal-consultador" tabIndex="-1">
+          <div className="modal-dialog modal-dialog-centered modal-lg">
             <div
-              className="modal-header bg-navy text-white"
-              style={{ borderRadius: "15px 15px 0 0" }}
+              className="modal-content shadow-lg border-0"
+              style={{ borderRadius: "15px" }}
             >
-              <h5 className="modal-title font-weight-bold">
-                <i className="fas fa-search-dollar mr-2"></i>Consultador de
-                Precios Rápido
-              </h5>
-              <button className="close text-white" data-dismiss="modal">
-                ×
-              </button>
-            </div>
-            <div className="modal-body p-4">
-              <div className="form-group">
+              <div
+                className="modal-header bg-navy text-white"
+                style={{ borderRadius: "15px 15px 0 0" }}
+              >
+                <h5 className="modal-title font-weight-bold">
+                  <i className="fas fa-search-dollar mr-2"></i>Consultador de
+                  Precios Rápido
+                </h5>
+                <button className="close text-white" data-dismiss="modal">
+                  ×
+                </button>
+              </div>
+              <div className="modal-body p-4">
                 <input
                   id="input-consulta"
                   type="text"
@@ -825,504 +863,503 @@ const CrearVenta = () => {
                     }
                   }}
                 />
-              </div>
-              {productoConsultado ? (
-                <div className="card mt-4 animate__animated animate__fadeIn border shadow-none">
-                  <div className="card-body text-center">
-                    <span
-                      className={`badge ${
-                        productoConsultado.esCombo
-                          ? "badge-warning"
-                          : "badge-primary"
-                      } p-2 mb-2`}
-                    >
-                      {productoConsultado.esCombo
-                        ? "PAQUETE / COMBO"
-                        : "PRODUCTO INDIVIDUAL"}
-                    </span>
-                    <h3 className="text-bold text-navy">
-                      {productoConsultado.nombre}
-                    </h3>
-                    <div
-                      className="p-3 rounded mb-3"
-                      style={{ backgroundColor: "#f0f4f8" }}
-                    >
-                      <span className="text-muted d-block small uppercase text-bold">
-                        Precio de Venta Actual
+                {productoConsultado ? (
+                  <div className="card mt-4 animate__animated animate__fadeIn border shadow-none">
+                    <div className="card-body text-center">
+                      <span
+                        className={`badge ${
+                          productoConsultado.esCombo
+                            ? "badge-warning"
+                            : "badge-primary"
+                        } p-2 mb-2`}
+                      >
+                        {productoConsultado.esCombo
+                          ? "PAQUETE / COMBO"
+                          : "PRODUCTO INDIVIDUAL"}
                       </span>
-                      <h1 className="display-3 font-weight-bold text-success mb-0">
-                        {formatMoney(productoConsultado.precio_venta)}
-                      </h1>
-                    </div>
-                    <div className="row">
-                      <div className="col-6 border-right">
-                        <span className="text-muted small d-block text-bold">
-                          STOCK
+                      <h3 className="text-bold text-navy">
+                        {productoConsultado.nombre}
+                      </h3>
+                      <div
+                        className="p-3 rounded mb-3"
+                        style={{ backgroundColor: "#f0f4f8" }}
+                      >
+                        <span className="text-muted d-block small uppercase text-bold">
+                          Precio de Venta Actual
                         </span>
-                        <h4
-                          className={
-                            productoConsultado.esCombo
-                              ? "text-muted"
-                              : productoConsultado.stock <=
-                                  productoConsultado.stock_minimo
-                                ? "text-danger"
-                                : "text-primary"
-                          }
-                        >
-                          {productoConsultado.esCombo
-                            ? "N/A"
-                            : `${productoConsultado.stock} unidades`}
-                        </h4>
+                        <h1 className="display-3 font-weight-bold text-success mb-0">
+                          {formatMoney(productoConsultado.precio_venta)}
+                        </h1>
                       </div>
-                      <div className="col-6">
-                        <span className="text-muted small d-block text-bold">
-                          VENDIDOS
-                        </span>
-                        <h4 className="text-dark font-weight-bold">
-                          {productoConsultado.veces_vendido || 0} unidades
-                        </h4>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center p-5 text-muted">
-                  <i className="fas fa-barcode fa-4x mb-3 opacity-25"></i>
-                  <p>Ingrese código de barras o nombre del producto...</p>
-                </div>
-              )}
-            </div>
-            <div
-              className="modal-footer bg-light"
-              style={{ borderRadius: "0 0 15px 15px" }}
-            >
-              <button
-                className="btn btn-secondary btn-block"
-                data-dismiss="modal"
-              >
-                CERRAR (ESC)
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 💳 MODAL PAGOS (RESTAURADO TOTAL CON DÓLAR) 💳 */}
-      <div className="modal fade" id="modal-pagos" tabIndex="-1">
-        <div className="modal-dialog modal-dialog-centered">
-          <div className="modal-content shadow-lg">
-            <div className="modal-header bg-primary text-white">
-              <h5>Ingresar Pago</h5>
-              <button className="close text-white" data-dismiss="modal">
-                ×
-              </button>
-            </div>
-            <div className="modal-body">
-              <div className="form-group row align-items-center mb-3">
-                <label className="col-sm-5 text-bold">Cuenta Corriente</label>
-                <div className="col-sm-7">
-                  <input
-                    type="checkbox"
-                    checked={esCtaCte}
-                    onChange={(e) => setEsCtaCte(e.target.checked)}
-                    style={{ width: "20px", height: "20px" }}
-                  />
-                </div>
-              </div>
-              {[
-                "efectivo",
-                "tarjeta",
-                "mercadopago",
-                "transferencia",
-                "billetera",
-              ].map((m) => {
-                if (
-                  m === "billetera" &&
-                  (!clienteSel.saldo_billetera ||
-                    clienteSel.saldo_billetera <= 0)
-                )
-                  return null;
-                return (
-                  <div className="form-group row mb-2" key={m}>
-                    <label className="col-sm-5 text-capitalize text-bold">
-                      {m === "billetera" ? (
-                        <>
-                          <i className="fas fa-wallet text-success mr-1"></i>{" "}
-                          Billetera
-                        </>
-                      ) : (
-                        m
-                      )}
-                    </label>
-                    <div className="col-sm-7 input-group">
-                      <input
-                        id={m === "efectivo" ? "pago-efectivo" : ""}
-                        type="number"
-                        className="form-control text-right font-weight-bold"
-                        style={{
-                          backgroundColor:
-                            m === "efectivo"
-                              ? "#d4edda"
-                              : m === "billetera"
-                                ? "#e1f5fe"
-                                : "#e9ecef",
-                          fontSize: "1.4rem",
-                          height: "45px",
-                        }}
-                        value={pagos[m]}
-                        onChange={(e) =>
-                          setPagos({ ...pagos, [m]: e.target.value })
-                        }
-                      />
-                      <div className="input-group-append">
-                        <button
-                          className="btn btn-primary"
-                          onClick={() => {
-                            let max = totalFinal;
-                            if (m === "billetera")
-                              max = Math.min(
-                                totalFinal,
-                                clienteSel.saldo_billetera,
-                              );
-                            setPagos({ ...pagos, [m]: max.toFixed(2) });
-                          }}
-                        >
-                          $
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-              <hr />
-              <div className="form-group row">
-                <label className="col-sm-5 text-bold">Total a Pagar</label>
-                <div className="col-sm-7">
-                  <input
-                    type="text"
-                    className="form-control text-right font-weight-bold bg-light"
-                    style={{ fontSize: "1.4rem" }}
-                    value={formatMoney(totalFinal)}
-                    readOnly
-                  />
-                </div>
-              </div>
-
-              {/* 🚀 CAMPOS DE DÓLAR RESTAURADOS 🚀 */}
-              <div className="form-group row">
-                <label className="col-sm-5 text-bold text-info">
-                  Precio Dólar
-                </label>
-                <div className="col-sm-7">
-                  <input
-                    type="text"
-                    className="form-control text-right font-weight-bold bg-light text-info"
-                    style={{ fontSize: "1.2rem" }}
-                    value={formatMoney(dolar)}
-                    readOnly
-                  />
-                </div>
-              </div>
-              <div className="form-group row">
-                <label className="col-sm-5 text-bold text-primary">
-                  Total USD
-                </label>
-                <div className="col-sm-7">
-                  <input
-                    type="text"
-                    className="form-control text-right font-weight-bold bg-light text-primary"
-                    style={{ fontSize: "1.4rem" }}
-                    value={`$USD ${totalDolares.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
-                    readOnly
-                  />
-                </div>
-              </div>
-
-              <div className="form-group row text-success">
-                <label className="col-sm-5 text-bold">
-                  {vueltoABilletera
-                    ? "Saldo Neto a Cargar"
-                    : "Vuelto (Efectivo)"}
-                </label>
-                <div className="col-sm-7">
-                  <input
-                    type="text"
-                    className={`form-control text-right font-weight-bold bg-light ${vueltoABilletera ? "text-primary" : "text-success"}`}
-                    style={{ fontSize: "1.4rem" }}
-                    value={
-                      vueltoABilletera
-                        ? formatMoney(saldoNetoMostrado)
-                        : formatMoney(vueltoFisico)
-                    }
-                    readOnly
-                  />
-                </div>
-              </div>
-              <div className="form-group row">
-                <label className="col-sm-5 text-bold">Monto a Saldar</label>
-                <div className="col-sm-7">
-                  <input
-                    type="text"
-                    className={`form-control text-right font-weight-bold bg-light ${montoSaldar > 0 ? "text-danger" : "text-success"}`}
-                    style={{ fontSize: "1.4rem" }}
-                    value={formatMoney(montoSaldar)}
-                    readOnly
-                  />
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" data-dismiss="modal">
-                Cancelar
-              </button>
-              <button
-                className="btn btn-primary"
-                onClick={handleConfirmarVenta}
-              >
-                Finalizar Venta (F5)
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="modal fade" id="modal-productos" tabIndex="-1">
-        <div className="modal-dialog modal-xl modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header bg-info text-white">
-              <h5>Listado de Ítems</h5>
-              <button className="close text-white" data-dismiss="modal">
-                ×
-              </button>
-            </div>
-            <div className="modal-body">
-              <table
-                id="prod-table"
-                className="table table-striped table-bordered table-sm"
-                style={{ width: "100%" }}
-              >
-                <thead>
-                  <tr className="text-center">
-                    <th>Acción</th>
-                    <th>Imagen</th>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>Stock</th>
-                    <th>Precio</th>
-                    <th>Tipo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {productos.map((p) => (
-                    <tr key={`p-${p.id}`}>
-                      <td className="text-center align-middle">
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => {
-                            addItem(p.codigo);
-                            window.$("#modal-productos").modal("hide");
-                          }}
-                        >
-                          <i className="fas fa-check"></i>
-                        </button>
-                      </td>
-                      <td className="text-center align-middle">
-                        {p.imagen ? (
-                          <img
-                            src={
-                              p.imagen.startsWith("http")
-                                ? p.imagen
-                                : `${API_URL}${p.imagen}`
+                      <div className="row">
+                        <div className="col-6 border-right">
+                          <span className="text-muted small d-block text-bold">
+                            STOCK
+                          </span>
+                          <h4
+                            className={
+                              productoConsultado.esCombo
+                                ? "text-muted"
+                                : productoConsultado.stock <=
+                                    productoConsultado.stock_minimo
+                                  ? "text-danger"
+                                  : "text-primary"
                             }
-                            width="40"
-                            height="40"
-                            className="rounded shadow-sm"
-                            style={{ objectFit: "cover" }}
-                          />
+                          >
+                            {productoConsultado.esCombo
+                              ? "N/A"
+                              : `${productoConsultado.stock} unidades`}
+                          </h4>
+                        </div>
+                        <div className="col-6">
+                          <span className="text-muted small d-block text-bold">
+                            VENDIDOS
+                          </span>
+                          <h4 className="text-dark font-weight-bold">
+                            {productoConsultado.veces_vendido || 0} unidades
+                          </h4>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center p-5 text-muted">
+                    <i className="fas fa-barcode fa-4x mb-3 opacity-25"></i>
+                    <p>Ingrese código o nombre del producto...</p>
+                  </div>
+                )}
+              </div>
+              <div
+                className="modal-footer bg-light"
+                style={{ borderRadius: "0 0 15px 15px" }}
+              >
+                <button
+                  className="btn btn-secondary btn-block"
+                  data-dismiss="modal"
+                >
+                  CERRAR (ESC)
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 💳 MODAL PAGOS (CON SWITCH CORREGIDO) 💳 */}
+        <div className="modal fade" id="modal-pagos" tabIndex="-1">
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content shadow-lg">
+              <div className="modal-header bg-primary text-white">
+                <h5>Ingresar Pago</h5>
+                <button className="close text-white" data-dismiss="modal">
+                  ×
+                </button>
+              </div>
+              <div className="modal-body">
+                <div className="form-group row align-items-center mb-3">
+                  <label className="col-sm-5 text-bold">Cuenta Corriente</label>
+                  <div className="col-sm-7">
+                    <input
+                      type="checkbox"
+                      checked={esCtaCte}
+                      onChange={(e) => setEsCtaCte(e.target.checked)}
+                      style={{ width: "20px", height: "20px" }}
+                    />
+                  </div>
+                </div>
+
+                {[
+                  "efectivo",
+                  "tarjeta",
+                  "mercadopago",
+                  "transferencia",
+                  "billetera",
+                ].map((m) => {
+                  if (
+                    m === "billetera" &&
+                    (!clienteSel.saldo_billetera ||
+                      clienteSel.saldo_billetera <= 0)
+                  )
+                    return null;
+                  return (
+                    <div className="form-group row mb-2" key={m}>
+                      <label className="col-sm-5 text-capitalize text-bold">
+                        {m === "billetera" ? (
+                          <>
+                            <i className="fas fa-wallet text-success mr-1"></i>{" "}
+                            Billetera
+                          </>
                         ) : (
-                          <small className="text-muted">N/A</small>
+                          m
                         )}
-                      </td>
-                      <td className="text-center align-middle">{p.codigo}</td>
-                      <td className="align-middle">{p.nombre}</td>
-                      <td className="text-center align-middle">{p.stock}</td>
-                      <td className="text-right align-middle">
-                        {formatMoney(parseFloat(p.precio_venta))}
-                      </td>
-                      <td className="text-center align-middle">
-                        <span className="badge badge-primary">Producto</span>
-                      </td>
-                    </tr>
-                  ))}
-                  {combos.map((c) => (
-                    <tr key={`c-${c.id}`}>
-                      <td className="text-center align-middle">
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => {
-                            addItem(c.codigo);
-                            window.$("#modal-productos").modal("hide");
+                      </label>
+                      <div className="col-sm-7 input-group">
+                        <input
+                          id={m === "efectivo" ? "pago-efectivo" : ""}
+                          type="number"
+                          className="form-control text-right font-weight-bold"
+                          style={{
+                            backgroundColor:
+                              m === "efectivo"
+                                ? "#d4edda"
+                                : m === "billetera"
+                                  ? "#e1f5fe"
+                                  : "#e9ecef",
+                            fontSize: "1.4rem",
+                            height: "45px",
                           }}
+                          value={pagos[m]}
+                          onChange={(e) =>
+                            setPagos({ ...pagos, [m]: e.target.value })
+                          }
+                        />
+                        <div className="input-group-append">
+                          <button
+                            className="btn btn-primary"
+                            onClick={() => {
+                              let max = totalFinal;
+                              if (m === "billetera")
+                                max = Math.min(
+                                  totalFinal,
+                                  clienteSel.saldo_billetera,
+                                );
+                              setPagos({ ...pagos, [m]: max.toFixed(2) });
+                            }}
+                          >
+                            $
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                <hr />
+
+                <div className="form-group row">
+                  <label className="col-sm-5 text-bold">Total a Pagar</label>
+                  <div className="col-sm-7">
+                    <input
+                      type="text"
+                      className="form-control text-right font-weight-bold bg-light"
+                      style={{ fontSize: "1.4rem" }}
+                      value={formatMoney(totalFinal)}
+                      readOnly
+                    />
+                  </div>
+                </div>
+
+                {/* 🚀 CAMPOS DE DÓLAR RESTAURADOS 🚀 */}
+                <div className="form-group row">
+                  <label className="col-sm-5 text-bold text-info">
+                    Precio Dólar
+                  </label>
+                  <div className="col-sm-7">
+                    <input
+                      type="text"
+                      className="form-control text-right font-weight-bold bg-light text-info"
+                      style={{ fontSize: "1.2rem" }}
+                      value={formatMoney(dolar)}
+                      readOnly
+                    />
+                  </div>
+                </div>
+                <div className="form-group row">
+                  <label className="col-sm-5 text-bold text-primary">
+                    Total USD
+                  </label>
+                  <div className="col-sm-7">
+                    <input
+                      type="text"
+                      className="form-control text-right font-weight-bold bg-light text-primary"
+                      style={{ fontSize: "1.4rem" }}
+                      value={`$USD ${totalDolares.toLocaleString("en-US", {
+                        minimumFractionDigits: 2,
+                      })}`}
+                      readOnly
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group row text-success">
+                  <label className="col-sm-5 text-bold">
+                    {vueltoABilletera
+                      ? "Vuelto a Cargar en Billetera"
+                      : "Vuelto en Efectivo"}
+                  </label>
+                  <div className="col-sm-7">
+                    <input
+                      type="text"
+                      className={`form-control text-right font-weight-bold bg-light ${
+                        vueltoABilletera ? "text-primary" : "text-success"
+                      }`}
+                      style={{ fontSize: "1.4rem" }}
+                      value={formatMoney(vueltoFisicoReal)}
+                      readOnly
+                    />
+                  </div>
+                </div>
+
+                <div className="form-group row">
+                  <label className="col-sm-5 text-bold">Monto a Saldar</label>
+                  <div className="col-sm-7">
+                    <input
+                      type="text"
+                      className={`form-control text-right font-weight-bold bg-light ${
+                        montoSaldar > 0 ? "text-danger" : "text-success"
+                      }`}
+                      style={{ fontSize: "1.4rem" }}
+                      value={formatMoney(montoSaldar)}
+                      readOnly
+                    />
+                  </div>
+                </div>
+
+                {/* ✅ SWITCH: Cargar vuelto a billetera (solo si aplica) */}
+                {clienteSel.id !== 1 && vueltoFisicoReal > 0 && (
+                  <div className="form-group row align-items-center">
+                    <label className="col-sm-5 text-bold">
+                      <i className="fas fa-wallet text-primary mr-1"></i>
+                      Cargar vuelto a billetera
+                    </label>
+                    <div className="col-sm-7">
+                      <div className="custom-control custom-switch">
+                        <input
+                          type="checkbox"
+                          className="custom-control-input"
+                          id="switch-vuelto-billetera"
+                          checked={vueltoABilletera}
+                          onChange={(e) =>
+                            setVueltoABilletera(e.target.checked)
+                          }
+                        />
+                        <label
+                          className="custom-control-label text-muted"
+                          htmlFor="switch-vuelto-billetera"
                         >
-                          <i className="fas fa-check"></i>
-                        </button>
-                      </td>
-                      <td className="text-center align-middle">
-                        <small className="text-muted">Combo</small>
-                      </td>
-                      <td className="text-center align-middle">{c.codigo}</td>
-                      <td className="align-middle">{c.nombre}</td>
-                      <td className="text-center align-middle">N/A</td>
-                      <td className="text-right align-middle">
-                        {formatMoney(parseFloat(c.precio_venta))}
-                      </td>
-                      <td className="text-center align-middle">
-                        <span className="badge badge-warning">Combo</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          {vueltoABilletera ? "Sí" : "No"}
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" data-dismiss="modal">
+                  Cancelar
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={handleConfirmarVenta}
+                >
+                  Finalizar Venta (F5)
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="modal fade" id="modal-clientes" tabIndex="-1">
-        <div className="modal-dialog modal-lg">
-          <div className="modal-content">
-            <div className="modal-header bg-info text-white">
-              <h5>Seleccionar Cliente</h5>
-              <button className="close text-white" data-dismiss="modal">
-                ×
-              </button>
-            </div>
-            <div className="modal-body">
-              <table
-                id="clie-table"
-                className="table table-striped table-bordered table-sm"
-                style={{ width: "100%" }}
-              >
-                <thead>
-                  <tr className="text-center">
-                    <th>Acción</th>
-                    <th>C.U.I.L</th>
-                    <th>Nombre</th>
-                    <th>Billetera</th>
-                    <th>Puntos</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {clientes.map((cl) => (
-                    <tr key={cl.id}>
-                      <td className="text-center">
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => {
-                            setClienteSel(cl);
-                            api
-                              .get(`/ventas/deuda-cliente/${cl.id}`)
-                              .then((r) => setDeudaInfo(r.data));
-                            window.$("#modal-clientes").modal("hide");
-                          }}
-                        >
-                          <i className="fas fa-check"></i>
-                        </button>
-                      </td>
-                      <td className="text-center">{cl.cuil_codigo}</td>
-                      <td>{cl.nombre_cliente}</td>
-                      <td className="text-right text-success text-bold">
-                        {formatMoney(cl.saldo_billetera)}
-                      </td>
-                      <td className="text-center">
-                        <b>{cl.puntos || 0}</b>
-                      </td>
+        <div className="modal fade" id="modal-productos" tabIndex="-1">
+          <div className="modal-dialog modal-xl modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-info text-white">
+                <h5>Listado de Ítems</h5>
+                <button className="close" data-dismiss="modal">
+                  ×
+                </button>
+              </div>
+              <div className="modal-body">
+                <table
+                  id="prod-table"
+                  className="table table-striped table-bordered table-sm w-100"
+                >
+                  <thead>
+                    <tr className="text-center">
+                      <th>Acción</th>
+                      <th>Imagen</th>
+                      <th>Código</th>
+                      <th>Nombre</th>
+                      <th>Stock</th>
+                      <th>Precio</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {productos.map((p) => (
+                      <tr key={p.id}>
+                        <td className="text-center align-middle">
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => {
+                              addItem(p.codigo);
+                              window.$("#modal-productos").modal("hide");
+                            }}
+                          >
+                            <i className="fas fa-check"></i>
+                          </button>
+                        </td>
+                        <td className="text-center align-middle">
+                          {p.imagen ? (
+                            <img
+                              src={
+                                p.imagen.startsWith("http")
+                                  ? p.imagen
+                                  : `${API_URL}${p.imagen}`
+                              }
+                              width="40"
+                              height="40"
+                              className="rounded shadow-sm"
+                              style={{ objectFit: "cover" }}
+                            />
+                          ) : (
+                            <small className="text-muted">N/A</small>
+                          )}
+                        </td>
+                        <td className="text-center align-middle">{p.codigo}</td>
+                        <td>{p.nombre}</td>
+                        <td className="text-center font-weight-bold">
+                          {p.stock}
+                        </td>
+                        <td className="text-right">
+                          {formatMoney(parseFloat(p.precio_venta))}
+                        </td>
+                      </tr>
+                    ))}
+                    {combos.map((c) => (
+                      <tr key={c.id}>
+                        <td className="text-center align-middle">
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => {
+                              addItem(c.codigo);
+                              window.$("#modal-productos").modal("hide");
+                            }}
+                          >
+                            <i className="fas fa-check"></i>
+                          </button>
+                        </td>
+                        <td className="text-center align-middle">
+                          <small className="text-muted">Combo</small>
+                        </td>
+                        <td className="text-center align-middle">{c.codigo}</td>
+                        <td>{c.nombre}</td>
+                        <td className="text-center font-weight-bold">N/A</td>
+                        <td className="text-right">
+                          {formatMoney(parseFloat(c.precio_venta))}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="modal fade" id="modal-crear-cliente" tabIndex="-1">
-        <div className="modal-dialog modal-lg modal-dialog-centered">
-          <div className="modal-content shadow-lg">
-            <div className="modal-header bg-primary text-white">
-              <h5>Registrar nuevo cliente</h5>
-              <button className="close text-white" data-dismiss="modal">
-                ×
-              </button>
-            </div>
-            <div className="modal-body">
-              <div className="row mb-3">
-                <div className="col-md-6 form-group">
-                  <label>Cliente</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    onChange={(e) =>
-                      setNuevoCliente({
-                        ...nuevoCliente,
-                        nombre_cliente: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="col-md-6 form-group">
-                  <label>C.U.I.T./D.N.I.</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    onChange={(e) =>
-                      setNuevoCliente({
-                        ...nuevoCliente,
-                        cuil_codigo: e.target.value,
-                      })
-                    }
-                  />
-                </div>
+        <div className="modal fade" id="modal-clientes" tabIndex="-1">
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-info text-white">
+                <h5>Seleccionar Cliente</h5>
+                <button className="close" data-dismiss="modal">
+                  ×
+                </button>
               </div>
-              <div className="row">
-                <div className="col-md-6 form-group">
-                  <label>Teléfono</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    onChange={(e) =>
-                      setNuevoCliente({
-                        ...nuevoCliente,
-                        telefono: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="col-md-6 form-group">
-                  <label>Correo</label>
-                  <input
-                    type="email"
-                    className="form-control"
-                    onChange={(e) =>
-                      setNuevoCliente({
-                        ...nuevoCliente,
-                        email: e.target.value,
-                      })
-                    }
-                  />
-                </div>
+              <div className="modal-body">
+                <table
+                  id="clie-table"
+                  className="table table-striped table-bordered table-sm w-100"
+                >
+                  <thead>
+                    <tr className="text-center">
+                      <th>Acción</th>
+                      <th>C.U.I.L</th>
+                      <th>Nombre</th>
+                      <th>Billetera</th>
+                      <th>Puntos</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {clientes.map((cl) => (
+                      <tr key={cl.id}>
+                        <td className="text-center align-middle">
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => {
+                              setClienteSel(cl);
+                              api
+                                .get(`/ventas/deuda-cliente/${cl.id}`)
+                                .then((r) => setDeudaInfo(r.data));
+                              window.$("#modal-clientes").modal("hide");
+                            }}
+                          >
+                            <i className="fas fa-check"></i>
+                          </button>
+                        </td>
+                        <td className="text-center align-middle">
+                          {cl.cuil_codigo}
+                        </td>
+                        <td className="align-middle">{cl.nombre_cliente}</td>
+                        <td className="text-right text-success text-bold">
+                          {formatMoney(cl.saldo_billetera)}
+                        </td>
+                        <td className="text-center align-middle">
+                          <b>{cl.puntos || 0}</b>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
-            <div className="modal-footer d-flex justify-content-between">
-              <button className="btn btn-secondary" data-dismiss="modal">
-                Salir
-              </button>
-              <button
-                className="btn btn-primary"
-                onClick={handleGuardarNuevoCliente}
-              >
-                <i className="fa-regular fa-floppy-disk mr-1"></i> Registrar
-              </button>
+          </div>
+        </div>
+
+        <div className="modal fade" id="modal-crear-cliente" tabIndex="-1">
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-primary text-white">
+                <h5>Nuevo Cliente</h5>
+                <button className="close" data-dismiss="modal">
+                  ×
+                </button>
+              </div>
+              <div className="modal-body">
+                <div className="row mb-3">
+                  <div className="col-md-6">
+                    <label>Nombre</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      onChange={(e) =>
+                        setNuevoCliente({
+                          ...nuevoCliente,
+                          nombre_cliente: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label>DNI</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      onChange={(e) =>
+                        setNuevoCliente({
+                          ...nuevoCliente,
+                          cuil_codigo: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  className="btn btn-primary"
+                  onClick={handleGuardarNuevoCliente}
+                >
+                  Registrar
+                </button>
+              </div>
             </div>
           </div>
         </div>
