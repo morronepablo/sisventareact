@@ -101,7 +101,7 @@ const ListadoProductos = () => {
           info: true,
           autoWidth: false,
           responsive: true,
-          pageLength: 10,
+          pageLength: 5,
           language: spanishLanguage,
           dom: "rtip",
           columnDefs: [{ targets: -1, orderable: false }],

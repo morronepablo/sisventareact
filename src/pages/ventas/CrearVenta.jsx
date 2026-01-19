@@ -152,16 +152,19 @@ const CrearVenta = () => {
 
   const saldoUsadoBilletera = parseFloat(pagos.billetera || 0);
 
-  const efectivoNecesario = Math.max(
-    totalFinal - otrosMediosSinBilletera - saldoUsadoBilletera,
-    0,
-  );
+  // ✅ CÁLCULO CORREGIDO DEL VUELTO (sin redeclarar totalPagado)
+  const efectivoPagado = parseFloat(pagos.efectivo || 0);
+  const totalPagadoSinEfectivo =
+    parseFloat(pagos.tarjeta || 0) +
+    parseFloat(pagos.mercadopago || 0) +
+    parseFloat(pagos.transferencia || 0) +
+    parseFloat(pagos.billetera || 0);
 
-  // ✅ CORRECCIÓN: Vuelto físico real (sin manipulaciones)
-  const vueltoFisicoReal =
-    parseFloat(pagos.efectivo) > efectivoNecesario
-      ? parseFloat(pagos.efectivo) - efectivoNecesario
-      : 0;
+  // El vuelto es la diferencia entre lo pagado y el total final
+  const vueltoFisicoReal = Math.max(totalPagado - totalFinal, 0);
+
+  // El efectivo necesario es el total final menos lo pagado con otros medios (incluyendo billetera)
+  const efectivoNecesario = Math.max(totalFinal - totalPagadoSinEfectivo, 0);
 
   const fetchData = async () => {
     if (!user) return;
@@ -244,8 +247,8 @@ const CrearVenta = () => {
           Number(descMonto) === Number(clienteSel.puntos)
             ? clienteSel.puntos
             : 0,
-        cargar_vuelto_billetera: vueltoABilletera,
-        // ✅ Enviamos el vuelto real al backend
+        cargar_vuelto_billetera:
+          document.getElementById("switch-vuelto-billetera")?.checked || false,
         vuelto_monto: vueltoFisicoReal,
       };
 
@@ -838,7 +841,8 @@ const CrearVenta = () => {
                       "linear-gradient(180deg, #28a745 0%, #218838 100%)",
                   }}
                 >
-                  <i className="fas fa-save mr-2"></i> REGISTRAR (F5)
+                  <i className="fa-regular fa-floppy-disk mr-2"></i> REGISTRAR
+                  (F5)
                 </button>
               </div>
             </div>
@@ -1099,6 +1103,7 @@ const CrearVenta = () => {
                     />
                   </div>
                 </div>
+
                 <div className="form-group row">
                   <label className="col-sm-5 text-bold text-primary">
                     Total USD
