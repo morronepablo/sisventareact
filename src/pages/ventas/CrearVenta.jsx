@@ -309,6 +309,7 @@ const CrearVenta = () => {
         setVueltoABilletera(false);
         fetchData();
       }
+      window.location.href = "/ventas/crear";
     } catch (e) {
       console.error(e);
       Swal.fire("Error", "Fallo al registrar la venta", "error");
@@ -329,15 +330,8 @@ const CrearVenta = () => {
         );
         return;
       }
-      if (e.key === "F5") {
-        e.preventDefault();
-        if (tmpVentas.length > 0) {
-          const m = document.getElementById("modal-pagos");
-          if (m && !m.classList.contains("show"))
-            window.$("#modal-pagos").modal("show");
-          else handleConfirmarVenta();
-        }
-      }
+
+      // ✅ F12: Enfocar efectivo
       if (e.key === "F12") {
         e.preventDefault();
         if (tmpVentas.length > 0) {
@@ -351,7 +345,34 @@ const CrearVenta = () => {
           }, 500);
         }
       }
+
+      // ✅ Ctrl + F12: Enfocar Mercado Pago
+      if (e.ctrlKey && e.key === "F12") {
+        e.preventDefault();
+        if (tmpVentas.length > 0) {
+          window.$("#modal-pagos").modal("show");
+          setTimeout(() => {
+            const inp = document.getElementById("pago-mercadopago");
+            if (inp) {
+              inp.focus();
+              inp.select();
+            }
+          }, 500);
+        }
+      }
+
+      // ✅ F5: Registrar venta
+      if (e.key === "F5") {
+        e.preventDefault();
+        if (tmpVentas.length > 0) {
+          const m = document.getElementById("modal-pagos");
+          if (m && !m.classList.contains("show"))
+            window.$("#modal-pagos").modal("show");
+          else handleConfirmarVenta();
+        }
+      }
     };
+
     window.addEventListener("keydown", handleKeyDown, true);
     return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [
@@ -1035,7 +1056,13 @@ const CrearVenta = () => {
                       </label>
                       <div className="col-sm-7 input-group">
                         <input
-                          id={m === "efectivo" ? "pago-efectivo" : ""}
+                          id={
+                            m === "efectivo"
+                              ? "pago-efectivo"
+                              : m === "mercadopago"
+                                ? "pago-mercadopago" // ✅ AGREGADO
+                                : ""
+                          }
                           type="number"
                           className="form-control text-right font-weight-bold"
                           style={{
@@ -1357,17 +1384,17 @@ const CrearVenta = () => {
 
         <div className="modal fade" id="modal-crear-cliente" tabIndex="-1">
           <div className="modal-dialog modal-lg modal-dialog-centered">
-            <div className="modal-content">
+            <div className="modal-content shadow-lg">
               <div className="modal-header bg-primary text-white">
-                <h5>Nuevo Cliente</h5>
-                <button className="close" data-dismiss="modal">
+                <h5>Registrar nuevo cliente</h5>
+                <button className="close text-white" data-dismiss="modal">
                   ×
                 </button>
               </div>
               <div className="modal-body">
                 <div className="row mb-3">
-                  <div className="col-md-6">
-                    <label>Nombre</label>
+                  <div className="col-md-6 form-group">
+                    <label>Cliente</label>
                     <input
                       type="text"
                       className="form-control"
@@ -1379,8 +1406,8 @@ const CrearVenta = () => {
                       }
                     />
                   </div>
-                  <div className="col-md-6">
-                    <label>DNI</label>
+                  <div className="col-md-6 form-group">
+                    <label>C.U.I.T./D.N.I.</label>
                     <input
                       type="text"
                       className="form-control"
@@ -1393,13 +1420,44 @@ const CrearVenta = () => {
                     />
                   </div>
                 </div>
+                <div className="row">
+                  <div className="col-md-6 form-group">
+                    <label>Teléfono</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      onChange={(e) =>
+                        setNuevoCliente({
+                          ...nuevoCliente,
+                          telefono: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                  <div className="col-md-6 form-group">
+                    <label>Correo</label>
+                    <input
+                      type="email"
+                      className="form-control"
+                      onChange={(e) =>
+                        setNuevoCliente({
+                          ...nuevoCliente,
+                          email: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="modal-footer">
+              <div className="modal-footer d-flex justify-content-between">
+                <button className="btn btn-secondary" data-dismiss="modal">
+                  Salir
+                </button>
                 <button
                   className="btn btn-primary"
                   onClick={handleGuardarNuevoCliente}
                 >
-                  Registrar
+                  <i className="fa-regular fa-floppy-disk mr-1"></i> Registrar
                 </button>
               </div>
             </div>
