@@ -301,6 +301,7 @@ const CrearVenta = () => {
           puntos: 0,
           saldo_billetera: 0,
         });
+        setDeudaInfo({ deuda_total: 0, dias_mora: 0 });
         setDescPorcentaje(0);
         setDescMonto(0);
         setCodigo("");
@@ -309,7 +310,6 @@ const CrearVenta = () => {
         setVueltoABilletera(false);
         fetchData();
       }
-      window.location.href = "/ventas/crear";
     } catch (e) {
       console.error(e);
       Swal.fire("Error", "Fallo al registrar la venta", "error");
