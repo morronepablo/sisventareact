@@ -56,7 +56,7 @@ const InformeCobranzas = () => {
       .catch(() => setLoading(false));
   }, []);
 
-  // --- INICIALIZACIÓN DE DATATABLE CON CONFIGURACIÓN DE 5 FILAS ---
+  // --- INICIALIZACIÓN DE DATATABLE CON ORDENAMIENTO POR MORA ---
   useEffect(() => {
     if (!loading && data.length > 0) {
       const tableId = "#cobranzas-table";
@@ -69,13 +69,14 @@ const InformeCobranzas = () => {
         $(tableId).DataTable({
           paging: true,
           ordering: true,
-          order: [[3, "desc"]], // Ordenar por Saldo Pendiente de mayor a menor
+          // 🚀 ORDENACIÓN CRÍTICA: Columna 2 (Días de Mora) DESCENDENTE 🚀
+          order: [[2, "desc"]],
           info: true,
           autoWidth: false,
           responsive: true,
-          pageLength: 5, // <--- Configuración solicitada
+          pageLength: 5,
           language: spanishLanguage,
-          dom: "rtip", // Diseño limpio
+          dom: "rtip",
         });
       }, 300);
 
@@ -127,7 +128,6 @@ const InformeCobranzas = () => {
 
   return (
     <div className="content-header">
-      {/* Inyectamos los estilos para corregir márgenes del Datatable */}
       <style>{dataTableStyles}</style>
 
       <div className="container-fluid">
@@ -142,9 +142,9 @@ const InformeCobranzas = () => {
         <hr />
 
         <div className="card card-danger card-outline shadow">
-          <div className="card-header">
+          <div className="card-header border-0">
             <h3 className="card-title text-bold">
-              Ranking de Clientes en Mora
+              Ranking de Clientes en Mora (Prioridad por Antigüedad)
             </h3>
             <button
               className="btn btn-danger btn-sm float-right shadow-sm"
@@ -165,7 +165,7 @@ const InformeCobranzas = () => {
                     <th style={{ width: "40px" }}>#</th>
                     <th>Cliente</th>
                     <th className="text-center">Días de Mora</th>
-                    <th className="text-right">Saldo Pendiente</th>
+                    <th className="text-right pr-4">Saldo Pendiente</th>
                     <th className="text-center" style={{ width: "180px" }}>
                       Acción
                     </th>
@@ -177,7 +177,7 @@ const InformeCobranzas = () => {
                       <td className="text-center align-middle font-weight-bold">
                         {i + 1}
                       </td>
-                      <td className="align-middle">
+                      <td className="align-middle px-3">
                         <div className="text-bold text-uppercase">
                           {d.nombre_cliente}
                         </div>
@@ -187,6 +187,10 @@ const InformeCobranzas = () => {
                         </small>
                       </td>
                       <td className="text-center align-middle">
+                        {/* 💡 Sort Key Oculto para asegurar orden numérico perfecto */}
+                        <span style={{ display: "none" }}>
+                          {String(d.dias_mora).padStart(5, "0")}
+                        </span>
                         <span
                           className={`badge px-3 py-2 shadow-sm ${d.dias_mora > 15 ? "badge-danger" : "badge-warning"}`}
                         >
@@ -195,7 +199,7 @@ const InformeCobranzas = () => {
                         </span>
                       </td>
                       <td
-                        className="text-right align-middle text-danger font-weight-bold"
+                        className="text-right align-middle text-danger font-weight-bold pr-4"
                         style={{ fontSize: "1rem" }}
                       >
                         {formatMoney(d.saldo_pend)}
@@ -218,7 +222,8 @@ const InformeCobranzas = () => {
 
           <div className="card-footer bg-white border-top-0">
             <span className="text-xs text-muted font-italic float-right">
-              Ranking actualizado según las últimas ventas a cuenta corriente.
+              Ranking priorizado por antigüedad de deuda para mitigar pérdida de
+              poder adquisitivo.
             </span>
           </div>
         </div>
