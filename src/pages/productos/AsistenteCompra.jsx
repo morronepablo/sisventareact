@@ -1,6 +1,6 @@
 // src/pages/productos/AsistenteCompra.jsx
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import api from "../../services/api";
 import LoadingSpinner from "../../components/LoadingSpinner";
 
@@ -32,16 +32,44 @@ const AsistenteCompra = () => {
       minimumFractionDigits: 2,
     })}`;
 
-  const filtered = datos.filter(
-    (p) =>
-      p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.codigo.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  // 🚀 CEREBRO DE ORDENAMIENTO BLINDADO (Staff Engineer Level)
+  const procesados = useMemo(() => {
+    // 1. Definimos los pesos de urgencia (Menor número = Más arriba)
+    const getPeso = (u) => {
+      if (!u) return 99;
+      const urg = u.toString().toUpperCase().trim();
+      if (urg.includes("CRÍ") || urg.includes("CRI")) return 1; // CRÍTICA
+      if (urg.includes("MED")) return 2; // MEDIA
+      if (urg.includes("BAJ")) return 3; // BAJA
+      if (urg.includes("ESTAN")) return 4; // STOCK ESTANCADO
+      return 5;
+    };
 
+    // 2. Filtramos por búsqueda
+    let filtrados = datos.filter(
+      (p) =>
+        p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.codigo.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+
+    // 3. Ordenamos GLOBALMENTE antes de paginar
+    return filtrados.sort((a, b) => {
+      const pesoA = getPeso(a.urgencia);
+      const pesoB = getPeso(b.urgencia);
+
+      if (pesoA !== pesoB) {
+        return pesoA - pesoB; // Orden principal por peso
+      }
+      // Si tienen igual urgencia, ordenamos por ROI (para saber dónde conviene poner la plata)
+      return b.roi_proyectado - a.roi_proyectado;
+    });
+  }, [datos, searchTerm]);
+
+  // Lógica de paginación sobre los datos YA ORDENADOS
+  const totalPages = Math.ceil(procesados.length / entriesPerPage);
   const indexOfLastItem = currentPage * entriesPerPage;
   const indexOfFirstItem = indexOfLastItem - entriesPerPage;
-  const currentItems = filtered.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filtered.length / entriesPerPage);
+  const currentItems = procesados.slice(indexOfFirstItem, indexOfLastItem);
 
   if (loading) return <LoadingSpinner />;
 
@@ -57,7 +85,7 @@ const AsistenteCompra = () => {
         <div className="card-header border-0">
           <h3 className="card-title text-bold">
             <i className="fas fa-robot mr-2 text-primary"></i>
-            Sugerencias de Reabastecimiento
+            Sugerencias de Reabastecimiento (Prioridad Crítica Primero)
           </h3>
         </div>
 
@@ -129,7 +157,7 @@ const AsistenteCompra = () => {
                           <div>
                             <div
                               className="text-bold text-uppercase"
-                              style={{ fontSize: "0.9rem" }}
+                              style={{ fontSize: "0.85rem" }}
                             >
                               {p.nombre}
                             </div>
@@ -137,39 +165,26 @@ const AsistenteCompra = () => {
                               {p.codigo}
                             </small>
                           </div>
-                          {/* BADGES MATRIZ BCG */}
                           <div className="ml-2">
                             {p.clase_bcg === "ESTRELLA" && (
-                              <span
-                                className="badge badge-warning shadow-sm px-2 py-1"
-                                title="Alta Rotación / Alto Margen"
-                              >
+                              <span className="badge badge-warning shadow-sm px-2 py-1">
                                 <i className="fas fa-star mr-1"></i> ESTRELLA
                               </span>
                             )}
                             {p.clase_bcg === "VACA LECHERA" && (
-                              <span
-                                className="badge badge-primary shadow-sm px-2 py-1"
-                                title="Alta Rotación / Bajo Margen"
-                              >
+                              <span className="badge badge-primary shadow-sm px-2 py-1">
                                 <i className="fas fa-hand-holding-usd mr-1"></i>{" "}
                                 VACA
                               </span>
                             )}
                             {p.clase_bcg === "INCÓGNITA" && (
-                              <span
-                                className="badge badge-info shadow-sm px-2 py-1"
-                                title="Baja Rotación / Alto Margen"
-                              >
+                              <span className="badge badge-info shadow-sm px-2 py-1">
                                 <i className="fas fa-question-circle mr-1"></i>{" "}
                                 INCÓGNITA
                               </span>
                             )}
                             {p.clase_bcg === "PERRO" && (
-                              <span
-                                className="badge badge-secondary shadow-sm px-2 py-1"
-                                title="Baja Rotación / Bajo Margen"
-                              >
+                              <span className="badge badge-secondary shadow-sm px-2 py-1">
                                 <i className="fas fa-paw mr-1"></i> PERRO
                               </span>
                             )}
@@ -197,7 +212,7 @@ const AsistenteCompra = () => {
                       </td>
                       <td className="text-center align-middle">
                         {p.urgencia === "CRÍTICA" && (
-                          <span className="badge badge-danger px-3 shadow-sm">
+                          <span className="badge badge-danger px-3 shadow-sm animate__animated animate__flash animate__infinite">
                             CRÍTICA
                           </span>
                         )}
@@ -225,11 +240,11 @@ const AsistenteCompra = () => {
                                 ? "text-warning"
                                 : "text-primary"
                             }
-                            style={{ fontSize: "1.1rem" }}
+                            style={{ fontSize: "1.05rem" }}
                           >
                             <i
                               className={`fas ${p.clase_bcg === "ESTRELLA" ? "fa-fire" : "fa-plus-circle"} mr-1`}
-                            ></i>{" "}
+                            ></i>
                             {p.sugerencia_compra} {p.unidad}
                           </span>
                         ) : (
@@ -243,19 +258,18 @@ const AsistenteCompra = () => {
                           ? formatMoney(p.inversion_estimada)
                           : "-"}
                       </td>
-                      {/* COLUMNA BI: GANANCIA PROYECTADA */}
                       <td className="text-center align-middle bg-light">
                         {p.roi_proyectado > 0 ? (
                           <div className="d-flex flex-column">
                             <span
                               className="text-success text-bold"
-                              style={{ fontSize: "1.05rem" }}
+                              style={{ fontSize: "1rem" }}
                             >
                               {formatMoney(p.roi_proyectado)}
                             </span>
                             <small
                               className="text-muted"
-                              style={{ fontSize: "0.7rem" }}
+                              style={{ fontSize: "0.65rem" }}
                             >
                               Margen:{" "}
                               <span className="text-dark font-weight-bold">
@@ -264,7 +278,7 @@ const AsistenteCompra = () => {
                             </small>
                           </div>
                         ) : (
-                          <span className="text-muted">-</span>
+                          "-"
                         )}
                       </td>
                     </tr>
@@ -272,9 +286,7 @@ const AsistenteCompra = () => {
                 ) : (
                   <tr>
                     <td colSpan="8" className="text-center py-5 text-muted">
-                      <i className="fas fa-box-open fa-3x mb-3 d-block opacity-25"></i>
-                      No se encontraron productos para los criterios de
-                      búsqueda.
+                      No se encontraron productos.
                     </td>
                   </tr>
                 )}
@@ -285,8 +297,8 @@ const AsistenteCompra = () => {
           <div className="d-flex justify-content-between align-items-center mt-3">
             <div>
               Mostrando {indexOfFirstItem + 1} a{" "}
-              {Math.min(indexOfLastItem, filtered.length)} de {filtered.length}{" "}
-              productos
+              {Math.min(indexOfLastItem, procesados.length)} de{" "}
+              {procesados.length} productos
             </div>
             <nav>
               <ul className="pagination pagination-sm m-0">
@@ -303,9 +315,7 @@ const AsistenteCompra = () => {
                 {[...Array(totalPages)].map((_, i) => (
                   <li
                     key={i}
-                    className={`page-item ${
-                      currentPage === i + 1 ? "active" : ""
-                    }`}
+                    className={`page-item ${currentPage === i + 1 ? "active" : ""}`}
                   >
                     <button
                       className="page-link"
@@ -316,9 +326,7 @@ const AsistenteCompra = () => {
                   </li>
                 ))}
                 <li
-                  className={`page-item ${
-                    currentPage === totalPages ? "disabled" : ""
-                  }`}
+                  className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}
                 >
                   <button
                     className="page-link"

@@ -605,7 +605,9 @@ a:hover {
   transition: all 0.3s ease-in-out !important;
   cursor: pointer;
   border: none !important;
-  box-shadow: 0 0 1px rgba(0, 0, 0, 0.125), 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+  box-shadow:
+    0 0 1px rgba(0, 0, 0, 0.125),
+    0 1px 3px rgba(0, 0, 0, 0.2) !important;
   background: #fff !important;
   height: 90px !important; /* Altura fija para que todas sean iguales */
   margin-bottom: 20px !important;
@@ -807,4 +809,14 @@ body,
   .main-footer {
     margin-left: 0 !important;
   }
+}
+
+#clientes-table_wrapper .dataTables_info {
+  padding: 15px !important;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+#clientes-table_wrapper .dataTables_paginate {
+  padding: 10px 15px !important;
 }

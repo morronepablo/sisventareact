@@ -102,6 +102,63 @@ const ListadoClientes = () => {
     }
   };
 
+  const handleCargarPuntos = async (cliente) => {
+    const { value: formValues } = await Swal.fire({
+      title: `Cargar Puntos: ${cliente.nombre_cliente}`,
+      icon: "question",
+      html:
+        '<div class="text-left"><label class="small text-muted">CANTIDAD DE PUNTOS</label></div>' +
+        '<input id="swal-input-puntos" class="swal2-input" type="number" placeholder="0">' +
+        '<div class="text-left mt-2"><label class="small text-muted">MOTIVO DEL AJUSTE</label></div>' +
+        '<input id="swal-input-motivo" class="swal2-input" placeholder="Ej: Premio fidelidad, bonificación">',
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: '<i class="fas fa-star mr-1"></i> Asignar Puntos',
+      confirmButtonColor: "#ffc107",
+      cancelButtonText: "Cancelar",
+      preConfirm: () => {
+        const puntos = document.getElementById("swal-input-puntos").value;
+        const motivo = document.getElementById("swal-input-motivo").value;
+        if (!puntos || puntos <= 0) {
+          Swal.showValidationMessage("Debe ingresar una cantidad válida");
+          return false;
+        }
+        return [puntos, motivo];
+      },
+    });
+
+    if (formValues) {
+      try {
+        Swal.fire({
+          title: "Procesando...",
+          allowOutsideClick: false,
+          didOpen: () => Swal.showLoading(),
+        });
+
+        await api.post(`/clientes/${cliente.id}/puntos/cargar`, {
+          puntos: formValues[0],
+          descripcion: formValues[1],
+        });
+
+        Swal.fire({
+          icon: "success",
+          title: "¡Puntos Cargados!",
+          text: `Se asignaron ${formValues[0]} puntos correctamente.`,
+          timer: 2000,
+          showConfirmButton: false,
+        });
+
+        fetchClientes(); // Recargamos la tabla
+      } catch (error) {
+        Swal.fire(
+          "Error",
+          error.response?.data?.message || "No se pudo cargar los puntos.",
+          "error",
+        );
+      }
+    }
+  };
+
   const handleEliminar = (id) => {
     Swal.fire({
       title: "¿Estás seguro?",
@@ -194,6 +251,7 @@ const ListadoClientes = () => {
                   <th>Teléfono</th>
                   <th>F. Nacimiento</th>
                   <th className="bg-success">Billetera</th>
+                  <th className="bg-warning">Puntos</th>
                   <th>Deuda</th>
                   <th>Saldo</th>
                   <th>Compras</th>
@@ -218,8 +276,13 @@ const ListadoClientes = () => {
                       ${" "}
                       {parseFloat(c.saldo_billetera || 0).toLocaleString(
                         "es-AR",
-                        { minimumFractionDigits: 2 }
+                        { minimumFractionDigits: 2 },
                       )}
+                    </td>
+                    <td className="text-center align-middle">
+                      <span className="badge badge-warning shadow-sm px-2">
+                        {c.puntos || 0}
+                      </span>
                     </td>
                     <td className="text-right align-middle text-danger">
                       ${" "}
@@ -270,6 +333,14 @@ const ListadoClientes = () => {
                               <i className="fas fa-wallet"></i>
                             </button>
                             <button
+                              className="btn btn-primary btn-sm"
+                              data-toggle="tooltip"
+                              title="Cargar Puntos"
+                              onClick={() => handleCargarPuntos(c)}
+                            >
+                              <i className="fas fa-star"></i>
+                            </button>
+                            <button
                               className="btn btn-warning btn-sm"
                               data-toggle="tooltip"
                               title="Gestionar Cta Cte"
@@ -285,7 +356,7 @@ const ListadoClientes = () => {
                               title="Historial"
                               onClick={() =>
                                 navegarSinTooltips(
-                                  `/clientes/historial/${c.id}`
+                                  `/clientes/historial/${c.id}`,
                                 )
                               }
                             >
