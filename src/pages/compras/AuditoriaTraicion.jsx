@@ -1,5 +1,5 @@
 // src/pages/compras/AuditoriaTraicion.jsx
-/* eslint-disable no-undef */
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
 import LoadingSpinner from "../../components/LoadingSpinner";
@@ -33,30 +33,29 @@ const AuditoriaTraicion = () => {
   const filtered = data.anomalias.filter(
     (a) =>
       a.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      a.proveedor.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  const totalPages = Math.ceil(filtered.length / entriesPerPage);
-  const currentItems = filtered.slice(
-    (currentPage - 1) * entriesPerPage,
-    currentPage * entriesPerPage
+      a.proveedor.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
+  const currentItems = filtered.slice(
+    (currentPage - 1) * entriesPerPage,
+    currentPage * entriesPerPage,
+  );
+  const totalPages = Math.ceil(filtered.length / entriesPerPage);
+
   const formatMoney = (val) =>
-    `$ ${parseFloat(val || 0).toLocaleString("es-AR", {
-      minimumFractionDigits: 2,
-    })}`;
+    `$ ${parseFloat(val || 0).toLocaleString("es-AR", { minimumFractionDigits: 2 })}`;
 
   return (
     <div className="container-fluid pt-3">
       <div className="row mb-3">
         <div className="col-md-8">
           <h1 className="text-bold text-dark">
-            <i className="fas fa-exclamation-circle text-danger mr-2"></i>{" "}
-            Alerta de Traición
+            <i className="fas fa-handshake-slash text-danger mr-2"></i>{" "}
+            Auditoría de Abastecimiento
           </h1>
           <p className="text-muted">
-            Detecta aumentos excesivos comparados con la inflación promedio de
-            tu local (<b>{data.promedio_tienda}%</b>).
+            Detectando facturas con aumentos abusivos sobre el promedio mensual
+            ({data.promedio_tienda}%).
           </p>
         </div>
       </div>
@@ -64,31 +63,18 @@ const AuditoriaTraicion = () => {
       <div className="card card-outline card-danger shadow">
         <div className="card-header border-0">
           <h3 className="card-title text-bold">
-            Aumentos por encima del promedio
+            Detección de Anomalías en Compras
           </h3>
         </div>
         <div className="card-body">
-          <div className="d-flex justify-content-end mb-3">
-            <input
-              type="search"
-              className="form-control form-control-sm shadow-sm"
-              style={{ width: "250px" }}
-              placeholder="Buscar proveedor o producto..."
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-            />
-          </div>
-
           <div className="table-responsive">
             <table className="table table-bordered table-hover">
-              <thead className="bg-dark text-center">
+              <thead className="bg-navy text-white text-center">
                 <tr>
                   <th>Producto</th>
-                  <th>Proveedor</th>
-                  <th>Costo Anterior</th>
-                  <th>Costo Nuevo</th>
+                  <th>Proveedor / Comprobante</th>
+                  <th>Costo Ant.</th>
+                  <th>Costo Factura</th>
                   <th>Aumento</th>
                   <th className="bg-danger">Traición (Brecha)</th>
                 </tr>
@@ -97,8 +83,15 @@ const AuditoriaTraicion = () => {
                 {currentItems.length > 0 ? (
                   currentItems.map((a, i) => (
                     <tr key={i}>
-                      <td className="align-middle text-bold">{a.nombre}</td>
-                      <td className="align-middle">{a.proveedor}</td>
+                      <td className="align-middle">
+                        <b>{a.nombre}</b>
+                      </td>
+                      <td className="align-middle">
+                        {a.proveedor} <br />
+                        <small className="badge badge-secondary">
+                          {a.comprobante}
+                        </small>
+                      </td>
                       <td className="text-center align-middle text-muted">
                         {formatMoney(a.costo_anterior)}
                       </td>
@@ -106,80 +99,29 @@ const AuditoriaTraicion = () => {
                         {formatMoney(a.costo_nuevo)}
                       </td>
                       <td className="text-center align-middle">
-                        <span className="text-danger">
-                          {a.aumento_producto}%
+                        <span className="text-danger text-bold">
+                          +{a.aumento_producto}%
                         </span>
                       </td>
                       <td className="text-center align-middle bg-light">
                         <div
                           className="badge badge-danger p-2"
-                          style={{ fontSize: "0.9rem" }}
+                          style={{ fontSize: "0.85rem" }}
                         >
-                          <i className="fas fa-arrow-up mr-1"></i> +{a.brecha}%
-                          extra
+                          +{a.brecha}% Extra
                         </div>
-                        <br />
-                        <small className="text-muted">
-                          Sobre el promedio del local
-                        </small>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
                     <td colSpan="6" className="text-center py-5">
-                      No se detectaron aumentos abusivos este mes.
+                      No se detectaron facturas sospechosas.
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
-          </div>
-
-          {/* Paginación */}
-          <div className="d-flex justify-content-between mt-3">
-            <small>Mostrando {currentItems.length} alertas críticas</small>
-            <nav>
-              <ul className="pagination pagination-sm m-0">
-                <li
-                  className={`page-item ${currentPage === 1 ? "disabled" : ""}`}
-                >
-                  <button
-                    className="page-link"
-                    onClick={() => setCurrentPage((p) => p - 1)}
-                  >
-                    Ant.
-                  </button>
-                </li>
-                {[...Array(totalPages)].map((_, i) => (
-                  <li
-                    key={i}
-                    className={`page-item ${
-                      currentPage === i + 1 ? "active" : ""
-                    }`}
-                  >
-                    <button
-                      className="page-link"
-                      onClick={() => setCurrentPage(i + 1)}
-                    >
-                      {i + 1}
-                    </button>
-                  </li>
-                ))}
-                <li
-                  className={`page-item ${
-                    currentPage === totalPages ? "disabled" : ""
-                  }`}
-                >
-                  <button
-                    className="page-link"
-                    onClick={() => setCurrentPage(p + 1)}
-                  >
-                    Sig.
-                  </button>
-                </li>
-              </ul>
-            </nav>
           </div>
         </div>
       </div>
