@@ -35,6 +35,7 @@ const AuditoriaProductosComprados = () => {
           ordering: true,
           info: true,
           pageLength: 5,
+          order: [[0, "desc"]],
           language: {
             info: "Mostrando _START_ a _END_ de _TOTAL_ ingresos de mercadería",
             paginate: { previous: "Ant.", next: "Sig." },
