@@ -1040,9 +1040,10 @@ const Dashboard = () => {
                   labels: charts.ventasPorCaja.map((c) => `Caja ${c.caja_id}`),
                   datasets: [
                     {
-                      label: "Ventas",
+                      label: "Facturación Neta ($)",
                       data: charts.ventasPorCaja.map((c) => c.total),
-                      backgroundColor: "#605ca8",
+                      backgroundColor: "#605ca8", // Morado para Cajas
+                      borderRadius: 5,
                     },
                   ],
                 }}
