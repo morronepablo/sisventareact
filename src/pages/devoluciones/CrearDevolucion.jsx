@@ -78,7 +78,7 @@ const CrearDevolucion = () => {
       Swal.fire(
         "Caja Cerrada",
         "Debe abrir caja antes de realizar una devolución",
-        "error"
+        "error",
       );
       navigate("/devoluciones/listado");
       return;
@@ -151,7 +151,7 @@ const CrearDevolucion = () => {
 
   const totalCantidad = tmpItems.reduce(
     (acc, it) => acc + parseFloat(it.cantidad),
-    0
+    0,
   );
   const totalDevolucion = tmpItems.reduce((acc, it) => {
     let precio = parseFloat(it.precio_venta || it.combo_precio || 0);
@@ -192,48 +192,65 @@ const CrearDevolucion = () => {
         </h1>
         <hr />
         <div className="row">
+          {/* 🎨 PANEL IZQUIERDO: PRODUCTOS */}
           <div className="col-md-8">
-            <div className="card card-outline card-primary shadow-sm">
+            <div
+              className="card card-outline shadow-lg h-100"
+              style={{
+                backgroundColor: "#1e2229",
+                borderTop: "4px solid #00f2fe",
+                borderLeft: "none",
+                borderRight: "none",
+                borderBottom: "none",
+              }}
+            >
               <div className="card-body">
                 <div className="row mb-3">
                   <div className="col-md-2">
-                    <label>Cantidad *</label>
+                    <label className="text-muted text-xs mb-1">
+                      Cantidad *
+                    </label>
                     <input
                       type="number"
-                      className="form-control text-center"
+                      className="form-control form-control-sm bg-dark text-white text-center"
                       value={cantidad}
                       onChange={(e) => setCantidad(e.target.value)}
-                      style={{ backgroundColor: "rgba(233,231,16,0.15)" }}
+                      style={{ fontSize: "1rem" }}
                     />
                   </div>
                   <div className="col-md-10">
-                    <label>Código / Nombre</label>
+                    <label className="text-muted text-xs mb-1">
+                      Código / Nombre
+                    </label>
                     <div className="input-group">
                       <div className="input-group-prepend">
-                        <span className="input-group-text">
+                        <span className="input-group-text bg-dark text-white">
                           <i className="fas fa-barcode"></i>
                         </span>
                       </div>
                       <input
                         type="text"
-                        className="form-control"
+                        className="form-control form-control-sm bg-dark text-white"
                         value={codigo}
                         onChange={(e) => setCodigo(e.target.value)}
                         onKeyDown={handleAddProduct}
                         autoFocus
                         placeholder="Escriba y presione Enter..."
+                        style={{ fontSize: "1rem" }}
                       />
                       <div className="input-group-append">
                         <button
-                          className="btn btn-primary"
+                          className="btn btn-primary btn-sm"
                           data-toggle="modal"
                           data-target="#modal-productos"
+                          style={{ fontSize: "1rem" }}
                         >
                           <i className="fas fa-search"></i>
                         </button>
                         <button
-                          className="btn btn-success"
+                          className="btn btn-success btn-sm"
                           onClick={() => navigate("/productos/crear")}
+                          style={{ fontSize: "1rem" }}
                         >
                           <i className="fas fa-plus"></i>
                         </button>
@@ -243,11 +260,15 @@ const CrearDevolucion = () => {
                 </div>
 
                 <div
-                  className="table-responsive"
+                  className="table-responsive mt-3"
                   style={{ maxHeight: "400px" }}
                 >
                   <table className="table table-sm table-striped table-bordered">
-                    <thead className="thead-dark text-center">
+                    {/* 👇 CABECERA CON COLOR AZUL CIAN (#00f2fe) */}
+                    <thead
+                      className="text-center"
+                      style={{ backgroundColor: "#2d323b", color: "#00f2fe" }}
+                    >
                       <tr>
                         <th>Nro.</th>
                         <th>Código</th>
@@ -262,14 +283,20 @@ const CrearDevolucion = () => {
                     <tbody>
                       {tmpItems.map((it, i) => {
                         let precio = parseFloat(
-                          it.precio_venta || it.combo_precio || 0
+                          it.precio_venta || it.combo_precio || 0,
                         );
                         if (it.aplicar_porcentaje)
                           precio =
                             parseFloat(it.precio_compra) *
                             (1 + parseFloat(it.valor_porcentaje) / 100);
                         return (
-                          <tr key={it.id}>
+                          <tr
+                            key={it.id}
+                            style={{
+                              backgroundColor: "#2d323b",
+                              color: "white",
+                            }}
+                          >
                             <td className="text-center">{i + 1}</td>
                             <td className="text-center">
                               {it.codigo || it.combo_codigo}
@@ -290,10 +317,11 @@ const CrearDevolucion = () => {
                                 className="btn btn-danger btn-sm"
                                 onClick={async () => {
                                   await api.delete(
-                                    `/devoluciones/tmp/${it.id}`
+                                    `/devoluciones/tmp/${it.id}`,
                                   );
                                   fetchData();
                                 }}
+                                style={{ fontSize: "0.8rem" }}
                               >
                                 <i className="fas fa-trash"></i>
                               </button>
@@ -302,18 +330,17 @@ const CrearDevolucion = () => {
                         );
                       })}
                     </tbody>
-                    <tfoot className="bg-light text-bold">
-                      <tr>
+                    {/* 👇 FILA DE TOTALES CON COLOR AMARILLO BRILLANTE */}
+                    <tfoot className="bg-dark">
+                      <tr className="text-bold" style={{ color: "#ffc107" }}>
                         <td colSpan="2" className="text-right">
                           Total Cantidad
                         </td>
-                        <td className="text-center text-primary">
-                          {totalCantidad}
-                        </td>
+                        <td className="text-center">{totalCantidad}</td>
                         <td colSpan="3" className="text-right">
                           Total Devolución
                         </td>
-                        <td className="text-right text-primary">
+                        <td className="text-right">
                           ${" "}
                           {totalDevolucion.toLocaleString("es-AR", {
                             minimumFractionDigits: 2,
@@ -334,22 +361,29 @@ const CrearDevolucion = () => {
             </div>
           </div>
 
+          {/* 🚀 PANEL DERECHO: DATOS DE LA DEVOLUCIÓN */}
           <div className="col-md-4">
-            <div className="card shadow-sm">
+            <div
+              className="card card-outline card-dark shadow-lg h-100"
+              style={{
+                backgroundColor: "#1e2229",
+                borderTop: "4px solid #00f2fe",
+              }}
+            >
               <div className="card-body">
                 <div className="row mb-3">
                   <div className="col-9">
                     <button
-                      className="btn btn-primary btn-sm btn-block"
+                      className="btn btn-primary btn-sm btn-block shadow-sm"
                       data-toggle="modal"
                       data-target="#modal-clientes"
                     >
-                      <i className="fas fa-search"></i> Buscar Cliente
+                      <i className="fas fa-search mr-1"></i> Buscar Cliente
                     </button>
                   </div>
                   <div className="col-3">
                     <button
-                      className="btn btn-success btn-sm btn-block"
+                      className="btn btn-success btn-sm btn-block shadow-sm"
                       data-toggle="modal"
                       data-target="#modal-crear-cliente"
                     >
@@ -359,46 +393,44 @@ const CrearDevolucion = () => {
                 </div>
                 <div className="row mb-2">
                   <div className="col-7">
-                    <label>
-                      <small>Cliente</small>
-                    </label>
+                    <label className="text-muted text-xs">Cliente</label>
                     <input
                       type="text"
-                      className="form-control form-control-sm bg-light"
+                      className="form-control form-control-sm bg-dark text-white"
                       value={clienteSel.nombre_cliente}
                       readOnly
+                      style={{ fontSize: "0.9rem" }}
                     />
                   </div>
                   <div className="col-5">
-                    <label>
-                      <small>C.U.I.T.</small>
-                    </label>
+                    <label className="text-muted text-xs">C.U.I.T.</label>
                     <input
                       type="text"
-                      className="form-control form-control-sm bg-light"
+                      className="form-control form-control-sm bg-dark text-white"
                       value={clienteSel.cuil_codigo}
                       readOnly
+                      style={{ fontSize: "0.9rem" }}
                     />
                   </div>
                 </div>
                 <div className="form-group">
-                  <label>
-                    <small>Fecha de devolución *</small>
+                  <label className="text-muted text-xs">
+                    Fecha de devolución *
                   </label>
                   <input
                     type="date"
-                    className="form-control form-control-sm"
+                    className="form-control form-control-sm bg-dark text-white"
                     value={fecha}
                     onChange={(e) => setFecha(e.target.value)}
+                    style={{ fontSize: "0.9rem" }}
                   />
                 </div>
                 <div className="form-group">
-                  <label>
-                    <small>Precio Total *</small>
-                  </label>
+                  <label className="text-muted text-xs">Precio Total *</label>
                   <input
                     type="text"
-                    className="form-control text-right font-weight-bold bg-warning"
+                    className="form-control text-right font-weight-bold bg-dark text-info"
+                    style={{ fontSize: "1.2rem" }}
                     value={`$ ${totalDevolucion.toLocaleString("es-AR", {
                       minimumFractionDigits: 2,
                     })}`}
@@ -406,11 +438,16 @@ const CrearDevolucion = () => {
                   />
                 </div>
                 <div
-                  className={`p-2 text-right border rounded mb-3 text-white font-weight-bold ${
-                    deudaInfo.deuda_total > 0 ? "bg-danger" : "bg-success"
+                  className={`p-2 text-right border rounded mb-3 ${
+                    deudaInfo.deuda_total > 0
+                      ? "border-danger"
+                      : "border-success"
                   }`}
+                  style={{ backgroundColor: "#000", borderStyle: "dashed" }}
                 >
-                  <small>DEUDA ACTUAL DEL CLIENTE</small>
+                  <small className="text-muted text-uppercase text-bold">
+                    DEUDA ACTUAL DEL CLIENTE
+                  </small>
                   <div className="h6 m-0">
                     ${" "}
                     {parseFloat(deudaInfo.deuda_total).toLocaleString("es-AR")}{" "}
@@ -418,22 +455,30 @@ const CrearDevolucion = () => {
                   </div>
                 </div>
                 <div className="form-group">
-                  <label>
-                    <small>Motivo de la Devolución</small>
+                  <label className="text-muted text-xs">
+                    Motivo de la Devolución
                   </label>
                   <textarea
-                    className="form-control"
+                    className="form-control form-control-sm bg-dark text-white"
                     rows="3"
                     value={motivo}
                     onChange={(e) => setMotivo(e.target.value)}
                     placeholder="Ej: Producto dañado, cambio de talle..."
+                    style={{ fontSize: "0.9rem" }}
                   ></textarea>
                 </div>
                 <button
-                  className="btn btn-primary btn-block btn-lg shadow-sm"
+                  className="btn btn-primary btn-block btn-lg shadow-lg mt-3 text-bold"
                   onClick={handleConfirmar}
+                  style={{
+                    height: "70px",
+                    fontSize: "1.6rem",
+                    border: "none",
+                    background:
+                      "linear-gradient(180deg, #007bff 0%, #0056b3 100%)",
+                  }}
                 >
-                  <i className="fas fa-save"></i> Registrar Devolución
+                  <i className="fas fa-save mr-2"></i> Registrar Devolución
                 </button>
               </div>
             </div>
