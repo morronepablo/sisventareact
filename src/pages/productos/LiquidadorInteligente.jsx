@@ -1,5 +1,5 @@
 // src/pages/productos/LiquidadorInteligente.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import api from "../../services/api";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import Swal from "sweetalert2";
@@ -35,16 +35,24 @@ const LiquidadorInteligente = () => {
       minimumFractionDigits: 2,
     })}`;
 
-  // Filtrado y Paginación
-  const filtered = datos.filter(
-    (p) =>
-      p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.codigo.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // 🚀 CEREBRO DE PROCESAMIENTO: FILTRADO + ORDENAMIENTO DE MAYOR A MENOR ANTIGÜEDAD
+  const processedData = useMemo(() => {
+    // 1. Filtrado por búsqueda
+    const filtrados = datos.filter(
+      (p) =>
+        p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (p.codigo && p.codigo.toLowerCase().includes(searchTerm.toLowerCase())),
+    );
+
+    // 2. Ordenamiento descendente por días_estancado (El más viejo primero)
+    return filtrados.sort((a, b) => b.dias_estancado - a.dias_estancado);
+  }, [datos, searchTerm]);
+
+  // Paginación sobre los datos ya ordenados
   const indexOfLastItem = currentPage * entriesPerPage;
   const indexOfFirstItem = indexOfLastItem - entriesPerPage;
-  const currentItems = filtered.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filtered.length / entriesPerPage);
+  const currentItems = processedData.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(processedData.length / entriesPerPage);
 
   if (loading) return <LoadingSpinner />;
 
@@ -60,7 +68,8 @@ const LiquidadorInteligente = () => {
             Inteligente
           </h1>
           <p className="text-muted">
-            Productos con stock físico sin ventas en los últimos 60 días.
+            Priorizando productos con mayor tiempo de inactividad (Capital
+            Crítico).
           </p>
         </div>
         <div className="col-md-4">
@@ -78,7 +87,9 @@ const LiquidadorInteligente = () => {
 
       <div className="card card-outline card-danger shadow">
         <div className="card-header border-0">
-          <h3 className="card-title text-bold">Inventario Estancado</h3>
+          <h3 className="card-title text-bold">
+            Inventario Estancado (Ordenado por Antigüedad)
+          </h3>
         </div>
 
         <div className="card-body">
@@ -86,7 +97,7 @@ const LiquidadorInteligente = () => {
             <div className="d-flex align-items-center">
               <span>Mostrar</span>
               <select
-                className="form-control form-control-sm mx-2"
+                className="form-control form-control-sm mx-2 shadow-sm"
                 style={{ width: "70px" }}
                 value={entriesPerPage}
                 onChange={(e) => {
@@ -100,24 +111,33 @@ const LiquidadorInteligente = () => {
               </select>
               <span>registros</span>
             </div>
-            <input
-              type="search"
-              className="form-control form-control-sm shadow-sm"
+            <div
+              className="input-group input-group-sm shadow-sm"
               style={{ width: "250px" }}
-              placeholder="Buscar producto estancado..."
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-            />
+            >
+              <input
+                type="search"
+                className="form-control"
+                placeholder="Buscar producto estancado..."
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+              />
+              <div className="input-group-append">
+                <span className="input-group-text bg-white">
+                  <i className="fas fa-search text-muted"></i>
+                </span>
+              </div>
+            </div>
           </div>
 
           <div className="table-responsive">
-            <table className="table table-bordered table-hover table-striped">
-              <thead className="thead-dark text-center">
+            <table className="table table-bordered table-hover table-striped shadow-sm">
+              <thead className="thead-dark text-center text-sm">
                 <tr>
-                  <th>Producto / Categoría</th>
-                  <th>Stock</th>
+                  <th style={{ width: "30%" }}>Producto / Categoría</th>
+                  <th>Stock Actual</th>
                   <th>Días Inmóvil</th>
                   <th>Capital Atrapado</th>
                   <th className="bg-danger">Sugerencia BI</th>
@@ -129,36 +149,46 @@ const LiquidadorInteligente = () => {
                   currentItems.map((p) => (
                     <tr key={p.id}>
                       <td className="align-middle">
-                        <div className="text-bold">{p.nombre}</div>
-                        <small className="text-muted">
-                          {p.categoria_nombre}
+                        <div
+                          className="text-bold text-uppercase"
+                          style={{ fontSize: "0.85rem" }}
+                        >
+                          {p.nombre}
+                        </div>
+                        <small className="text-muted font-weight-bold">
+                          {p.categoria_nombre || "General"}
                         </small>
                       </td>
                       <td className="text-center align-middle">
-                        <span className="badge badge-warning text-dark px-2">
-                          {p.stock} {p.unidad_nombre}
+                        <span className="badge badge-warning text-dark px-2 shadow-xs">
+                          {p.stock} <small>{p.unidad_nombre || "un"}</small>
                         </span>
                       </td>
                       <td className="text-center align-middle">
-                        <div className="text-bold text-danger">
+                        <div
+                          className="text-bold text-danger"
+                          style={{ fontSize: "1.1rem" }}
+                        >
                           {p.dias_estancado} días
                         </div>
-                        <small className="text-muted">Sin movimientos</small>
+                        <small className="text-muted text-uppercase text-xs text-bold">
+                          Sin Salida
+                        </small>
                       </td>
-                      <td className="text-center align-middle text-bold">
+                      <td className="text-center align-middle text-bold text-dark">
                         {formatARS(p.capital_inmovilizado)}
                       </td>
                       <td className="text-center align-middle bg-light">
                         <span
-                          className="badge badge-danger p-2"
-                          style={{ fontSize: "0.85rem" }}
+                          className={`badge ${p.dias_estancado > 180 ? "badge-danger" : "badge-warning"} p-2 shadow-sm`}
+                          style={{ fontSize: "0.8rem" }}
                         >
                           <i className="fas fa-bolt mr-1"></i> {p.sugerencia}
                         </span>
                       </td>
                       <td className="text-center align-middle">
                         <button
-                          className="btn btn-primary btn-sm shadow-sm"
+                          className="btn btn-primary btn-sm btn-block shadow-sm"
                           onClick={() =>
                             (window.location.href = `/productos/promociones`)
                           }
@@ -171,7 +201,10 @@ const LiquidadorInteligente = () => {
                 ) : (
                   <tr>
                     <td colSpan="6" className="py-5 text-center text-muted">
-                      <h4>¡Tu stock tiene excelente rotación!</h4>
+                      <i className="fas fa-check-circle fa-3x text-success mb-3"></i>
+                      <h4>
+                        ¡Felicidades! Todo tu stock está rotando saludablemente.
+                      </h4>
                     </td>
                   </tr>
                 )}
@@ -180,10 +213,10 @@ const LiquidadorInteligente = () => {
           </div>
 
           <div className="d-flex justify-content-between align-items-center mt-3">
-            <small>
+            <small className="text-muted font-italic">
               Mostrando del {indexOfFirstItem + 1} al{" "}
-              {Math.min(indexOfLastItem, filtered.length)} de {filtered.length}{" "}
-              productos
+              {Math.min(indexOfLastItem, processedData.length)} de{" "}
+              {processedData.length} muertos detectados
             </small>
             <nav>
               <ul className="pagination pagination-sm m-0">
@@ -194,15 +227,13 @@ const LiquidadorInteligente = () => {
                     className="page-link"
                     onClick={() => setCurrentPage((prev) => prev - 1)}
                   >
-                    Anterior
+                    Ant.
                   </button>
                 </li>
                 {[...Array(totalPages)].map((_, i) => (
                   <li
                     key={i}
-                    className={`page-item ${
-                      currentPage === i + 1 ? "active" : ""
-                    }`}
+                    className={`page-item ${currentPage === i + 1 ? "active" : ""}`}
                   >
                     <button
                       className="page-link"
@@ -213,15 +244,13 @@ const LiquidadorInteligente = () => {
                   </li>
                 ))}
                 <li
-                  className={`page-item ${
-                    currentPage === totalPages ? "disabled" : ""
-                  }`}
+                  className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}
                 >
                   <button
                     className="page-link"
                     onClick={() => setCurrentPage((prev) => prev + 1)}
                   >
-                    Siguiente
+                    Sig.
                   </button>
                 </li>
               </ul>
