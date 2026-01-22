@@ -4,141 +4,179 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import api from "../../../services/api";
 import LoadingSpinner from "../../../components/LoadingSpinner";
 
-/*************  ✨ Windsurf Command ⭐  *************/
-/**
- * Componente para mostrar el detalle del informe de compras por productos
- * en un período determinado.
- *
- * @param {Object} searchParams - Parámetros de búsqueda que vienen de la URL
- * @param {Function} navigate - Función para navegar entre rutas
- * @param {String} desde - Fecha de inicio del período
- * @param {String} hasta - Fecha de fin del período
- *
- * @returns {JSX.Element} - Componente JSX con la información del informe
- */
-/*******  5dd8fafc-b155-4915-be81-57303ab557ff  *******/ const DetalleInformeProductos =
-  () => {
-    const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
-    const desde = searchParams.get("desde");
-    const hasta = searchParams.get("hasta");
+const DetalleInformeProductos = () => {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const desde = searchParams.get("desde");
+  const hasta = searchParams.get("hasta");
 
-    const [data, setData] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    // 1. URL DINÁMICA SEGÚN EL ENTORNO
-    const API_URL =
-      window.location.hostname === "localhost"
-        ? "http://localhost:3001"
-        : "https://sistema-ventas-backend-3nn3.onrender.com";
+  const API_URL =
+    window.location.hostname === "localhost"
+      ? "http://localhost:3001"
+      : "https://sistema-ventas-backend-3nn3.onrender.com";
 
-    useEffect(() => {
-      api
-        .get(
-          `/compras/informes/productos?fecha_inicio=${desde}&fecha_fin=${hasta}`
-        )
-        .then((res) => {
-          setData(res.data);
-          setLoading(false);
-        })
-        .catch((err) => {
-          console.error(err);
-          setLoading(false);
-        });
-    }, [desde, hasta]);
+  useEffect(() => {
+    // Sincronización con el endpoint que ahora agrupa por Producto + Proveedor + Costo Real
+    api
+      .get(
+        `/compras/informes/productos?fecha_inicio=${desde}&fecha_fin=${hasta}`,
+      )
+      .then((res) => {
+        setData(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error cargando reporte:", err);
+        setLoading(false);
+      });
+  }, [desde, hasta]);
 
-    const totalGral = data.reduce(
-      (acc, curr) => acc + parseFloat(curr.total),
-      0
-    );
+  const totalGral = data.reduce((acc, curr) => acc + parseFloat(curr.total), 0);
 
-    // 2. FUNCIÓN PARA GENERAR PDF CON TOKEN
-    const handleGenerarPDF = () => {
-      const token = localStorage.getItem("token");
-      const url = `${API_URL}/api/compras/informes/productos-pdf?fecha_inicio=${desde}&fecha_fin=${hasta}&token=${token}`;
-      window.open(url, "_blank");
-    };
+  const handleGenerarPDF = () => {
+    const token = localStorage.getItem("token");
+    const url = `${API_URL}/api/compras/informes/productos-pdf?fecha_inicio=${desde}&fecha_fin=${hasta}&token=${token}`;
+    window.open(url, "_blank");
+  };
 
-    if (loading) return <LoadingSpinner />;
+  if (loading) return <LoadingSpinner />;
 
-    return (
-      <div className="container bg-white p-4 mt-4 shadow rounded">
-        <div className="text-center mb-4">
-          <h1 className="text-primary">Informe de Compras por Productos</h1>
-          <p className="text-muted">
-            Período: {desde.split("-").reverse().join("/")} -{" "}
-            {hasta.split("-").reverse().join("/")}
-          </p>
-        </div>
+  return (
+    <div className="container-fluid pt-3 pb-5">
+      <div className="card shadow-lg border-0">
+        <div className="card-body p-4">
+          <div className="text-center mb-4">
+            <h2 className="text-primary text-bold text-uppercase">
+              Informe de Compras Detallado
+            </h2>
+            <h5 className="text-muted">Análisis por Producto y Proveedor</h5>
+            <div
+              className="badge badge-info px-3 py-2 mt-2"
+              style={{ fontSize: "1rem" }}
+            >
+              Período: {desde.split("-").reverse().join("/")} —{" "}
+              {hasta.split("-").reverse().join("/")}
+            </div>
+          </div>
 
-        <table className="table table-bordered table-striped">
-          <thead className="table-primary text-center">
-            <tr>
-              <th>Código</th>
-              <th>Producto</th>
-              <th>Cantidad</th>
-              <th>Unidad</th>
-              <th>Costo</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.length > 0 ? (
-              data.map((p, i) => (
-                <tr key={i}>
-                  <td className="text-center">{p.codigo}</td>
-                  <td>{p.nombre}</td>
-                  <td className="text-center">{p.cantidad}</td>
-                  <td className="text-center">{p.unidad || "-"}</td>
-                  <td className="text-right">
-                    ${" "}
-                    {parseFloat(p.costo).toLocaleString("es-AR", {
-                      minimumFractionDigits: 2,
-                    })}
+          <div className="table-responsive">
+            <table className="table table-hover table-bordered table-striped">
+              <thead className="thead-dark text-center">
+                <tr>
+                  <th style={{ width: "12%" }}>CÓDIGO</th>
+                  <th style={{ width: "25%" }}>PRODUCTO</th>
+                  <th style={{ width: "20%" }}>PROVEEDOR</th>
+                  <th style={{ width: "8%" }}>CANT.</th>
+                  <th style={{ width: "10%" }}>UNIDAD</th>
+                  <th style={{ width: "12%" }}>COSTO UNIT.</th>
+                  <th style={{ width: "13%" }}>SUBTOTAL</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm">
+                {data.length > 0 ? (
+                  data.map((p, i) => (
+                    <tr key={i}>
+                      <td className="text-center align-middle font-weight-bold">
+                        {p.codigo}
+                      </td>
+                      <td className="align-middle">
+                        <div
+                          className="text-bold text-uppercase"
+                          style={{ fontSize: "0.9rem" }}
+                        >
+                          {p.nombre}
+                        </div>
+                        <div className="mt-1">
+                          {/* BADGE DEL PROVEEDOR: Información de origen directa */}
+                          <span
+                            className="badge badge-info shadow-sm"
+                            style={{ fontSize: "0.7rem", fontWeight: "500" }}
+                          >
+                            <i className="fas fa-truck mr-1"></i>
+                            {p.proveedor_nombre}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="align-middle text-primary font-weight-bold">
+                        {p.proveedor}
+                      </td>
+                      <td className="text-center align-middle h6">
+                        {p.cantidad}
+                      </td>
+                      <td className="text-center align-middle">
+                        {p.unidad || "-"}
+                      </td>
+                      <td className="text-right align-middle font-italic">
+                        ${" "}
+                        {parseFloat(p.costo).toLocaleString("es-AR", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </td>
+                      <td className="text-right align-middle font-weight-bold bg-light">
+                        ${" "}
+                        {parseFloat(p.total).toLocaleString("es-AR", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="text-center py-4">
+                      No hay datos registrados en este rango de fechas.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+              <tfoot>
+                <tr className="bg-primary text-white">
+                  <td
+                    colSpan="6"
+                    className="text-right text-bold py-3 uppercase"
+                  >
+                    TOTAL INVERTIDO EN PRODUCTOS
                   </td>
-                  <td className="text-right">
+                  <td
+                    className="text-right text-bold py-3"
+                    style={{ fontSize: "1.2rem" }}
+                  >
                     ${" "}
-                    {parseFloat(p.total).toLocaleString("es-AR", {
+                    {totalGral.toLocaleString("es-AR", {
                       minimumFractionDigits: 2,
                     })}
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className="text-center">
-                  No hay datos para este período.
-                </td>
-              </tr>
-            )}
-            <tr className="table-secondary font-weight-bold">
-              <td colSpan="5" className="text-right">
-                TOTAL GENERAL
-              </td>
-              <td className="text-right">
-                ${" "}
-                {totalGral.toLocaleString("es-AR", {
-                  minimumFractionDigits: 2,
-                })}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </tfoot>
+            </table>
+          </div>
 
-        <div className="text-center mt-4">
-          {/* BOTÓN CORREGIDO */}
-          <button className="btn btn-danger" onClick={handleGenerarPDF}>
-            <i className="fas fa-file-pdf"></i> Generar PDF
-          </button>
-          <button
-            className="btn btn-secondary ml-2"
-            onClick={() => navigate(-1)}
-          >
-            <i className="fas fa-reply"></i> Volver
-          </button>
+          <div className="row mt-4">
+            <div className="col-12 text-center">
+              <button
+                className="btn btn-danger btn-lg shadow-sm mr-3"
+                onClick={handleGenerarPDF}
+              >
+                <i className="fas fa-file-pdf mr-2"></i>Exportar a PDF
+              </button>
+              <button
+                className="btn btn-outline-secondary btn-lg shadow-sm"
+                onClick={() => navigate(-1)}
+              >
+                <i className="fas fa-arrow-left mr-2"></i>Volver
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-    );
-  };
+      <p className="text-center text-muted mt-3 small">
+        * Este informe agrupa compras por producto, proveedor y precio unitario
+        abonado.
+      </p>
+    </div>
+  );
+};
 
 export default DetalleInformeProductos;
