@@ -1,13 +1,15 @@
 // src/pages/productos/OraculoStock.jsx
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import { useNavigate } from "react-router-dom"; // 👈 Importamos navegación SPA
 
 const OraculoStock = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate(); // 👈 Hook de navegación
 
   const spanishLanguage = {
     sProcessing: "Calculando proyecciones...",
@@ -28,8 +30,9 @@ const OraculoStock = () => {
     try {
       const res = await api.get("/productos/bi/oraculo-stock");
       setData(res.data);
-      setLoading(false);
     } catch (error) {
+      console.error(error);
+    } finally {
       setLoading(false);
     }
   };
@@ -39,25 +42,44 @@ const OraculoStock = () => {
   }, []);
 
   useEffect(() => {
-    if (!loading && data.length >= 0) {
-      const tableId = "#oraculo-table";
-      if (window.$.fn.DataTable.isDataTable(tableId))
-        window.$(tableId).DataTable().destroy();
-      window.$(tableId).DataTable({
-        paging: true,
-        ordering: true,
-        info: true,
-        responsive: true,
-        pageLength: 5, // 👈 5 filas por página
-        language: spanishLanguage,
-        dom: "rtip",
-        columnDefs: [{ targets: -1, orderable: false }],
-      });
+    const tableId = "#oraculo-table";
+    const $ = window.$;
+    let table;
+
+    if (!loading && data.length > 0) {
+      const timer = setTimeout(() => {
+        // 1. Destrucción segura antes de inicializar
+        if ($.fn.DataTable.isDataTable(tableId)) {
+          $(tableId).DataTable().destroy();
+          $(tableId).empty(); // Limpieza profunda del DOM
+        }
+
+        // 2. Inicialización
+        table = $(tableId).DataTable({
+          paging: true,
+          ordering: true,
+          info: true,
+          responsive: true,
+          pageLength: 5,
+          language: spanishLanguage,
+          dom: "rtip",
+          columnDefs: [{ targets: -1, orderable: false }],
+        });
+      }, 100);
+
+      // 3. 🛡️ CLEANUP FUNCTION: Vital para evitar el error de insertBefore
+      return () => {
+        clearTimeout(timer);
+        if ($.fn.DataTable.isDataTable(tableId)) {
+          $(tableId).DataTable().destroy(true); // true = elimina el wrapper del DOM
+        }
+      };
     }
   }, [loading, data]);
 
   if (loading) return <LoadingSpinner />;
 
+  // Filtrado de críticos con seguridad por si fechaQuiebre es null
   const criticos = data.filter((p) => p.diasRestantes <= 3).slice(0, 4);
 
   return (
@@ -70,21 +92,17 @@ const OraculoStock = () => {
               <b>El Oráculo de Stock</b>
             </h1>
             <p className="text-muted">
-              Análisis Predictivo: Stock Mínimo + Ventas Directas + Ventas en
-              Combos
+              Análisis Predictivo: Stock + Ventas Directas + Combos
             </p>
           </div>
         </div>
         <hr />
 
-        {/* CARDS DE AVISO */}
         <div className="row">
           {criticos.map((p) => (
-            <div className="col-md-3" key={p.id}>
+            <div className="col-md-3" key={`card-${p.id}`}>
               <div
-                className={`small-box shadow-sm ${
-                  p.diasRestantes === 0 ? "bg-danger" : "bg-warning"
-                }`}
+                className={`small-box shadow-sm ${p.diasRestantes === 0 ? "bg-danger" : "bg-warning"}`}
               >
                 <div className="inner">
                   <h5 className="font-weight-bold text-truncate">{p.nombre}</h5>
@@ -100,9 +118,7 @@ const OraculoStock = () => {
                   <small>
                     {p.diasRestantes === 0
                       ? `Actual: ${p.stock} / Mín: ${p.stock_minimo}`
-                      : `Fuga estimada: ${new Date(
-                          p.fechaQuiebre + "T00:00:00"
-                        ).toLocaleDateString("es-AR")}`}
+                      : `Fuga: ${p.fechaQuiebre ? new Date(p.fechaQuiebre + "T00:00:00").toLocaleDateString("es-AR") : "N/D"}`}
                   </small>
                 </div>
                 <div className="icon">
@@ -126,9 +142,10 @@ const OraculoStock = () => {
             </h3>
           </div>
           <div className="card-body">
+            {/* ⚠️ Usamos una key dinámica para forzar remonte si la data cambia drásticamente */}
             <table
               id="oraculo-table"
-              className="table table-hover table-striped table-bordered table-sm"
+              className="table table-hover table-striped table-bordered table-sm w-100"
             >
               <thead className="thead-dark text-center">
                 <tr>
@@ -142,12 +159,12 @@ const OraculoStock = () => {
               </thead>
               <tbody>
                 {data.map((p) => (
-                  <tr key={p.id}>
+                  <tr key={`row-${p.id}`}>
                     <td className="align-middle px-2">
                       <b>{p.nombre}</b>
                       <br />
                       <small className="text-muted">
-                        Umbral Mínimo: {p.stock_minimo}
+                        Mínimo: {p.stock_minimo}
                       </small>
                     </td>
                     <td className="text-center align-middle">{p.stock}</td>
@@ -156,15 +173,13 @@ const OraculoStock = () => {
                     </td>
                     <td className="text-center align-middle">
                       <span
-                        className={`h5 font-weight-bold ${
-                          p.diasRestantes <= 3 ? "text-danger" : "text-primary"
-                        }`}
+                        className={`h5 font-weight-bold ${p.diasRestantes <= 3 ? "text-danger" : "text-primary"}`}
                       >
                         {p.diasRestantes === 0
                           ? "ALERTA"
                           : p.diasRestantes >= 999
-                          ? "∞"
-                          : p.diasRestantes + " d"}
+                            ? "∞"
+                            : p.diasRestantes + " d"}
                       </span>
                     </td>
                     <td className="text-center align-middle">
@@ -183,9 +198,7 @@ const OraculoStock = () => {
                     <td className="text-center align-middle">
                       <button
                         className="btn btn-outline-primary btn-xs"
-                        onClick={() =>
-                          (window.location.href = `/productos/ver/${p.id}`)
-                        }
+                        onClick={() => navigate(`/productos/ver/${p.id}`)}
                       >
                         <i className="fas fa-eye"></i>
                       </button>
