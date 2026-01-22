@@ -1,15 +1,14 @@
 // src/pages/productos/OraculoStock.jsx
-/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import api from "../../services/api";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import { useNavigate } from "react-router-dom"; // 👈 Importamos navegación SPA
+import { useNavigate } from "react-router-dom";
 
 const OraculoStock = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate(); // 👈 Hook de navegación
+  const navigate = useNavigate();
 
   const spanishLanguage = {
     sProcessing: "Calculando proyecciones...",
@@ -44,34 +43,34 @@ const OraculoStock = () => {
   useEffect(() => {
     const tableId = "#oraculo-table";
     const $ = window.$;
-    let table;
 
     if (!loading && data.length > 0) {
       const timer = setTimeout(() => {
-        // 1. Destrucción segura antes de inicializar
         if ($.fn.DataTable.isDataTable(tableId)) {
           $(tableId).DataTable().destroy();
-          $(tableId).empty(); // Limpieza profunda del DOM
         }
 
-        // 2. Inicialización
-        table = $(tableId).DataTable({
+        $(tableId).DataTable({
           paging: true,
           ordering: true,
           info: true,
           responsive: true,
           pageLength: 5,
+          // 🟢 ORDENAMIENTO POR COLUMNA 3 (Autonomía) de MENOR a MAYOR
+          order: [[3, "asc"]],
           language: spanishLanguage,
           dom: "rtip",
-          columnDefs: [{ targets: -1, orderable: false }],
+          columnDefs: [
+            { targets: -1, orderable: false }, // Columna "Ver" no ordenable
+            { targets: 3, type: "num" }, // Forzamos tipo numérico para autonomía
+          ],
         });
       }, 100);
 
-      // 3. 🛡️ CLEANUP FUNCTION: Vital para evitar el error de insertBefore
       return () => {
         clearTimeout(timer);
         if ($.fn.DataTable.isDataTable(tableId)) {
-          $(tableId).DataTable().destroy(true); // true = elimina el wrapper del DOM
+          $(tableId).DataTable().destroy(true);
         }
       };
     }
@@ -79,7 +78,6 @@ const OraculoStock = () => {
 
   if (loading) return <LoadingSpinner />;
 
-  // Filtrado de críticos con seguridad por si fechaQuiebre es null
   const criticos = data.filter((p) => p.diasRestantes <= 3).slice(0, 4);
 
   return (
@@ -92,12 +90,13 @@ const OraculoStock = () => {
               <b>El Oráculo de Stock</b>
             </h1>
             <p className="text-muted">
-              Análisis Predictivo: Stock + Ventas Directas + Combos
+              Análisis Predictivo: Lo que se agota primero va arriba.
             </p>
           </div>
         </div>
         <hr />
 
+        {/* CARDS CRÍTICAS */}
         <div className="row">
           {criticos.map((p) => (
             <div className="col-md-3" key={`card-${p.id}`}>
@@ -111,14 +110,17 @@ const OraculoStock = () => {
                       <b>STOCK BAJO EL MÍNIMO</b>
                     ) : (
                       <>
-                        Quedan: <b>{p.diasRestantes} días</b>
+                        Autonomía: <b>{p.diasRestantes} días</b>
                       </>
                     )}
                   </p>
                   <small>
-                    {p.diasRestantes === 0
-                      ? `Actual: ${p.stock} / Mín: ${p.stock_minimo}`
-                      : `Fuga: ${p.fechaQuiebre ? new Date(p.fechaQuiebre + "T00:00:00").toLocaleDateString("es-AR") : "N/D"}`}
+                    Fuga:{" "}
+                    {p.fechaQuiebre
+                      ? new Date(
+                          p.fechaQuiebre + "T00:00:00",
+                        ).toLocaleDateString("es-AR")
+                      : "N/D"}
                   </small>
                 </div>
                 <div className="icon">
@@ -136,52 +138,58 @@ const OraculoStock = () => {
         </div>
 
         <div className="card card-outline card-primary shadow-sm mt-3">
-          <div className="card-header">
+          <div className="card-header border-0">
             <h3 className="card-title text-bold">
-              Proyección de Inventario (Híbrida)
+              Proyección de Quiebre de Stock
             </h3>
           </div>
-          <div className="card-body">
-            {/* ⚠️ Usamos una key dinámica para forzar remonte si la data cambia drásticamente */}
+          <div className="card-body p-0">
             <table
               id="oraculo-table"
-              className="table table-hover table-striped table-bordered table-sm w-100"
+              className="table table-hover table-striped table-bordered table-sm w-100 mb-0"
             >
               <thead className="thead-dark text-center">
                 <tr>
                   <th>Producto</th>
-                  <th>Stock Actual</th>
-                  <th>Salida Diaria (Prom)</th>
+                  <th>Stock</th>
+                  <th>Venta Diaria</th>
                   <th>Autonomía</th>
-                  <th>Estado del Oráculo</th>
-                  <th>Ver</th>
+                  <th>Estado</th>
+                  <th>Acción</th>
                 </tr>
               </thead>
               <tbody>
                 {data.map((p) => (
                   <tr key={`row-${p.id}`}>
                     <td className="align-middle px-2">
-                      <b>{p.nombre}</b>
-                      <br />
+                      <div className="text-bold">{p.nombre}</div>
                       <small className="text-muted">
-                        Mínimo: {p.stock_minimo}
+                        Mín: {p.stock_minimo}
                       </small>
                     </td>
-                    <td className="text-center align-middle">{p.stock}</td>
-                    <td className="text-center align-middle text-muted">
-                      {p.vDiaria} / día
+                    <td className="text-center align-middle font-weight-bold">
+                      {p.stock}
                     </td>
-                    <td className="text-center align-middle">
+                    <td className="text-center align-middle text-muted">
+                      {p.vDiaria} u.
+                    </td>
+
+                    {/* 🟢 EL SECRETO: data-order con el valor numérico real */}
+                    <td
+                      className="text-center align-middle"
+                      data-order={p.diasRestantes}
+                    >
                       <span
-                        className={`h5 font-weight-bold ${p.diasRestantes <= 3 ? "text-danger" : "text-primary"}`}
+                        className={`h6 font-weight-bold ${p.diasRestantes <= 3 ? "text-danger" : "text-primary"}`}
                       >
                         {p.diasRestantes === 0
                           ? "ALERTA"
                           : p.diasRestantes >= 999
                             ? "∞"
-                            : p.diasRestantes + " d"}
+                            : p.diasRestantes + " días"}
                       </span>
                     </td>
+
                     <td className="text-center align-middle">
                       {p.diasRestantes === 0 ? (
                         <span className="badge badge-danger p-2 animate__animated animate__flash animate__infinite">
@@ -197,7 +205,7 @@ const OraculoStock = () => {
                     </td>
                     <td className="text-center align-middle">
                       <button
-                        className="btn btn-outline-primary btn-xs"
+                        className="btn btn-primary btn-xs"
                         onClick={() => navigate(`/productos/ver/${p.id}`)}
                       >
                         <i className="fas fa-eye"></i>
