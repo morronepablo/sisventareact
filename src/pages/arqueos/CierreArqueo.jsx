@@ -62,14 +62,14 @@ const CierreArqueo = () => {
           setCards(parseFloat(data.totales_sistema.total_tarjeta_sistema) || 0);
           setMp(parseFloat(data.totales_sistema.total_mp_sistema) || 0);
           setTransfer(
-            parseFloat(data.totales_sistema.total_transf_sistema) || 0
+            parseFloat(data.totales_sistema.total_transf_sistema) || 0,
           );
         }
 
         if (data.retiros) {
           const sumRetiros = data.retiros.reduce(
             (acc, curr) => acc + parseFloat(curr.monto),
-            0
+            0,
           );
           setTotalRetiros(sumRetiros);
         }
@@ -139,7 +139,8 @@ const CierreArqueo = () => {
             icon: "success",
             title: "¡Caja Cerrada!",
             text: "El conteo coincide perfectamente con el sistema.",
-            timer: 4000,
+            timer: 2000,
+            showConfirmButton: false,
           };
 
           if (dif < 0) {
@@ -148,7 +149,7 @@ const CierreArqueo = () => {
               icon: "error",
               title: "CIERRE CON FALTANTE",
               html: `<h2 class="text-danger">${formatMoney(
-                dif
+                dif,
               )}</h2><p>El efectivo contado es menor al esperado por el sistema.</p>`,
               confirmButtonText: "Aceptar",
             };
@@ -158,7 +159,7 @@ const CierreArqueo = () => {
               icon: "warning",
               title: "CIERRE CON SOBRANTE",
               html: `<h2 class="text-warning">+ ${formatMoney(
-                dif
+                dif,
               )}</h2><p>Hay más efectivo en caja de lo que el sistema registró.</p>`,
               confirmButtonText: "Aceptar",
             };
@@ -174,7 +175,7 @@ const CierreArqueo = () => {
         Swal.fire(
           "Error",
           "No se pudo procesar el cierre. Verifique su conexión.",
-          "error"
+          "error",
         );
       }
     }
@@ -349,9 +350,9 @@ const CierreArqueo = () => {
                                   val === "050"
                                     ? 0.5
                                     : val === "025"
-                                    ? 0.25
-                                    : val
-                                )
+                                      ? 0.25
+                                      : val,
+                                ),
                               )}
                             </td>
                           </tr>
