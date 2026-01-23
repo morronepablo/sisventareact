@@ -32,35 +32,23 @@ const AsistenteCompra = () => {
       minimumFractionDigits: 2,
     })}`;
 
-  // 🚀 CEREBRO DE ORDENAMIENTO BLINDADO (Staff Engineer Level)
+  // 🚀 CEREBRO DE ORDENAMIENTO CRONOLÓGICO (Staff Engineer Level)
   const procesados = useMemo(() => {
-    // 1. Definimos los pesos de urgencia (Menor número = Más arriba)
-    const getPeso = (u) => {
-      if (!u) return 99;
-      const urg = u.toString().toUpperCase().trim();
-      if (urg.includes("CRÍ") || urg.includes("CRI")) return 1; // CRÍTICA
-      if (urg.includes("MED")) return 2; // MEDIA
-      if (urg.includes("BAJ")) return 3; // BAJA
-      if (urg.includes("ESTAN")) return 4; // STOCK ESTANCADO
-      return 5;
-    };
-
-    // 2. Filtramos por búsqueda
+    // 1. Filtramos por búsqueda
     let filtrados = datos.filter(
       (p) =>
         p.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.codigo.toLowerCase().includes(searchTerm.toLowerCase()),
     );
 
-    // 3. Ordenamos GLOBALMENTE antes de paginar
+    // 2. Ordenamos GLOBALMENTE por Autonomía (Menor a Mayor)
     return filtrados.sort((a, b) => {
-      const pesoA = getPeso(a.urgencia);
-      const pesoB = getPeso(b.urgencia);
-
-      if (pesoA !== pesoB) {
-        return pesoA - pesoB; // Orden principal por peso
+      // Prioridad 1: Autonomía (Días restantes)
+      if (a.dias_autonomia !== b.dias_autonomia) {
+        return a.dias_autonomia - b.dias_autonomia;
       }
-      // Si tienen igual urgencia, ordenamos por ROI (para saber dónde conviene poner la plata)
+
+      // Prioridad 2: Si tienen los mismos días, priorizamos por ROI (Rentabilidad de la inversión)
       return b.roi_proyectado - a.roi_proyectado;
     });
   }, [datos, searchTerm]);

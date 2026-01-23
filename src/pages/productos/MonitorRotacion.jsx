@@ -55,7 +55,7 @@ const MonitorRotacion = () => {
     }
   }, [loading, data]);
 
-  const productosHoy = data.filter((p) => p.dias_inactivo === 0);
+  const productosHoy = data.filter((p) => p.cantidad_hoy > 0);
 
   const totalesPorUnidad = productosHoy.reduce((acc, curr) => {
     const unidad = curr.unidad_nombre || "Unid.";
