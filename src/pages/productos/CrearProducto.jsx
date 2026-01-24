@@ -12,11 +12,17 @@ const CrearProducto = () => {
       month: "2-digit",
       day: "2-digit",
     };
-    // 'en-CA' devuelve naturalmente YYYY-MM-DD
     return new Intl.DateTimeFormat("en-CA", opciones).format(ahora);
   };
+
   const [categoria_id, setCategoriaId] = useState("");
   const [unidad_id, setUnidadId] = useState("");
+
+  // --- 🚀 NUEVOS ESTADOS PARA GESTIÓN DE BULTOS ---
+  const [unidad_compra_id, setUnidadCompraId] = useState("");
+  const [factor_conversion, setFactorConversion] = useState("1");
+  // -----------------------------------------------
+
   const [codigo, setCodigo] = useState("");
   const [nombre, setNombre] = useState("");
   const [nombre_corto, setNombreCorto] = useState("");
@@ -83,6 +89,12 @@ const CrearProducto = () => {
       const formData = new FormData();
       formData.append("categoria_id", categoria_id);
       formData.append("unidad_id", unidad_id);
+
+      // --- 🚀 INYECCIÓN DE DATOS DE CONVERSIÓN ---
+      formData.append("unidad_compra_id", unidad_compra_id);
+      formData.append("factor_conversion", factor_conversion);
+      // ------------------------------------------
+
       formData.append("codigo", codigo.trim());
       formData.append("nombre", nombre.trim());
       formData.append("nombre_corto", nombre_corto || "");
@@ -137,14 +149,16 @@ const CrearProducto = () => {
       <div className="container-fluid">
         <div className="row mb-2">
           <div className="col-sm-6">
-            <h1 className="m-0">Registro de un nuevo producto</h1>
+            <h1 className="m-0 text-bold">Registro de un nuevo producto</h1>
           </div>
         </div>
         <div className="row">
           <div className="col-lg-12">
-            <div className="card card-outline card-primary">
+            <div className="card card-outline card-primary shadow">
               <div className="card-header">
-                <h3 className="card-title">Ingrese los datos</h3>
+                <h3 className="card-title text-bold">
+                  Información de Producto e Inventario
+                </h3>
               </div>
               <form onSubmit={handleSubmit}>
                 <div className="card-body">
@@ -194,37 +208,95 @@ const CrearProducto = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="row">
-                        <div className="col-md-2">
-                          <div className="form-group">
-                            <label>Nombre Corto</label>
-                            <input
-                              type="text"
-                              className="form-control"
-                              value={nombre_corto}
-                              onChange={(e) => setNombreCorto(e.target.value)}
-                            />
-                          </div>
-                        </div>
-                        <div className="col-md-4">
-                          <div className="form-group">
-                            <label>Unidad Medida *</label>
+
+                      {/* --- 🚀 NUEVA FILA: GESTIÓN DE UNIDADES Y CONVERSIÓN --- */}
+                      <div className="row bg-light p-2 mb-3 rounded border">
+                        <div className="col-md-3">
+                          <div className="form-group mb-0">
+                            <label className="text-primary small text-bold">
+                              UNIDAD DE VENTA (BASE) *
+                            </label>
                             <select
-                              className="form-control"
+                              className="form-control form-control-sm border-primary"
                               value={unidad_id}
                               onChange={(e) => setUnidadId(e.target.value)}
                               required
                             >
-                              <option value="">Seleccione una unidad</option>
+                              <option value="">Seleccione unidad...</option>
                               {unidades.map((u) => (
                                 <option key={u.id} value={u.id}>
                                   {u.nombre}
                                 </option>
                               ))}
                             </select>
+                            <small className="text-muted">
+                              Como se vende al público.
+                            </small>
                           </div>
                         </div>
-                        <div className="col-md-6">
+                        <div className="col-md-3">
+                          <div className="form-group mb-0">
+                            <label className="text-info small text-bold">
+                              UNIDAD DE COMPRA (BULTO)
+                            </label>
+                            <select
+                              className="form-control form-control-sm border-info"
+                              value={unidad_compra_id}
+                              onChange={(e) =>
+                                setUnidadCompraId(e.target.value)
+                              }
+                            >
+                              <option value="">Igual a Unidad Base</option>
+                              {unidades.map((u) => (
+                                <option key={u.id} value={u.id}>
+                                  {u.nombre}
+                                </option>
+                              ))}
+                            </select>
+                            <small className="text-muted">
+                              Como le compra al proveedor.
+                            </small>
+                          </div>
+                        </div>
+                        <div className="col-md-3">
+                          <div className="form-group mb-0">
+                            <label className="text-info small text-bold">
+                              CONTENIDO X BULTO
+                            </label>
+                            <input
+                              type="number"
+                              className="form-control form-control-sm border-info"
+                              value={factor_conversion}
+                              onChange={(e) =>
+                                setFactorConversion(e.target.value)
+                              }
+                              step="0.01"
+                              min="1"
+                            />
+                            <small className="text-muted">
+                              Ej: Si es caja x 24, ponga 24.
+                            </small>
+                          </div>
+                        </div>
+                        <div className="col-md-3">
+                          <div className="form-group mb-0">
+                            <label className="small text-bold">
+                              NOMBRE CORTO
+                            </label>
+                            <input
+                              type="text"
+                              className="form-control form-control-sm"
+                              value={nombre_corto}
+                              onChange={(e) => setNombreCorto(e.target.value)}
+                              placeholder="Alias para tickets"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      {/* -------------------------------------------------------- */}
+
+                      <div className="row">
+                        <div className="col-md-12">
                           <div className="form-group">
                             <label>Descripción</label>
                             <textarea
@@ -331,13 +403,14 @@ const CrearProducto = () => {
                             <label>Precio Venta *</label>
                             <input
                               type="number"
-                              className="form-control"
+                              className="form-control text-bold text-primary"
                               value={precio_venta}
                               onChange={(e) => setPrecioVenta(e.target.value)}
                               required
                               min="0"
                               step="0.01"
                               readOnly
+                              style={{ fontSize: "1.1rem" }}
                             />
                           </div>
                         </div>
@@ -358,7 +431,7 @@ const CrearProducto = () => {
 
                     <div className="col-md-3">
                       <div className="form-group">
-                        <label>Imagen</label>
+                        <label>Imagen del Producto</label>
                         <input
                           type="file"
                           className="form-control"
@@ -366,12 +439,12 @@ const CrearProducto = () => {
                           onChange={(e) => setImagen(e.target.files[0])}
                         />
                         {imagen && (
-                          <div className="mt-2">
+                          <div className="mt-3 text-center">
                             <img
                               src={URL.createObjectURL(imagen)}
                               alt="Preview"
-                              width="100px"
-                              className="img-fluid rounded"
+                              style={{ maxWidth: "100%", height: "150px" }}
+                              className="img-thumbnail shadow-sm"
                             />
                           </div>
                         )}
@@ -379,20 +452,21 @@ const CrearProducto = () => {
                     </div>
                   </div>
                 </div>
-                <div className="card-footer">
+                <div className="card-footer bg-white border-top">
                   <button
                     type="button"
-                    className="btn btn-secondary"
+                    className="btn btn-secondary shadow-sm"
                     onClick={handleCancel}
                   >
-                    <i className="fas fa-reply"></i> Volver
+                    <i className="fas fa-reply mr-1"></i> Volver
                   </button>
                   <button
                     type="submit"
-                    className="btn btn-primary ml-2"
+                    className="btn btn-primary ml-2 shadow-sm"
                     disabled={loading}
                   >
-                    <i className="fa-regular fa-floppy-disk"></i> Registrar
+                    <i className="fa-regular fa-floppy-disk mr-1"></i>
+                    {loading ? "Procesando..." : "Registrar Producto"}
                   </button>
                 </div>
               </form>
