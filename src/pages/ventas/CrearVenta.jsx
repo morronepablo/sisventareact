@@ -1,7 +1,7 @@
 // src/pages/ventas/CrearVenta.jsx
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import api from "../../services/api";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +17,14 @@ const CrearVenta = () => {
     window.location.hostname === "localhost"
       ? "http://localhost:3001"
       : "https://sistema-ventas-backend-3nn3.onrender.com";
+
+  // Refs para evitar recreación de DataTables
+  const dataTablesInitialized = useRef(false);
+  const tableRefs = useRef({
+    productos: false,
+    clientes: false,
+    combos: false,
+  });
 
   // --- ⏰ ESTADO DEL RELOJ ---
   const [currentTime, setCurrentTime] = useState("");
@@ -151,26 +159,37 @@ const CrearVenta = () => {
   const fetchData = async () => {
     if (!user) return;
     try {
-      const [resP, resCl, resCo, resTmp, resDolar, resPromos] =
-        await Promise.all([
-          api.get("/productos"),
-          api.get("/clientes"),
-          api.get("/combos").catch(() => ({ data: [] })),
-          api.get(`/ventas/tmp?usuario_id=${user.id}`),
-          fetch("https://dolarapi.com/v1/dolares/bolsa")
-            .then((r) => r.json())
-            .catch(() => ({ venta: 1476.1 })),
-          api.get("/promociones").catch(() => ({ data: [] })),
-        ]);
+      setLoading(true);
+      const [resP, resCl, resTmp, resDolar, resPromos] = await Promise.all([
+        api.get("/productos"),
+        api.get("/clientes"),
+        api.get(`/ventas/tmp?usuario_id=${user.id}`),
+        fetch("https://dolarapi.com/v1/dolares/bolsa")
+          .then((r) => r.json())
+          .catch(() => ({ venta: 1476.1 })),
+        api.get("/promociones").catch(() => ({ data: [] })),
+      ]);
+
+      // Cargar combos por separado para evitar errores
+      let combosData = [];
+      try {
+        const resCo = await api.get("/combos");
+        combosData = resCo.data || [];
+      } catch (comboError) {
+        console.warn("No se pudieron cargar combos:", comboError.message);
+        combosData = [];
+      }
+
       setProductos(resP.data);
       setClientes(resCl.data);
-      setCombos(resCo.data);
+      setCombos(combosData);
       setTmpVentas(resTmp.data);
       setDolar(resDolar.venta || 1476.1);
       setPromos(resPromos.data);
       setLoading(false);
     } catch (e) {
       console.error(e);
+      setLoading(false);
     }
   };
 
@@ -190,7 +209,7 @@ const CrearVenta = () => {
     fetchData();
   }, [arqueoAbierto, user]);
 
-  // --- 🚀 FUNCIÓN MEJORADA PARA EL SWITCH DE ESCALA CON VALIDACIÓN DE STOCK ---
+  // --- 🚀 FUNCIÓN OPTIMIZADA PARA EL SWITCH DE ESCALA SIN RECARGAR TODO ---
   const toggleBulto = async (id, valorActual, item) => {
     try {
       const nuevoValor = valorActual === 1 ? 0 : 1;
@@ -219,7 +238,11 @@ const CrearVenta = () => {
       }
 
       await api.put(`/ventas/tmp/bulto/${id}`, { es_bulto: nuevoValor });
-      fetchData();
+
+      // Solo actualiza el estado local sin recargar todo
+      setTmpVentas((prev) =>
+        prev.map((it) => (it.id === id ? { ...it, es_bulto: nuevoValor } : it)),
+      );
     } catch (e) {
       console.error(e);
       Swal.fire("Error", "No se pudo cambiar la escala", "error");
@@ -231,12 +254,14 @@ const CrearVenta = () => {
       return Swal.fire("Error", "Monto insuficiente", "error");
     if (parseFloat(pagos.billetera) > parseFloat(clienteSel.saldo_billetera))
       return Swal.fire("Error", "Saldo insuficiente en billetera", "error");
+
     Swal.fire({
       title: "Procesando Venta...",
       text: "Estamos registrando la operación.",
       allowOutsideClick: false,
       didOpen: () => Swal.showLoading(),
     });
+
     try {
       const pagosSaneados = {
         ...pagos,
@@ -263,10 +288,13 @@ const CrearVenta = () => {
         cargar_vuelto_billetera: vueltoABilletera,
         vuelto_monto: vueltoFisicoReal,
       };
+
       const res = await api.post("/ventas", payload);
+
       if (res.data.success) {
         window.$("#modal-pagos").modal("hide");
         if (refreshAll) await refreshAll();
+
         await Swal.fire({
           position: "center",
           icon: "success",
@@ -275,6 +303,8 @@ const CrearVenta = () => {
           showConfirmButton: false,
           timer: 2000,
         });
+
+        // Resetear solo lo necesario
         setPagos({
           efectivo: 0,
           tarjeta: 0,
@@ -296,7 +326,9 @@ const CrearVenta = () => {
         setCantidad(1);
         setEsCtaCte(false);
         setVueltoABilletera(false);
-        fetchData();
+
+        // Limpiar temporal de ventas localmente
+        setTmpVentas([]);
       }
     } catch (e) {
       console.error(e);
@@ -355,6 +387,7 @@ const CrearVenta = () => {
         }
       }
     };
+
     window.addEventListener("keydown", handleKeyDown, true);
     return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [
@@ -368,6 +401,7 @@ const CrearVenta = () => {
     vueltoABilletera,
   ]);
 
+  // 🚀 FUNCIÓN OPTIMIZADA PARA AGREGAR ITEMS SIN RECARGAR TODO
   const addItem = async (codigoItem) => {
     try {
       const res = await api.post("/ventas/tmp", {
@@ -375,15 +409,69 @@ const CrearVenta = () => {
         cantidad,
         usuario_id: user.id,
       });
+
       if (res.data.success) {
         setCodigo("");
         setCantidad(1);
-        fetchData();
+
+        // En lugar de recargar TODO, actualiza solo el temporal de ventas
+        const refreshTmpOnly = async () => {
+          try {
+            const resTmp = await api.get(`/ventas/tmp?usuario_id=${user.id}`);
+            setTmpVentas(resTmp.data);
+          } catch (error) {
+            console.error("Error al actualizar tmpVentas:", error);
+          }
+        };
+
+        await refreshTmpOnly();
       } else {
         Swal.fire("Error", res.data.message, "error");
       }
     } catch (e) {
       console.error(e);
+      Swal.fire("Error", "No se pudo agregar el ítem", "error");
+    }
+  };
+
+  // 🚀 FUNCIÓN PARA ACTUALIZAR CANTIDAD SIN RECARGAR TODO
+  const updateCantidad = async (id, nuevaCantidad, item) => {
+    try {
+      // Actualizar estado local inmediatamente para respuesta instantánea
+      setTmpVentas((prev) =>
+        prev.map((it) =>
+          it.id === id ? { ...it, cantidad: nuevaCantidad } : it,
+        ),
+      );
+
+      // Llamar a API en segundo plano
+      await api.put(`/ventas/tmp/${id}`, { cantidad: nuevaCantidad });
+    } catch (error) {
+      console.error("Error al actualizar cantidad:", error);
+      // Revertir cambio si falla la API
+      setTmpVentas((prev) =>
+        prev.map((it) =>
+          it.id === id ? { ...it, cantidad: item.cantidad } : it,
+        ),
+      );
+      Swal.fire("Error", "No se pudo actualizar la cantidad", "error");
+    }
+  };
+
+  // 🚀 FUNCIÓN PARA ELIMINAR ITEM SIN RECARGAR TODO
+  const deleteItem = async (id) => {
+    try {
+      // Guardar el item antes de eliminar por si hay que revertir
+      const itemToDelete = tmpVentas.find((it) => it.id === id);
+
+      // Eliminar inmediatamente del estado local
+      setTmpVentas((prev) => prev.filter((it) => it.id !== id));
+
+      // Llamar a API en segundo plano
+      await api.delete(`/ventas/tmp/${id}`);
+    } catch (error) {
+      console.error("Error al eliminar item:", error);
+      Swal.fire("Error", "No se pudo eliminar el ítem", "error");
     }
   };
 
@@ -394,11 +482,11 @@ const CrearVenta = () => {
         if (container) {
           container.scrollTop = container.scrollHeight;
         }
-      }, 200);
+      }, 100); // Reducido de 200 a 100ms
 
       return () => clearTimeout(timer);
     }
-  }, [tmpVentas.length]); // Se ejecuta cuando cambia la cantidad de items
+  }, [tmpVentas.length]);
 
   const handleGuardarNuevoCliente = async () => {
     try {
@@ -408,7 +496,14 @@ const CrearVenta = () => {
       });
       if (res.data.id) {
         window.$("#modal-crear-cliente").modal("hide");
-        fetchData();
+        // Solo actualizar clientes
+        try {
+          const resCl = await api.get("/clientes");
+          setClientes(resCl.data);
+        } catch (error) {
+          console.error("Error al actualizar clientes:", error);
+        }
+
         Swal.fire({
           icon: "success",
           title: "Cliente registrado",
@@ -421,22 +516,86 @@ const CrearVenta = () => {
     }
   };
 
+  // 🚀 INICIALIZACIÓN DE DATATABLES OPTIMIZADA
   useEffect(() => {
-    if (!loading) {
-      setTimeout(() => {
-        ["#prod-table", "#clie-table"].forEach((id) => {
-          if (window.$.fn.DataTable.isDataTable(id))
-            window.$(id).DataTable().destroy();
-          window.$(id).DataTable({
-            paging: true,
-            pageLength: 5,
-            language: spanishLanguage,
-            autoWidth: false,
-          });
-        });
-      }, 400);
+    if (!loading && !dataTablesInitialized.current) {
+      // Inicializar DataTables solo una vez
+      const initDataTables = () => {
+        const tableConfig = {
+          paging: true,
+          pageLength: 5,
+          language: spanishLanguage,
+          autoWidth: false,
+          destroy: false,
+          retrieve: true,
+        };
+
+        // Inicializar solo las tablas que no están ya inicializadas
+        if (!tableRefs.current.productos && window.$("#prod-table").length) {
+          if (window.$.fn.DataTable.isDataTable("#prod-table")) {
+            window.$("#prod-table").DataTable().destroy();
+          }
+          window.$("#prod-table").DataTable(tableConfig);
+          tableRefs.current.productos = true;
+        }
+
+        if (!tableRefs.current.clientes && window.$("#clie-table").length) {
+          if (window.$.fn.DataTable.isDataTable("#clie-table")) {
+            window.$("#clie-table").DataTable().destroy();
+          }
+          window.$("#clie-table").DataTable(tableConfig);
+          tableRefs.current.clientes = true;
+        }
+
+        if (!tableRefs.current.combos && window.$("#combos-table").length) {
+          if (window.$.fn.DataTable.isDataTable("#combos-table")) {
+            window.$("#combos-table").DataTable().destroy();
+          }
+          window.$("#combos-table").DataTable(tableConfig);
+          tableRefs.current.combos = true;
+        }
+
+        dataTablesInitialized.current = true;
+      };
+
+      // Pequeño delay para asegurar que el DOM esté listo
+      setTimeout(initDataTables, 100);
     }
-  }, [loading]);
+  }, [loading, spanishLanguage]);
+
+  // 🚀 RESETEAR DATATABLES CUANDO SE CIERRAN LOS MODALES
+  useEffect(() => {
+    const handleModalHidden = (event) => {
+      if (
+        event.target.id === "modal-productos" ||
+        event.target.id === "modal-clientes"
+      ) {
+        // No destruir las tablas, solo actualizar si es necesario
+        setTimeout(() => {
+          if (window.$.fn.DataTable.isDataTable("#prod-table")) {
+            window.$("#prod-table").DataTable().columns.adjust();
+          }
+          if (window.$.fn.DataTable.isDataTable("#clie-table")) {
+            window.$("#clie-table").DataTable().columns.adjust();
+          }
+          if (window.$.fn.DataTable.isDataTable("#combos-table")) {
+            window.$("#combos-table").DataTable().columns.adjust();
+          }
+        }, 50);
+      }
+    };
+
+    // Usar jQuery para manejar eventos de Bootstrap modal
+    window
+      .$("#modal-productos, #modal-clientes")
+      .on("hidden.bs.modal", handleModalHidden);
+
+    return () => {
+      window
+        .$("#modal-productos, #modal-clientes")
+        .off("hidden.bs.modal", handleModalHidden);
+    };
+  }, []);
 
   useEffect(() => {
     const updateTime = () => {
@@ -784,21 +943,20 @@ const CrearVenta = () => {
                                     <button
                                       className="btn btn-outline-light btn-xs"
                                       onClick={() => {
-                                        // Validar que no baje de 1
                                         if (parseFloat(it.cantidad) > 1) {
-                                          api
-                                            .put(`/ventas/tmp/${it.id}`, {
-                                              cantidad:
-                                                parseFloat(it.cantidad) - 1,
-                                            })
-                                            .then(fetchData);
+                                          const nuevaCantidad =
+                                            parseFloat(it.cantidad) - 1;
+                                          updateCantidad(
+                                            it.id,
+                                            nuevaCantidad,
+                                            it,
+                                          );
                                         }
                                       }}
                                       style={{
                                         padding: "3px 8px",
                                         fontSize: "0.75rem",
                                         minWidth: "30px",
-                                        // Deshabilitar visualmente si es 1
                                         opacity:
                                           parseFloat(it.cantidad) <= 1
                                             ? 0.5
@@ -808,7 +966,6 @@ const CrearVenta = () => {
                                             ? "not-allowed"
                                             : "pointer",
                                       }}
-                                      // Deshabilitar el botón si es 1
                                       disabled={parseFloat(it.cantidad) <= 1}
                                     >
                                       -
@@ -838,11 +995,9 @@ const CrearVenta = () => {
                                         // Calcular unidades necesarias según la escala actual
                                         let unidadesNecesarias;
                                         if (it.es_bulto === 1) {
-                                          // Si está en modo bulto, cada unidad adicional requiere factor unidades
                                           unidadesNecesarias =
                                             nuevaCantidad * factor;
                                         } else {
-                                          // Si está en modo unidad, cada unidad adicional requiere 1 unidad
                                           unidadesNecesarias = nuevaCantidad;
                                         }
 
@@ -862,10 +1017,11 @@ const CrearVenta = () => {
                                         }
 
                                         // Si pasa la validación, actualizar cantidad
-                                        await api.put(`/ventas/tmp/${it.id}`, {
-                                          cantidad: nuevaCantidad,
-                                        });
-                                        fetchData();
+                                        updateCantidad(
+                                          it.id,
+                                          nuevaCantidad,
+                                          it,
+                                        );
                                       }}
                                       style={{
                                         padding: "3px 8px",
@@ -955,10 +1111,7 @@ const CrearVenta = () => {
                               >
                                 <button
                                   className="btn btn-danger btn-xs"
-                                  onClick={async () => {
-                                    await api.delete(`/ventas/tmp/${it.id}`);
-                                    fetchData();
-                                  }}
+                                  onClick={() => deleteItem(it.id)}
                                   style={{
                                     backgroundColor: "#ef4444",
                                     border: "none",
@@ -1427,7 +1580,7 @@ const CrearVenta = () => {
         </div>
       </div>
 
-      {/* --- MODALES PRODUCTOS, CLIENTES, CREAR CLIENTE (IGUAL AL ORIGINAL) --- */}
+      {/* --- MODALES CONSULTADOR MEJORADO --- */}
       <div className="modal fade" id="modal-consultador" tabIndex="-1">
         <div className="modal-dialog modal-dialog-centered modal-lg">
           <div
@@ -1458,6 +1611,7 @@ const CrearVenta = () => {
                   const val = e.target.value;
                   setBusquedaConsulta(val);
                   if (val.length > 2) {
+                    // Buscar primero en productos
                     const p = productos.find(
                       (x) =>
                         x.codigo === val ||
@@ -1467,6 +1621,7 @@ const CrearVenta = () => {
                       setProductoConsultado({ ...p, esCombo: false });
                       return;
                     }
+                    // Si no encuentra producto, buscar en combos
                     const c = combos.find(
                       (x) =>
                         x.codigo === val ||
@@ -1506,12 +1661,22 @@ const CrearVenta = () => {
                         {formatMoney(productoConsultado.precio_venta)}
                       </h1>
                     </div>
+                    <button
+                      className="btn btn-success btn-lg"
+                      onClick={() => {
+                        addItem(productoConsultado.codigo);
+                        window.$("#modal-consultador").modal("hide");
+                      }}
+                    >
+                      <i className="fas fa-cart-plus mr-2"></i>
+                      Agregar al carrito
+                    </button>
                   </div>
                 </div>
               ) : (
                 <div className="text-center p-5 text-muted">
                   <i className="fas fa-barcode fa-4x mb-3 opacity-25"></i>
-                  <p>Ingrese código o nombre del producto...</p>
+                  <p>Ingrese código o nombre del producto o combo...</p>
                 </div>
               )}
             </div>
@@ -1530,77 +1695,185 @@ const CrearVenta = () => {
         </div>
       </div>
 
+      {/* --- MODAL PRODUCTOS MEJORADO CON PESTAÑAS PARA COMBOS --- */}
       <div className="modal fade" id="modal-productos" tabIndex="-1">
         <div className="modal-dialog modal-xl modal-dialog-centered">
           <div className="modal-content">
             <div className="modal-header bg-info text-white">
-              <h5>Listado de Ítems</h5>
+              <h5>Listado de Ítems (Productos y Combos)</h5>
               <button className="close text-white" data-dismiss="modal">
                 ×
               </button>
             </div>
             <div className="modal-body">
-              <table
-                id="prod-table"
-                className="table table-striped table-bordered table-sm w-100"
-              >
-                <thead>
-                  <tr className="text-center">
-                    <th>Acción</th>
-                    <th>Imagen</th>
-                    <th>Código</th>
-                    <th>Nombre</th>
-                    <th>Stock</th>
-                    <th>Precio</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {productos.map((p) => (
-                    <tr key={p.id}>
-                      <td className="text-center align-middle">
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => {
-                            addItem(p.codigo);
-                            window.$("#modal-productos").modal("hide");
-                          }}
-                        >
-                          <i className="fas fa-check"></i>
-                        </button>
-                      </td>
-                      <td className="text-center align-middle">
-                        {p.imagen ? (
-                          <img
-                            src={
-                              p.imagen.startsWith("http")
-                                ? p.imagen
-                                : `${API_URL}${p.imagen}`
-                            }
-                            width="40"
-                            className="rounded shadow-sm"
-                          />
-                        ) : (
-                          <small className="text-muted">N/A</small>
-                        )}
-                      </td>
-                      <td className="text-center align-middle font-weight-bold">
-                        {p.codigo}
-                      </td>
-                      <td>{p.nombre}</td>
-                      <td className="text-center">{p.stock}</td>
-                      <td className="text-right">
-                        {formatMoney(p.precio_venta)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <ul className="nav nav-tabs mb-3" id="itemsTab" role="tablist">
+                <li className="nav-item">
+                  <a
+                    className="nav-link active"
+                    id="productos-tab"
+                    data-toggle="tab"
+                    href="#productos-tab-content"
+                    role="tab"
+                  >
+                    <i className="fas fa-box mr-1"></i> Productos (
+                    {productos.length})
+                  </a>
+                </li>
+                <li className="nav-item">
+                  <a
+                    className="nav-link"
+                    id="combos-tab"
+                    data-toggle="tab"
+                    href="#combos-tab-content"
+                    role="tab"
+                  >
+                    <i className="fas fa-boxes mr-1"></i> Combos (
+                    {combos.length})
+                  </a>
+                </li>
+              </ul>
+
+              <div className="tab-content" id="itemsTabContent">
+                {/* Tab de Productos */}
+                <div
+                  className="tab-pane fade show active"
+                  id="productos-tab-content"
+                  role="tabpanel"
+                >
+                  <table
+                    id="prod-table"
+                    className="table table-striped table-bordered table-sm w-100"
+                  >
+                    <thead>
+                      <tr className="text-center">
+                        <th>Acción</th>
+                        <th>Imagen</th>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Stock</th>
+                        <th>Precio</th>
+                        <th>Tipo</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {productos.map((p) => (
+                        <tr key={`prod-${p.id}`}>
+                          <td className="text-center align-middle">
+                            <button
+                              className="btn btn-secondary btn-sm"
+                              onClick={() => {
+                                addItem(p.codigo);
+                                window.$("#modal-productos").modal("hide");
+                              }}
+                              title="Agregar producto"
+                            >
+                              <i className="fas fa-check"></i>
+                            </button>
+                          </td>
+                          <td className="text-center align-middle">
+                            {p.imagen ? (
+                              <img
+                                src={
+                                  p.imagen.startsWith("http")
+                                    ? p.imagen
+                                    : `${API_URL}${p.imagen}`
+                                }
+                                width="40"
+                                className="rounded shadow-sm"
+                                alt={p.nombre}
+                              />
+                            ) : (
+                              <small className="text-muted">N/A</small>
+                            )}
+                          </td>
+                          <td className="text-center align-middle font-weight-bold">
+                            {p.codigo}
+                          </td>
+                          <td>{p.nombre}</td>
+                          <td className="text-center">{p.stock}</td>
+                          <td className="text-right">
+                            {formatMoney(p.precio_venta)}
+                          </td>
+                          <td className="text-center">
+                            <span className="badge badge-primary">
+                              Producto
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Tab de Combos */}
+                <div
+                  className="tab-pane fade"
+                  id="combos-tab-content"
+                  role="tabpanel"
+                >
+                  <table
+                    id="combos-table"
+                    className="table table-striped table-bordered table-sm w-100"
+                  >
+                    <thead>
+                      <tr className="text-center">
+                        <th>Acción</th>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Contenido</th>
+                        <th>Precio</th>
+                        <th>Tipo</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {combos.map((c) => (
+                        <tr key={`combo-${c.id}`}>
+                          <td className="text-center align-middle">
+                            <button
+                              className="btn btn-warning btn-sm"
+                              onClick={() => {
+                                addItem(c.codigo);
+                                window.$("#modal-productos").modal("hide");
+                              }}
+                              title="Agregar combo"
+                            >
+                              <i className="fas fa-check"></i>
+                            </button>
+                          </td>
+                          <td className="text-center align-middle font-weight-bold">
+                            {c.codigo}
+                          </td>
+                          <td>
+                            <strong>{c.nombre}</strong>
+                            {c.descripcion && (
+                              <div className="text-muted small">
+                                {c.descripcion}
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            <small>
+                              {c.productos_incluidos || "Varios productos"}
+                            </small>
+                          </td>
+                          <td className="text-right font-weight-bold">
+                            {formatMoney(c.precio_venta)}
+                          </td>
+                          <td className="text-center">
+                            <span className="badge badge-warning">COMBO</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* --- 🛡️ MODAL CLIENTES (SOLICITADO POR EL USUARIO) 🛡️ --- */}
+      {/* --- MODAL CLIENTES --- */}
       <div className="modal fade" id="modal-clientes" tabIndex="-1">
         <div className="modal-dialog modal-lg modal-dialog-centered">
           <div className="modal-content">
@@ -1660,6 +1933,7 @@ const CrearVenta = () => {
         </div>
       </div>
 
+      {/* --- MODAL CREAR CLIENTE --- */}
       <div className="modal fade" id="modal-crear-cliente" tabIndex="-1">
         <div className="modal-dialog modal-lg modal-dialog-centered">
           <div className="modal-content shadow-lg">
