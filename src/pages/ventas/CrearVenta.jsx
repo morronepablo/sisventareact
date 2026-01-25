@@ -279,7 +279,7 @@ const CrearVenta = () => {
           efectivo: 0,
           tarjeta: 0,
           mercadopago: 0,
-          transferencial: 0,
+          transferencia: 0,
           billetera: 0,
         });
         setClienteSel({
@@ -386,6 +386,19 @@ const CrearVenta = () => {
       console.error(e);
     }
   };
+
+  useEffect(() => {
+    if (tmpVentas.length > 0) {
+      const timer = setTimeout(() => {
+        const container = document.getElementById("productos-scroll-container");
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      }, 200);
+
+      return () => clearTimeout(timer);
+    }
+  }, [tmpVentas.length]); // Se ejecuta cuando cambia la cantidad de items
 
   const handleGuardarNuevoCliente = async () => {
     try {
@@ -635,6 +648,7 @@ const CrearVenta = () => {
 
                   {/* ÁREA DE SCROLL para las filas */}
                   <div
+                    id="productos-scroll-container"
                     className="productos-scroll"
                     style={{
                       flex: "1",
