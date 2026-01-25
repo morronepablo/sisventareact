@@ -476,31 +476,84 @@ const ListadoVentas = () => {
     refreshArqueoStatus();
   }, [refreshArqueoStatus]);
 
+  // const formatDetails = (venta) => {
+  //   let html = '<div class="p-3 bg-light border rounded shadow-sm m-2">';
+  //   html +=
+  //     '<table class="table table-sm table-bordered bg-white shadow-sm" style="width:100%; font-size: 0.85rem;">';
+  //   html += '<thead class="thead-dark text-center">';
+  //   html +=
+  //     '<tr><th>Código</th><th>Producto/Combo</th><th class="text-center">Cant.</th><th class="text-center">P. Unitario</th><th class="text-center">Importe Total</th></tr></thead><tbody>';
+
+  //   if (venta.detalles && venta.detalles.length > 0) {
+  //     venta.detalles.forEach((d) => {
+  //       const codigo = d.producto_codigo || d.combo_codigo || "(Sin código)";
+  //       const nombre = d.producto_nombre || d.combo_nombre || "(Sin nombre)";
+  //       const unidad = d.unidad_nombre || (d.combo_id ? "Combo" : "Unid.");
+
+  //       const precioUnitario = parseFloat(d.precio_unitario || 0);
+  //       const importeTotal = parseFloat(d.importe_neto || 0);
+
+  //       html += `<tr>
+  //         <td class="text-center">${codigo}</td>
+  //         <td>${nombre}</td>
+  //         <td class="text-right">${d.cantidad} ${unidad}</td>
+  //         <td class="text-right">${formatMoney(precioUnitario)}</td>
+  //         <td class="text-right font-weight-bold" style="color: #28a745;">${formatMoney(
+  //           importeTotal,
+  //         )}</td>
+  //     </tr>`;
+  //     });
+  //   } else {
+  //     html +=
+  //       '<tr><td colspan="5" class="text-center">No hay productos.</td></tr>';
+  //   }
+
+  //   html += "</tbody>";
+  //   html += `<tfoot class="bg-white">
+  //           <tr>
+  //             <td colspan="4" class="text-right text-bold">TOTAL COMPROBANTE:</td>
+  //             <td class="text-right text-bold text-primary" style="font-size: 1rem;">${formatMoney(
+  //               venta.precio_total,
+  //             )}</td>
+  //           </tr>
+  //         </tfoot>`;
+  //   html += "</table></div>";
+  //   return html;
+  // };
+
   const formatDetails = (venta) => {
     let html = '<div class="p-3 bg-light border rounded shadow-sm m-2">';
     html +=
       '<table class="table table-sm table-bordered bg-white shadow-sm" style="width:100%; font-size: 0.85rem;">';
     html += '<thead class="thead-dark text-center">';
     html +=
-      '<tr><th>Código</th><th>Producto/Combo</th><th class="text-center">Cant.</th><th class="text-center">P. Unitario</th><th class="text-center">Importe Total</th></tr></thead><tbody>';
+      '<tr><th>Código</th><th>Producto/Combo</th><th class="text-center">Cant. x Escala</th><th class="text-center">P. Unitario</th><th class="text-center">Importe Total</th></tr></thead><tbody>';
 
     if (venta.detalles && venta.detalles.length > 0) {
       venta.detalles.forEach((d) => {
         const codigo = d.producto_codigo || d.combo_codigo || "(Sin código)";
         const nombre = d.producto_nombre || d.combo_nombre || "(Sin nombre)";
-        const unidad = d.unidad_nombre || (d.combo_id ? "Combo" : "Unid.");
+
+        // IMPORTANTE: Mostrar la escala correcta
+        let unidad = d.escala_nombre || (d.combo_id ? "Combo" : "Unid.");
+        let cantidadMostrar = d.cantidad;
+
+        // Si tiene equivalencia, mostrarla
+        if (d.equivalencia_unidades && d.equivalencia_unidades > 1) {
+          unidad = `${unidad} (equiv. a ${d.equivalencia_unidades} unid.)`;
+        }
 
         const precioUnitario = parseFloat(d.precio_unitario || 0);
         const importeTotal = parseFloat(d.importe_neto || 0);
 
         html += `<tr>
-          <td class="text-center">${codigo}</td>
-          <td>${nombre}</td>
-          <td class="text-right">${d.cantidad} ${unidad}</td>
-          <td class="text-right">${formatMoney(precioUnitario)}</td>
-          <td class="text-right font-weight-bold" style="color: #28a745;">${formatMoney(
-            importeTotal,
-          )}</td>
+        <td class="text-center">${codigo}</td>
+        <td>${nombre}</td>
+        <td class="text-right">${cantidadMostrar} ${unidad}</td>
+        <td class="text-right">${formatMoney(precioUnitario)}</td>
+        <td class="text-right font-weight-bold" style="color: #28a745;">${formatMoney(
+          importeTotal,
+        )}</td>
       </tr>`;
       });
     } else {
@@ -510,13 +563,13 @@ const ListadoVentas = () => {
 
     html += "</tbody>";
     html += `<tfoot class="bg-white">
-            <tr>
-              <td colspan="4" class="text-right text-bold">TOTAL COMPROBANTE:</td>
-              <td class="text-right text-bold text-primary" style="font-size: 1rem;">${formatMoney(
-                venta.precio_total,
-              )}</td>
-            </tr>
-          </tfoot>`;
+          <tr>
+            <td colspan="4" class="text-right text-bold">TOTAL COMPROBANTE:</td>
+            <td class="text-right text-bold text-primary" style="font-size: 1rem;">${formatMoney(
+              venta.precio_total,
+            )}</td>
+          </tr>
+        </tfoot>`;
     html += "</table></div>";
     return html;
   };
