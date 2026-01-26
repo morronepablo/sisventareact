@@ -277,3 +277,80 @@ Por qué una vista nueva para esto:
 Análisis Visual: Aquí usaríamos un gráfico de burbujas (Chart.js) donde el eje X es la "Rotación" y el eje Y es el "Margen %".
 Toma de Decisiones: En esta vista, el sistema te diría: "Che, tenés 50 productos 'Perro' que te están ocupando 20 metros de estantería y te rinden menos que un plazo fijo. Liquidalos". Esto en la pantalla de compras (Imagen 3) estorbaría, pero en una pantalla de BI es oro puro.
 
+
+
+
+
+
+
+
+1. El Core: Motor de Cálculo de Escala Híbrida
+Para garantizar que la cantidad_unidades_base sea siempre íntegra, propongo estandarizar la lógica de escritura en la DB mediante un Middleware de Normalización en Node.js o a nivel de Base de Datos (Triggers).
+Propuesta de Lógica para detalle_ventas:
+code
+JavaScript
+// Helper de normalización para evitar descalces contables
+const calcularUnidadesBase = (cantidad, esBulto, factorConversion) => {
+    const factor = esBulto ? parseFloat(factorConversion) : 1;
+    return {
+        factor_utilizado: factor,
+        cantidad_unidades_base: (parseFloat(cantidad) * factor).toFixed(4)
+    };
+};
+Decisión de Arquitectura: El stock físico se debita siempre de cantidad_unidades_base. El es_bulto es una capa de presentación y auditoría de compra/venta para el usuario, pero el BI solo "habla" en unidades base para no romper el ROI.
+2. Evolución BI: El "Radar de Inflación" (Módulo de Costo de Reposición)
+En Argentina, el costo histórico es una trampa. Necesitamos que el Asistente de Compra BI evolucione a un "Simulador de Reposición Dinámica".
+Nueva Vista: "Anatomía del Markup Real":
+Calcula: Precio Venta Actual - Costo Reposición (Última Compra o MEP) - Gastos Operativos % - Comisiones = Ganancia Neta Proyectada.
+Alerta Roja: Si el costo de reposición sube y el precio de venta quedó estancado, el dashboard debe parpadear en Neón Rojo (Crítico).
+3. Reporte de Auditoría Cronológica (Query Optimization)
+Para el reporte de productos agrupados por Fecha y Tique con ganancia neta, la query debe unir detalle_ventas con el costo de reposición que tenía el producto en el momento de la transacción (Snapshot) o el actual para ver la desvalorización.
+code
+SQL
+SELECT 
+    v.fecha, 
+    v.nro_tique,
+    p.nombre_producto,
+    dv.es_bulto,
+    dv.cantidad_unidades_base,
+    dv.precio_unitario,
+    (dv.precio_unitario * dv.cantidad_unidades_base) as total_venta,
+    -- CMV basado en costo de reposición registrado en el movimiento
+    (dv.costo_reposicion_snapshot * dv.cantidad_unidades_base) as cmv_total,
+    ((dv.precio_unitario * dv.cantidad_unidades_base) - (dv.costo_reposicion_snapshot * dv.cantidad_unidades_base)) as ganancia_neta_real
+FROM detalle_ventas dv
+JOIN ventas v ON dv.venta_id = v.id
+JOIN productos p ON dv.producto_id = p.id
+ORDER BY v.fecha DESC, v.nro_tique DESC;
+4. Interfaz de Usuario: Estética "Cyber-Retail"
+Usando Tailwind + AdminLTE, vamos a profundizar la visualización Neón para que el operador detecte anomalías por color, no por lectura.
+Paleta de Estado:
+Cyan Neón (#00f3ff): Flujo de caja positivo / Stock saludable.
+Magenta Neón (#ff00ff): Deuda en dólares (Centinela de Pasivos).
+Amber Neón (#ffab00): Rotación lenta (Monitor de Rotación).
+Componente React (Tailwind) para el "Pulso de Ventas":
+code
+Jsx
+const StockCard = ({ producto }) => (
+  <div className="bg-slate-900 border-l-4 border-cyan-500 p-4 shadow-[0_0_15px_rgba(0,243,255,0.2)]">
+    <h3 className="text-cyan-400 font-mono text-sm uppercase tracking-wider">{producto.nombre}</h3>
+    <div className="flex justify-between items-end mt-2">
+      <span className="text-3xl font-bold text-white font-mono">
+        {producto.stock_base} <small className="text-xs text-slate-400">UNID</small>
+      </span>
+      <span className="text-magenta-500 text-xs font-bold mb-1">
+        {producto.factor_conversion}x bulto
+      </span>
+    </div>
+  </div>
+);
+5. Integración Puppeteer (WhatsApp Automations)
+El "Staff Engineer" recomienda no solo usar Puppeteer para enviar tiques, sino como Agente Reactivo:
+Alerta de Quiebre: Cuando el "Asistente de Compra BI" detecta que un producto estrella tiene autonomía < 3 días, dispara un mensaje automático al proveedor con el pedido sugerido en "Bultos".
+Resumen del Oráculo: A las 22:00hs, el sistema envía al dueño un reporte Neón (en formato imagen generado por Puppeteer) con el cierre del día: Ventas Brutas vs CMV Reposición.
+Próximos Pasos Sugeridos:
+Refactorizar tmp_ tablas: Asegurar que los procedimientos almacenados que pasan de tmp_ a tablas finales verifiquen la integridad del factor_utilizado.
+MEP Service: Crear un microservicio (o simple fetch) que actualice la cotización del Dólar MEP cada 30 min para el "Centinela de Pasivos".
+Audit Logs por HWID: Registrar qué terminal (HWID) realizó cada ajuste de costo de reposición para evitar fraudes internos.
+¿En cuál de estos frentes quieres que profundicemos primero? Puedo darte el esquema de la DB para el historial de costos o el componente de Chart.js para la "Anatomía del Margen".
+

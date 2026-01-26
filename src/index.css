@@ -1,4 +1,36 @@
 /* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-200;
+    font-family: "Inter", system-ui, sans-serif;
+  }
+}
+
+/* Scrollbar estilo Cyberpunk para que combine */
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0b10;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00f3ff;
+}
+
+/* Un pequeño tweak para el fondo oscuro global de los módulos BI */
+.dark-mode-retail {
+  background-color: #0a0b10;
+  color: #e2e8f0;
+}
+
 @import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback");
 
 /* === ESTILOS GLOBALES Y DE LAYOUT === */

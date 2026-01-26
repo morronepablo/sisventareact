@@ -14,6 +14,7 @@ const ListadoVentas = () => {
   const { hasPermission } = useAuth();
   const { arqueoAbierto, refreshArqueoStatus } = useNotifications();
   const [ventas, setVentas] = useState([]);
+  const [promos, setPromos] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const API_URL =
@@ -45,6 +46,42 @@ const ListadoVentas = () => {
       maximumFractionDigits: 2,
     }).format(val || 0);
 
+  // 🚀 FUNCIÓN PARA CALCULAR AHORRO POR PROMOCIÓN
+  const calcularAhorroItem = (item) => {
+    if (!item.producto_id) return 0; // Combos no tienen promociones
+
+    const promo = promos.find(
+      (p) => p.producto_id === item.producto_id && p.estado === 1,
+    );
+    if (!promo) return 0;
+
+    const factor = parseFloat(item.factor_utilizado || 1);
+    const multiplicador = item.es_bulto === 1 ? factor : 1;
+
+    // Calcular precio unitario considerando factor de bulto
+    const precioUnitario = parseFloat(
+      item.precio_venta || item.precio_unitario || 0,
+    );
+    const precioConFactor = precioUnitario * multiplicador;
+
+    const cant = parseFloat(item.cantidad || 0);
+
+    // Aplicar lógica de promoción
+    if (promo.tipo === "3x2" && cant >= 3) {
+      return Math.floor(cant / 3) * precioConFactor;
+    }
+    if (promo.tipo === "2da_al_70" && cant >= 2) {
+      return Math.floor(cant / 2) * (precioConFactor * 0.7);
+    }
+    if (promo.tipo === "2da_al_50" && cant >= 2) {
+      return Math.floor(cant / 2) * (precioConFactor * 0.5);
+    }
+    if (promo.tipo === "4x3" && cant >= 4) {
+      return Math.floor(cant / 4) * precioConFactor;
+    }
+    return 0;
+  };
+
   const navegarSinTooltips = (url) => {
     if (window.$) {
       window.$(".tooltip").remove();
@@ -60,8 +97,12 @@ const ListadoVentas = () => {
 
   const fetchData = async () => {
     try {
-      const resV = await api.get("/ventas");
+      const [resV, resPromos] = await Promise.all([
+        api.get("/ventas"),
+        api.get("/promociones").catch(() => ({ data: [] })), // Si falla, usar array vacío
+      ]);
       setVentas(resV.data);
+      setPromos(resPromos.data || []);
       setLoading(false);
     } catch (error) {
       console.error("Error al cargar ventas:", error);
@@ -303,18 +344,18 @@ const ListadoVentas = () => {
       formasActivas.forEach((forma, idx) => {
         const porcentaje = ((forma.monto / total) * 100).toFixed(1);
         html += `<div class="d-flex align-items-center p-1 bg-${forma.color}-light border border-${forma.color} rounded" style="font-size: 0.85rem;">
-          <i class="fas ${forma.icono} text-${forma.color} mr-1"></i>
-          <span class="mr-1">${forma.nombre}:</span>
-          <span class="font-weight-bold">${formatMoney(forma.monto)}</span>
-          ${forma.especial ? '<span class="badge badge-secondary ml-1">Diferido</span>' : `<span class="text-muted ml-1">(${porcentaje}%)</span>`}
-        </div>`;
+        <i class="fas ${forma.icono} text-${forma.color} mr-1"></i>
+        <span class="mr-1">${forma.nombre}:</span>
+        <span class="font-weight-bold">${formatMoney(forma.monto)}</span>
+        ${forma.especial ? '<span class="badge badge-secondary ml-1">Diferido</span>' : `<span class="text-muted ml-1">(${porcentaje}%)</span>`}
+      </div>`;
       });
 
       html += "</div>";
       html += "</div>";
     }
 
-    // 📦 SECCIÓN DE DETALLES DE PRODUCTOS - SIN CABECERA GRANDE
+    // 📦 SECCIÓN DE DETALLES DE PRODUCTOS - CON PROMOCIONES
     html += '<div class="bg-white rounded border p-2">';
     html +=
       '<div class="d-flex justify-content-between align-items-center mb-2">';
@@ -328,8 +369,14 @@ const ListadoVentas = () => {
       '<table class="table table-sm table-borderless mb-0" style="font-size: 0.85rem;">';
     html += "<tbody>";
 
+    // 🚀 CALCULAR AHORRO TOTAL PARA ESTA VENTA
+    let ahorroTotalVenta = 0;
+
     if (venta.detalles && venta.detalles.length > 0) {
       venta.detalles.forEach((d, idx) => {
+        const ahorroItem = calcularAhorroItem(d);
+        ahorroTotalVenta += ahorroItem;
+
         const codigo = d.producto_codigo || d.combo_codigo || "";
         const nombre = d.producto_nombre || d.combo_nombre || "(Sin nombre)";
         const esBulto = d.es_bulto == 1;
@@ -340,7 +387,8 @@ const ListadoVentas = () => {
         );
 
         const unidadesTotales = esBulto ? cantidad * factor : cantidad;
-        const importeTotal = unidadesTotales * precioUnitario;
+        const importeBruto = unidadesTotales * precioUnitario;
+        const importeNeto = importeBruto - ahorroItem;
 
         let cantidadMostrar = cantidad.toFixed(2);
         let unidadInfo = "";
@@ -354,24 +402,32 @@ const ListadoVentas = () => {
         }
 
         html += `<tr class="${idx % 2 === 0 ? "bg-light" : ""}">
-          <td class="align-middle" style="width: 40px;">
-            <span class="badge badge-secondary">${codigo}</span>
-          </td>
-          <td class="align-middle">
-            <div class="font-weight-bold">${nombre}</div>
-            ${unidadInfo}
-          </td>
-          <td class="text-center align-middle" style="width: 80px;">
-            <div class="font-weight-bold">${cantidadMostrar}</div>
-          </td>
-          <td class="text-right align-middle" style="width: 90px;">
-            <div class="font-weight-bold">${formatMoney(precioUnitario)}</div>
-            <small class="text-muted">${esBulto ? "por unidad" : "c/u"}</small>
-          </td>
-          <td class="text-right align-middle font-weight-bold text-success" style="width: 100px;">
-            <div>${formatMoney(importeTotal)}</div>
-          </td>
-        </tr>`;
+        <td class="align-middle" style="width: 40px;">
+          <span class="badge badge-secondary">${codigo}</span>
+          ${ahorroItem > 0 ? '<span class="badge badge-success ml-1">PROMO</span>' : ""}
+        </td>
+        <td class="align-middle">
+          <div class="font-weight-bold">${nombre}</div>
+          ${unidadInfo}
+        </td>
+        <td class="text-center align-middle" style="width: 70px;">
+          <div class="font-weight-bold">${cantidadMostrar}</div>
+        </td>
+        <td class="text-right align-middle" style="width: 90px;">
+          <div class="font-weight-bold">${formatMoney(precioUnitario)}&nbsp;<small class="text-muted">${esBulto ? "por unidad" : "c/u"}</small></div>
+        </td>
+        <td class="text-right align-middle font-weight-bold" style="width: 120px;">
+          ${
+            ahorroItem > 0
+              ? // Cuando hay promoción, mostrar SOLO el precio original tachado
+                `<div class="text-decoration-line-through text-muted">
+              ${formatMoney(importeBruto)}
+            </div>`
+              : // Sin promoción, mostrar precio normal
+                `<div>${formatMoney(importeBruto)}</div>`
+          }
+        </td>
+      </tr>`;
       });
     } else {
       html +=
@@ -382,10 +438,22 @@ const ListadoVentas = () => {
     html += "</table>";
     html += "</div>";
 
-    // Total compacto
+    // Total compacto con ahorro por promoción
     html += '<div class="mt-2 pt-2 border-top">';
+
+    // 🚀 MOSTRAR AHORRO TOTAL POR PROMOCIONES
+    if (ahorroTotalVenta > 0) {
+      html +=
+        '<div class="d-flex justify-content-between align-items-center mb-1">';
+      html += '<span class="font-weight-bold text-danger">';
+      html += '<i class="fas fa-tag mr-1"></i> Ahorro por Promociones:';
+      html += "</span>";
+      html += `<span class="font-weight-bold text-danger">-${formatMoney(ahorroTotalVenta)}</span>`;
+      html += "</div>";
+    }
+
     html += '<div class="d-flex justify-content-between align-items-center">';
-    html += '<span class="font-weight-bold text-uppercase">Total:</span>';
+    html += '<span class="font-weight-bold text-uppercase">Total Final:</span>';
     html += `<span class="font-weight-bold text-primary" style="font-size: 1.1rem;">${formatMoney(venta.precio_total)}</span>`;
     html += "</div>";
     html += "</div>";

@@ -140,6 +140,7 @@ const CrearVenta = () => {
     (acc, it) => acc + calcularAhorroItem(it),
     0,
   );
+  const subtotalConPromos = subtotalBruto - ahorroTotalPromos;
   const totalDescuentoManual =
     (subtotalBruto - ahorroTotalPromos) *
       (parseFloat(descPorcentaje || 0) / 100) +
@@ -858,6 +859,12 @@ const CrearVenta = () => {
                               parseFloat(it.precio_compra) *
                               (1 + parseFloat(it.valor_porcentaje) / 100);
 
+                          // CALCULAR TOTAL CORRECTO DEL ITEM (EXACTO COMO EL SISTEMA)
+                          const precioConFactor = precioBase * multiplicador;
+                          const subtotalItem =
+                            parseFloat(it.cantidad) * precioConFactor;
+                          const totalItem = subtotalItem - ahorro;
+
                           return (
                             <tr
                               key={it.id}
@@ -1099,10 +1106,7 @@ const CrearVenta = () => {
                                     fontSize: "0.85rem",
                                   }}
                                 >
-                                  {formatMoney(
-                                    it.cantidad * precioBase * multiplicador -
-                                      ahorro,
-                                  )}
+                                  {formatMoney(totalItem)}
                                 </span>
                               </td>
                               <td
@@ -1194,7 +1198,7 @@ const CrearVenta = () => {
                             fontSize: "0.85rem",
                           }}
                         >
-                          {formatMoney(subtotalBruto)}
+                          {formatMoney(subtotalConPromos)}
                         </span>
                       </div>
                       <div style={{ width: "5%" }}></div>

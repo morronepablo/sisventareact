@@ -519,6 +519,13 @@
                 "permiso": "ver_ventas"
             },
             {
+                "id": "oracle_pulse",
+                "text": "Oracle Pulse (BI v2)",
+                "icon": "fas fa-heartbeat text-cyan",
+                "path": "/dashboard/oracle-pulse",
+                "permiso": "ver_ventas"
+            },
+            {
                 "id": "informes",
                 "text": "Informes",
                 "icon": "fas fa-fw fa-chart-bar",
