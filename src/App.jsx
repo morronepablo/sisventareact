@@ -184,6 +184,7 @@ import WallStreetLayout from "./layouts/WallStreetLayout"; // 👈 Agregar impor
 import DashboardWallStreet from "./pages/DashboardWallStreet"; // 👈 Agregar import
 import OracleEye from "./pages/OracleEye";
 import OraclePulse from "./pages/OraclePulse";
+import AnatomiaMarkup from "./pages/AnatomiaMarkup";
 
 // 👇 IMPORTACIÓN DE COMPONENTES DE RUTA
 import ProtectedRoute from "./utils/ProtectedRoute";
@@ -542,6 +543,7 @@ const App = () => {
       </Route>
       <Route path="/dashboard/oracle-eye" element={<OracleEye />} />
       <Route path="/dashboard/oracle-pulse" element={<OraclePulse />} />
+      <Route path="/dashboard/anatomia-markup" element={<AnatomiaMarkup />} />
 
       {/* Redirección final para cualquier ruta desconocida fuera del layout */}
       <Route path="*" element={<Navigate to="/login" replace />} />

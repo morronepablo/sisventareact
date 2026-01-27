@@ -99,7 +99,7 @@ const ListadoVentas = () => {
     try {
       const [resV, resPromos] = await Promise.all([
         api.get("/ventas"),
-        api.get("/promociones").catch(() => ({ data: [] })), // Si falla, usar array vacío
+        api.get("/promociones").catch(() => ({ data: [] })),
       ]);
       setVentas(resV.data);
       setPromos(resPromos.data || []);
@@ -119,17 +119,29 @@ const ListadoVentas = () => {
   const FormasPago = ({ venta }) => {
     if (!venta) return null;
 
-    // Obtener los montos directamente de los campos de la venta
-    const efectivo = parseFloat(venta.efectivo || 0);
-    const tarjeta = parseFloat(venta.tarjeta || 0);
-    const mercadopago = parseFloat(venta.mercadopago || 0);
-    const transferencia = parseFloat(venta.transferencia || 0);
-    const billetera = parseFloat(venta.billetera || 0);
+    // Asegurar que los valores sean números (0 si son null/undefined)
+    const efectivo = parseFloat(venta.efectivo || venta.Efectivo || 0);
+    const tarjeta = parseFloat(venta.tarjeta || venta.Tarjeta || 0);
+    const mercadopago = parseFloat(
+      venta.mercadopago || venta.MercadoPago || venta.mercadopago || 0,
+    );
+    const transferencia = parseFloat(
+      venta.transferencia || venta.Transferencia || 0,
+    );
+    const billetera = parseFloat(venta.billetera || venta.Billetera || 0);
     const total = parseFloat(venta.precio_total || 0);
 
-    // Determinar si es cuenta corriente
     const esCuentaCorriente =
       venta.es_cuenta_corriente === 1 || venta.es_cuenta_corriente === true;
+
+    // Calcular saldo en cuenta corriente
+    const totalPagado =
+      efectivo + tarjeta + mercadopago + transferencia + billetera;
+    const saldoCtacte = Math.max(total - totalPagado, 0);
+
+    // Determinar si hay pago parcial
+    const tienePagoParcial =
+      totalPagado > 0 && totalPagado < total && esCuentaCorriente;
 
     const formas = [];
 
@@ -141,7 +153,7 @@ const ListadoVentas = () => {
         icono: "fa-money-bill-wave",
         color: "success",
         monto: efectivo,
-        porcentaje: ((efectivo / total) * 100).toFixed(1),
+        porcentaje: total > 0 ? ((efectivo / total) * 100).toFixed(1) : "0.0",
       });
     }
 
@@ -153,7 +165,7 @@ const ListadoVentas = () => {
         icono: "fa-credit-card",
         color: "primary",
         monto: tarjeta,
-        porcentaje: ((tarjeta / total) * 100).toFixed(1),
+        porcentaje: total > 0 ? ((tarjeta / total) * 100).toFixed(1) : "0.0",
       });
     }
 
@@ -165,7 +177,8 @@ const ListadoVentas = () => {
         icono: "fa-mobile-alt",
         color: "info",
         monto: mercadopago,
-        porcentaje: ((mercadopago / total) * 100).toFixed(1),
+        porcentaje:
+          total > 0 ? ((mercadopago / total) * 100).toFixed(1) : "0.0",
       });
     }
 
@@ -177,7 +190,8 @@ const ListadoVentas = () => {
         icono: "fa-exchange-alt",
         color: "warning",
         monto: transferencia,
-        porcentaje: ((transferencia / total) * 100).toFixed(1),
+        porcentaje:
+          total > 0 ? ((transferencia / total) * 100).toFixed(1) : "0.0",
       });
     }
 
@@ -189,25 +203,25 @@ const ListadoVentas = () => {
         icono: "fa-wallet",
         color: "dark",
         monto: billetera,
-        porcentaje: ((billetera / total) * 100).toFixed(1),
+        porcentaje: total > 0 ? ((billetera / total) * 100).toFixed(1) : "0.0",
       });
     }
 
-    // Cuenta Corriente
-    if (esCuentaCorriente) {
+    // Cuenta Corriente - Solo si hay saldo pendiente
+    if (esCuentaCorriente && saldoCtacte > 0) {
       formas.push({
         tipo: "ctacte",
         nombre: "Cta. Cte.",
         icono: "fa-file-invoice-dollar",
         color: "secondary",
-        monto: total,
-        porcentaje: "100",
+        monto: saldoCtacte, // Solo el saldo pendiente
+        porcentaje:
+          total > 0 ? ((saldoCtacte / total) * 100).toFixed(1) : "0.0",
       });
     }
 
     // Si no hay formas de pago específicas pero el total es mayor a 0
     if (formas.length === 0 && total > 0) {
-      // Intentar determinar si fue pagado en efectivo (caso común cuando no hay datos específicos)
       formas.push({
         tipo: "efectivo",
         nombre: "Efectivo",
@@ -218,73 +232,268 @@ const ListadoVentas = () => {
       });
     }
 
-    // En la vista cerrada solo mostramos iconos circulares
     return (
-      <div className="text-center">
-        <div className="d-flex justify-content-center flex-wrap">
-          {formas.slice(0, 3).map((forma, idx) => (
-            <div key={idx} className="position-relative mx-1">
-              <span
-                className={`badge badge-${forma.color}`}
-                style={{
-                  width: "28px",
-                  height: "28px",
-                  borderRadius: "50%",
-                  padding: "0",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "0.8rem",
-                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                  cursor: "pointer",
-                  border: "2px solid white",
-                }}
-                title={`${forma.nombre}: ${formatMoney(forma.monto)} (${forma.porcentaje}%)`}
-                data-toggle="tooltip"
-                data-placement="top"
-              >
-                <i className={`fas ${forma.icono}`}></i>
-              </span>
-            </div>
-          ))}
-          {formas.length > 3 && (
+      <div className="d-flex justify-content-start align-items-center flex-wrap">
+        {formas.map((forma, idx) => (
+          <div key={idx} className="position-relative mr-1 mb-1">
             <span
-              className="badge badge-light d-flex align-items-center justify-content-center mx-1"
+              className={`badge badge-${forma.color}`}
               style={{
-                width: "28px",
-                height: "28px",
+                width: "32px",
+                height: "32px",
                 borderRadius: "50%",
+                padding: "0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "0.85rem",
                 boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                fontSize: "0.7rem",
+                cursor: "pointer",
+                border: "2px solid white",
               }}
-              title={`${formas.length - 3} forma(s) más`}
+              title={`${forma.nombre}: ${formatMoney(forma.monto)} (${forma.porcentaje}%)`}
               data-toggle="tooltip"
+              data-placement="top"
             >
-              +{formas.length - 3}
+              <i className={`fas ${forma.icono}`}></i>
             </span>
-          )}
-        </div>
+          </div>
+        ))}
+
+        {/* Mostrar el 100% al costado si es único y 100% */}
         {formas.length === 1 && formas[0].porcentaje === "100" && (
-          <small className="text-muted d-block mt-1">100%</small>
+          <small className="text-muted ml-1">100%</small>
+        )}
+
+        {/* Mostrar "Pago parcial" al lado de los iconos */}
+        {tienePagoParcial && (
+          <div className="ml-2 d-flex align-items-center">
+            <span
+              className="badge badge-warning py-1 px-2"
+              style={{
+                fontSize: "0.6rem",
+                fontWeight: "normal",
+                borderRadius: "10px",
+              }}
+              title="Venta en cuenta corriente con pago parcial"
+              data-toggle="tooltip"
+              data-placement="top"
+            >
+              <i className="fas fa-exclamation-circle mr-1"></i>Pago Parcial
+            </span>
+          </div>
         )}
       </div>
     );
   };
 
+  // const formatDetails = (venta) => {
+  //   let html = '<div class="p-2 bg-light rounded">';
+
+  //   const efectivo = parseFloat(venta.efectivo || 0);
+  //   const tarjeta = parseFloat(venta.tarjeta || 0);
+  //   const mercadopago = parseFloat(venta.mercadopago || 0);
+  //   const transferencia = parseFloat(venta.transferencia || 0);
+  //   const billetera = parseFloat(venta.billetera || 0);
+  //   const total = parseFloat(venta.precio_total || 0);
+
+  //   const esCuentaCorriente =
+  //     venta.es_cuenta_corriente === 1 || venta.es_cuenta_corriente === true;
+
+  //   const formasActivas = [
+  //     {
+  //       nombre: "Efectivo",
+  //       monto: efectivo,
+  //       icono: "fa-money-bill-wave",
+  //       color: "success",
+  //     },
+  //     {
+  //       nombre: "Tarjeta",
+  //       monto: tarjeta,
+  //       icono: "fa-credit-card",
+  //       color: "primary",
+  //     },
+  //     {
+  //       nombre: "MercadoPago",
+  //       monto: mercadopago,
+  //       icono: "fa-mobile-alt",
+  //       color: "info",
+  //     },
+  //     {
+  //       nombre: "Transferencia",
+  //       monto: transferencia,
+  //       icono: "fa-exchange-alt",
+  //       color: "warning",
+  //     },
+  //     {
+  //       nombre: "Billetera", // ✅ AGREGADO BILLETERA
+  //       monto: billetera,
+  //       icono: "fa-wallet",
+  //       color: "dark",
+  //     },
+  //   ].filter((f) => f.monto > 0);
+
+  //   if (esCuentaCorriente) {
+  //     formasActivas.push({
+  //       nombre: "Cta. Cte.",
+  //       monto: total,
+  //       icono: "fa-file-invoice-dollar",
+  //       color: "secondary",
+  //       especial: true,
+  //     });
+  //   }
+
+  //   if (formasActivas.length > 0) {
+  //     html += '<div class="mb-3 p-2 bg-white rounded border">';
+  //     html +=
+  //       '<div class="d-flex justify-content-between align-items-center mb-2">';
+  //     html +=
+  //       '<span class="font-weight-bold text-muted"><i class="fas fa-money-check-alt mr-1"></i> Formas de Pago</span>';
+  //     html += `<span class="font-weight-bold text-success">${formatMoney(total)}</span>`;
+  //     html += "</div>";
+  //     html += '<div class="d-flex flex-wrap gap-1">';
+
+  //     formasActivas.forEach((forma, idx) => {
+  //       const porcentaje = ((forma.monto / total) * 100).toFixed(1);
+  //       html += `<div class="d-flex align-items-center p-1 bg-${forma.color}-light border border-${forma.color} rounded" style="font-size: 0.85rem;">
+  //         <i class="fas ${forma.icono} text-${forma.color} mr-1"></i>
+  //         <span class="mr-1">${forma.nombre}:</span>
+  //         <span class="font-weight-bold">${formatMoney(forma.monto)}</span>
+  //         ${
+  //           forma.especial
+  //             ? '<span class="badge badge-secondary ml-1">Diferido</span>'
+  //             : `<span class="text-muted ml-1">(${porcentaje}%)</span>`
+  //         }
+  //       </div>&nbsp;`;
+  //     });
+
+  //     html += "</div>";
+  //     html += "</div>";
+  //   }
+
+  //   html += '<div class="bg-white rounded border p-2">';
+  //   html +=
+  //     '<div class="d-flex justify-content-between align-items-center mb-2">';
+  //   html +=
+  //     '<span class="font-weight-bold text-muted"><i class="fas fa-boxes mr-1"></i> Productos</span>';
+  //   html += `<span class="badge badge-primary">${venta.detalles?.length || 0} item(s)</span>`;
+  //   html += "</div>";
+
+  //   html += '<div style="max-height: 300px; overflow-y: auto;">';
+  //   html +=
+  //     '<table class="table table-sm table-borderless mb-0" style="font-size: 0.85rem;">';
+  //   html += "<tbody>";
+
+  //   let ahorroTotalVenta = 0;
+
+  //   if (venta.detalles && venta.detalles.length > 0) {
+  //     venta.detalles.forEach((d, idx) => {
+  //       const ahorroItem = calcularAhorroItem(d);
+  //       ahorroTotalVenta += ahorroItem;
+
+  //       const codigo = d.producto_codigo || d.combo_codigo || "";
+  //       const nombre = d.producto_nombre || d.combo_nombre || "(Sin nombre)";
+  //       const esBulto = d.es_bulto == 1;
+  //       const factor = parseFloat(d.factor_utilizado) || 1;
+  //       const cantidad = parseFloat(d.cantidad) || 0;
+  //       const precioUnitario = parseFloat(
+  //         d.precio_venta || d.precio_unitario || 0,
+  //       );
+
+  //       const unidadesTotales = esBulto ? cantidad * factor : cantidad;
+  //       const importeBruto = unidadesTotales * precioUnitario;
+  //       const importeNeto = importeBruto - ahorroItem;
+
+  //       let cantidadMostrar = cantidad.toFixed(2);
+  //       let unidadInfo = "";
+
+  //       if (esBulto && factor > 1) {
+  //         cantidadMostrar = `${cantidad.toFixed(0)} pack`;
+  //         unidadInfo = `<small class="text-info d-block"><i class="fas fa-box mr-1"></i>${unidadesTotales} unid.</small>`;
+  //       } else if (d.equivalencia_unidades && d.equivalencia_unidades > 1) {
+  //         const totalUnidades = cantidad * d.equivalencia_unidades;
+  //         unidadInfo = `<small class="text-success d-block"><i class="fas fa-calculator mr-1"></i>${totalUnidades} unid.</small>`;
+  //       }
+
+  //       html += `<tr class="${idx % 2 === 0 ? "bg-light" : ""}">
+  //         <td class="align-middle" style="width: 40px;">
+  //           <span class="badge badge-secondary">${codigo}</span>
+  //           ${
+  //             ahorroItem > 0
+  //               ? '<span class="badge badge-success ml-1">PROMO</span>'
+  //               : ""
+  //           }
+  //         </td>
+  //         <td class="align-middle">
+  //           <div class="font-weight-bold">${nombre}</div>
+  //           ${unidadInfo}
+  //         </td>
+  //         <td class="text-center align-middle" style="width: 70px;">
+  //           <div class="font-weight-bold">${cantidadMostrar}</div>
+  //         </td>
+  //         <td class="text-right align-middle" style="width: 160px;">
+  //           <div class="font-weight-bold">${formatMoney(precioUnitario)}&nbsp;<small class="text-muted">${
+  //             esBulto ? "por unidad" : "c/u"
+  //           }</small></div>
+  //         </td>
+  //         <td class="text-right align-middle font-weight-bold" style="width: 120px;">
+  //           ${
+  //             ahorroItem > 0
+  //               ? `<div class="text-decoration-line-through text-muted">${formatMoney(importeBruto)}</div>`
+  //               : `<div>${formatMoney(importeBruto)}</div>`
+  //           }
+  //         </td>
+  //       </tr>`;
+  //     });
+  //   } else {
+  //     html +=
+  //       '<tr><td colspan="5" class="text-center text-muted">No hay productos</td></tr>';
+  //   }
+
+  //   html += "</tbody>";
+  //   html += "</table>";
+  //   html += "</div>";
+
+  //   if (ahorroTotalVenta > 0) {
+  //     html +=
+  //       '<div class="d-flex justify-content-between align-items-center mb-1">' +
+  //       '<span class="font-weight-bold text-danger"><i class="fas fa-tag mr-1"></i> Ahorro por Promociones:</span>' +
+  //       `<span class="font-weight-bold text-danger">-${formatMoney(ahorroTotalVenta)}</span>` +
+  //       "</div>";
+  //   }
+
+  //   html += '<div class="d-flex justify-content-between align-items-center">';
+  //   html += '<span class="font-weight-bold text-uppercase">Total Final:</span>';
+  //   html += `<span class="font-weight-bold text-primary" style="font-size: 1.1rem;">${formatMoney(venta.precio_total)}</span>`;
+  //   html += "</div>";
+  //   html += "</div>";
+  //   html += "</div>";
+
+  //   return html;
+  // };
+
+  // 🔧 INICIALIZACIÓN DE DATATABLES
+
   const formatDetails = (venta) => {
     let html = '<div class="p-2 bg-light rounded">';
 
-    // 📊 SECCIÓN DE FORMAS DE PAGO - MUY MINIMALISTA
     const efectivo = parseFloat(venta.efectivo || 0);
     const tarjeta = parseFloat(venta.tarjeta || 0);
     const mercadopago = parseFloat(venta.mercadopago || 0);
     const transferencia = parseFloat(venta.transferencia || 0);
     const billetera = parseFloat(venta.billetera || 0);
     const total = parseFloat(venta.precio_total || 0);
+
     const esCuentaCorriente =
       venta.es_cuenta_corriente === 1 || venta.es_cuenta_corriente === true;
 
-    // Solo mostrar formas de pago si hay más de una o es cuenta corriente
+    // Calcular total pagado y saldo pendiente
+    const totalPagado =
+      efectivo + tarjeta + mercadopago + transferencia + billetera;
+    const saldoCtacte = Math.max(total - totalPagado, 0);
+    const tienePagoParcial =
+      totalPagado > 0 && totalPagado < total && esCuentaCorriente;
+
     const formasActivas = [
       {
         nombre: "Efectivo",
@@ -318,17 +527,17 @@ const ListadoVentas = () => {
       },
     ].filter((f) => f.monto > 0);
 
-    if (esCuentaCorriente) {
+    // Solo agregar Cuenta Corriente si hay saldo pendiente
+    if (esCuentaCorriente && saldoCtacte > 0) {
       formasActivas.push({
-        nombre: "Cta. Cte.",
-        monto: total,
+        nombre: "Cta. Cte. (Pendiente)",
+        monto: saldoCtacte,
         icono: "fa-file-invoice-dollar",
         color: "secondary",
         especial: true,
       });
     }
 
-    // Solo mostrar sección si hay formas de pago específicas
     if (formasActivas.length > 0) {
       html += '<div class="mb-3 p-2 bg-white rounded border">';
       html +=
@@ -338,7 +547,15 @@ const ListadoVentas = () => {
       html += `<span class="font-weight-bold text-success">${formatMoney(total)}</span>`;
       html += "</div>";
 
-      // Mostrar formas de pago en una línea compacta
+      // Mostrar mensaje de pago parcial si aplica
+      if (tienePagoParcial) {
+        html +=
+          '<div class="alert alert-warning py-1 px-2 mb-2" style="font-size: 0.8rem;">';
+        html +=
+          '<i class="fas fa-info-circle mr-1"></i> Venta en cuenta corriente con pago parcial';
+        html += "</div>";
+      }
+
       html += '<div class="d-flex flex-wrap gap-1">';
 
       formasActivas.forEach((forma, idx) => {
@@ -347,15 +564,33 @@ const ListadoVentas = () => {
         <i class="fas ${forma.icono} text-${forma.color} mr-1"></i>
         <span class="mr-1">${forma.nombre}:</span>
         <span class="font-weight-bold">${formatMoney(forma.monto)}</span>
-        ${forma.especial ? '<span class="badge badge-secondary ml-1">Diferido</span>' : `<span class="text-muted ml-1">(${porcentaje}%)</span>`}
-      </div>`;
+        ${
+          forma.especial
+            ? '<span class="badge badge-secondary ml-1">Diferido</span>'
+            : `<span class="text-muted ml-1">(${porcentaje}%)</span>`
+        }
+      </div>&nbsp;`;
       });
 
-      html += "</div>";
+      // Mostrar resumen de pago
+      if (tienePagoParcial) {
+        html += "</div>";
+        html += '<hr class="my-2" style="border-top: 1px dashed #ccc;">';
+        html += '<div class="row">';
+        html += '<div class="col-6">';
+        html += `<small class="text-success"><strong>Total Pagado:</strong> ${formatMoney(totalPagado)}</small>`;
+        html += "</div>";
+        html += '<div class="col-6 text-right">';
+        html += `<small class="text-danger"><strong>Saldo Pendiente:</strong> ${formatMoney(saldoCtacte)}</small>`;
+        html += "</div>";
+        html += "</div>";
+      } else {
+        html += "</div>";
+      }
+
       html += "</div>";
     }
 
-    // 📦 SECCIÓN DE DETALLES DE PRODUCTOS - CON PROMOCIONES
     html += '<div class="bg-white rounded border p-2">';
     html +=
       '<div class="d-flex justify-content-between align-items-center mb-2">';
@@ -369,7 +604,6 @@ const ListadoVentas = () => {
       '<table class="table table-sm table-borderless mb-0" style="font-size: 0.85rem;">';
     html += "<tbody>";
 
-    // 🚀 CALCULAR AHORRO TOTAL PARA ESTA VENTA
     let ahorroTotalVenta = 0;
 
     if (venta.detalles && venta.detalles.length > 0) {
@@ -404,7 +638,11 @@ const ListadoVentas = () => {
         html += `<tr class="${idx % 2 === 0 ? "bg-light" : ""}">
         <td class="align-middle" style="width: 40px;">
           <span class="badge badge-secondary">${codigo}</span>
-          ${ahorroItem > 0 ? '<span class="badge badge-success ml-1">PROMO</span>' : ""}
+          ${
+            ahorroItem > 0
+              ? '<span class="badge badge-success ml-1">PROMO</span>'
+              : ""
+          }
         </td>
         <td class="align-middle">
           <div class="font-weight-bold">${nombre}</div>
@@ -413,18 +651,16 @@ const ListadoVentas = () => {
         <td class="text-center align-middle" style="width: 70px;">
           <div class="font-weight-bold">${cantidadMostrar}</div>
         </td>
-        <td class="text-right align-middle" style="width: 90px;">
-          <div class="font-weight-bold">${formatMoney(precioUnitario)}&nbsp;<small class="text-muted">${esBulto ? "por unidad" : "c/u"}</small></div>
+        <td class="text-right align-middle" style="width: 160px;">
+          <div class="font-weight-bold">${formatMoney(precioUnitario)}&nbsp;<small class="text-muted">${
+            esBulto ? "por unidad" : "c/u"
+          }</small></div>
         </td>
         <td class="text-right align-middle font-weight-bold" style="width: 120px;">
           ${
             ahorroItem > 0
-              ? // Cuando hay promoción, mostrar SOLO el precio original tachado
-                `<div class="text-decoration-line-through text-muted">
-              ${formatMoney(importeBruto)}
-            </div>`
-              : // Sin promoción, mostrar precio normal
-                `<div>${formatMoney(importeBruto)}</div>`
+              ? `<div class="text-decoration-line-through text-muted">${formatMoney(importeBruto)}</div>`
+              : `<div>${formatMoney(importeBruto)}</div>`
           }
         </td>
       </tr>`;
@@ -438,18 +674,12 @@ const ListadoVentas = () => {
     html += "</table>";
     html += "</div>";
 
-    // Total compacto con ahorro por promoción
-    html += '<div class="mt-2 pt-2 border-top">';
-
-    // 🚀 MOSTRAR AHORRO TOTAL POR PROMOCIONES
     if (ahorroTotalVenta > 0) {
       html +=
-        '<div class="d-flex justify-content-between align-items-center mb-1">';
-      html += '<span class="font-weight-bold text-danger">';
-      html += '<i class="fas fa-tag mr-1"></i> Ahorro por Promociones:';
-      html += "</span>";
-      html += `<span class="font-weight-bold text-danger">-${formatMoney(ahorroTotalVenta)}</span>`;
-      html += "</div>";
+        '<div class="d-flex justify-content-between align-items-center mb-1">' +
+        '<span class="font-weight-bold text-danger"><i class="fas fa-tag mr-1"></i> Ahorro por Promociones:</span>' +
+        `<span class="font-weight-bold text-danger">-${formatMoney(ahorroTotalVenta)}</span>` +
+        "</div>";
     }
 
     html += '<div class="d-flex justify-content-between align-items-center">';
@@ -457,14 +687,11 @@ const ListadoVentas = () => {
     html += `<span class="font-weight-bold text-primary" style="font-size: 1.1rem;">${formatMoney(venta.precio_total)}</span>`;
     html += "</div>";
     html += "</div>";
-
-    html += "</div>"; // Cierra sección de productos
-    html += "</div>"; // Cierra div principal
+    html += "</div>";
 
     return html;
   };
 
-  // 🔧 INICIALIZACIÓN DE DATATABLES Y HANDLERS
   useEffect(() => {
     if (loading) return;
 
@@ -474,12 +701,12 @@ const ListadoVentas = () => {
 
       const tableId = "#ventas-table";
 
-      // Destruir DataTable existente si hay uno
+      // Destruir si existe
       if ($.fn.DataTable.isDataTable(tableId)) {
         $(tableId).DataTable().destroy();
       }
 
-      // Inicializar DataTable
+      // Inicializar SIN botones automáticos (dom: "rtip")
       const table = $(tableId).DataTable({
         paging: true,
         ordering: true,
@@ -489,11 +716,11 @@ const ListadoVentas = () => {
         language: spanishLanguage,
         lengthChange: false,
         searching: false,
-        dom: "rtip",
+        dom: "rtip", // ← sin 'B', sin botones automáticos
         columnDefs: [
           { targets: 0, orderable: false },
           { targets: -1, orderable: false, width: "150px" },
-          { targets: 5, orderable: false, width: "80px" },
+          { targets: 5, orderable: false, width: "170px" },
         ],
         drawCallback: function () {
           if ($ && $.fn.tooltip) {
@@ -515,7 +742,6 @@ const ListadoVentas = () => {
         const idx = tr.data("index");
 
         if (row.child.isShown()) {
-          // Cerrar
           row.child.hide();
           tr.removeClass("shown");
           $this
@@ -523,7 +749,6 @@ const ListadoVentas = () => {
             .removeClass("fa-minus-circle text-danger")
             .addClass("fa-plus-circle text-primary");
         } else {
-          // Abrir
           row.child(formatDetails(ventas[idx])).show();
           tr.addClass("shown");
           $this
@@ -532,38 +757,6 @@ const ListadoVentas = () => {
             .addClass("fa-minus-circle text-danger");
         }
       });
-
-      // Añadir botones de exportación
-      new $.fn.dataTable.Buttons(table, {
-        buttons: [
-          {
-            extend: "copy",
-            text: '<i class="fas fa-copy"></i> Copiar',
-            className: "btn btn-secondary btn-sm",
-            title: "",
-          },
-          {
-            extend: "pdf",
-            text: '<i class="fas fa-file-pdf"></i> PDF',
-            className: "btn btn-danger btn-sm",
-            title: "Listado de Ventas",
-          },
-          {
-            extend: "excel",
-            text: '<i class="fas fa-file-excel"></i> Excel',
-            className: "btn btn-success btn-sm",
-            title: "Listado de Ventas",
-          },
-          {
-            extend: "print",
-            text: '<i class="fas fa-print"></i> Imprimir',
-            className: "btn btn-warning btn-sm",
-            title: "Listado de Ventas",
-          },
-        ],
-      });
-
-      table.buttons().container().appendTo(".dt-buttons");
     }, 150);
 
     return () => clearTimeout(timer);
@@ -648,6 +841,7 @@ const ListadoVentas = () => {
           </div>
 
           <div className="card-body">
+            {/* ✅ BARRA SUPERIOR CON BOTONES EN ESPAÑOL Y COLORES */}
             <div className="d-flex justify-content-between align-items-center mb-3">
               <div className="d-flex align-items-center">
                 <label className="mr-2 mb-0">Mostrar</label>
@@ -669,30 +863,36 @@ const ListadoVentas = () => {
                   <option value="50">50</option>
                 </select>
                 <span className="mr-3">registros</span>
-                <div className="dt-buttons btn-group">
+
+                {/* ✅ Botones en una sola fila, colores distintos, como en tu imagen */}
+                <div className="btn-group btn-group-sm" role="group">
                   <button
-                    className="btn btn-secondary btn-sm"
+                    className="btn btn-secondary"
                     onClick={() => handleExport("copy")}
+                    title="Copiar al portapapeles"
                   >
-                    <i className="fas fa-copy"></i> Copiar
+                    Copiar
                   </button>
                   <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => handleExport("pdf")}
-                  >
-                    <i className="fas fa-file-pdf"></i> PDF
-                  </button>
-                  <button
-                    className="btn btn-success btn-sm"
+                    className="btn btn-success"
                     onClick={() => handleExport("excel")}
+                    title="Exportar a Excel"
                   >
-                    <i className="fas fa-file-excel"></i> Excel
+                    Excel
                   </button>
                   <button
-                    className="btn btn-warning btn-sm"
-                    onClick={() => handleExport("print")}
+                    className="btn btn-danger"
+                    onClick={() => handleExport("pdf")}
+                    title="Exportar a PDF"
                   >
-                    <i className="fas fa-print"></i> Imprimir
+                    PDF
+                  </button>
+                  <button
+                    className="btn btn-warning"
+                    onClick={() => handleExport("print")}
+                    title="Imprimir"
+                  >
+                    Imprimir
                   </button>
                 </div>
               </div>

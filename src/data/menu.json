@@ -526,6 +526,13 @@
                 "permiso": "ver_ventas"
             },
             {
+                "id": "markup_real",
+                "text": "Anatomía del Markup",
+                "icon": "fas fa-shield-virus text-danger",
+                "path": "/dashboard/anatomia-markup",
+                "permiso": "ver_ventas"
+            },
+            {
                 "id": "informes",
                 "text": "Informes",
                 "icon": "fas fa-fw fa-chart-bar",

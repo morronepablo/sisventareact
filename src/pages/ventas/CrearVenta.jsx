@@ -251,6 +251,17 @@ const CrearVenta = () => {
   };
 
   const handleConfirmarVenta = async () => {
+    // 🔴 VALIDACIÓN: No permitir cuenta corriente para Consumidor Final
+    if (esCtaCte && clienteSel.id === 1) {
+      Swal.fire({
+        icon: "error",
+        title: "Operación no permitida",
+        text: 'No se puede crear una venta en cuenta corriente para "Consumidor Final".',
+        confirmButtonText: "Entendido",
+      });
+      return;
+    }
+
     if (!esCtaCte && totalPagado < totalFinal)
       return Swal.fire("Error", "Monto insuficiente", "error");
     if (parseFloat(pagos.billetera) > parseFloat(clienteSel.saldo_billetera))
@@ -1385,15 +1396,34 @@ const CrearVenta = () => {
               </button>
             </div>
             <div className="modal-body">
+              {/* 🔴 DESHABILITAR CHECKBOX DE CUENTA CORRIENTE SI CLIENTE ES CONSUMIDOR FINAL */}
               <div className="form-group row align-items-center mb-3">
                 <label className="col-sm-5 text-bold">Cuenta Corriente</label>
                 <div className="col-sm-7">
                   <input
                     type="checkbox"
                     checked={esCtaCte}
-                    onChange={(e) => setEsCtaCte(e.target.checked)}
+                    onChange={(e) => {
+                      if (clienteSel.id === 1) {
+                        Swal.fire({
+                          icon: "warning",
+                          title: "No disponible",
+                          text: 'No se puede usar cuenta corriente con "Consumidor Final".',
+                          timer: 2000,
+                          showConfirmButton: false,
+                        });
+                        return;
+                      }
+                      setEsCtaCte(e.target.checked);
+                    }}
+                    disabled={clienteSel.id === 1}
                     style={{ width: "20px", height: "20px" }}
                   />
+                  {clienteSel.id === 1 && (
+                    <small className="text-danger ml-2 d-block">
+                      No disponible para Consumidor Final
+                    </small>
+                  )}
                 </div>
               </div>
               {[
