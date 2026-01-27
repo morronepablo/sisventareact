@@ -1,6 +1,6 @@
 // src/pages/configuracion/ConfiguracionEmpresa.jsx
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import api from "../../services/api";
 import Swal from "sweetalert2";
 import { Link } from "react-router-dom";
@@ -31,7 +31,10 @@ const ConfiguracionEmpresa = () => {
 
   const [logoPreview, setLogoPreview] = useState("");
   const [loading, setLoading] = useState(true);
+  const [resetting, setResetting] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const [errors, setErrors] = useState({});
+  const fileInputRef = useRef(null);
 
   const fetchData = async () => {
     try {
@@ -136,6 +139,7 @@ const ConfiguracionEmpresa = () => {
       confirmButtonText: "Sí, borrar todo",
     });
     if (!firstConfirm.isConfirmed) return;
+
     const { value: word } = await Swal.fire({
       title: "Confirmación Final",
       text: 'Escriba "ELIMINAR" para confirmar:',
@@ -143,48 +147,259 @@ const ConfiguracionEmpresa = () => {
       showCancelButton: true,
       confirmButtonColor: "#d33",
     });
+
     if (word === "ELIMINAR") {
       try {
+        setResetting(true); // ⬅️ Activar estado de carga
+
+        // Mostrar SweetAlert con spinner
+        Swal.fire({
+          title: "Reseteando Sistema...",
+          html: `
+            <div class="text-center">
+              <div class="spinner-border text-primary mb-3" role="status">
+                <span class="sr-only">Cargando...</span>
+              </div>
+              <p>Esto puede tomar unos segundos. No cierre esta ventana.</p>
+              <div class="progress" style="height: 5px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                     role="progressbar" 
+                     style="width: 100%">
+                </div>
+              </div>
+            </div>
+          `,
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          showConfirmButton: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
+
         const res = await api.post("/backup/reset-system");
+
         if (res.data.success) {
           localStorage.removeItem("token");
-          await Swal.fire(
-            "¡Reseteo Exitoso!",
-            "El sistema ha vuelto a cero.",
-            "success",
-          );
+          setResetting(false); // ⬅️ Desactivar estado de carga
+
+          await Swal.fire({
+            icon: "success",
+            title: "¡Reseteo Exitoso!",
+            text: "El sistema ha vuelto a cero.",
+            timer: 3000,
+            showConfirmButton: false,
+          });
+
           window.location.href = "/login";
         }
       } catch (error) {
-        Swal.fire("Error", "Fallo en el servidor.", "error");
+        setResetting(false); // ⬅️ Desactivar estado de carga en caso de error
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Fallo en el servidor. Intente nuevamente.",
+        });
       }
     }
   };
 
+  // const handleRestoreDatabase = async (e) => {
+  //   const file = e.target.files[0];
+  //   if (!file) return;
+  //   const confirm = await Swal.fire({
+  //     title: "¿Restaurar?",
+  //     text: "Se reemplazará toda la DB.",
+  //     icon: "warning",
+  //     showCancelButton: true,
+  //   });
+  //   if (confirm.isConfirmed) {
+  //     const formData = new FormData();
+  //     formData.append("backup", file);
+  //     try {
+  //       const res = await api.post("/backup/restore", formData, {
+  //         headers: { "Content-Type": "multipart/form-data" },
+  //       });
+  //       if (res.data.success) {
+  //         localStorage.removeItem("token");
+  //         await Swal.fire("¡Éxito!", "Base de datos restaurada.", "success");
+  //         window.location.href = "/login";
+  //       }
+  //     } catch (error) {
+  //       Swal.fire("Error", "Archivo no válido.", "error");
+  //     }
+  //   }
+  // };
+
   const handleRestoreDatabase = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Validar extensión .sql
+    if (!file.name.endsWith(".sql")) {
+      await Swal.fire({
+        icon: "error",
+        title: "Archivo inválido",
+        text: "Por favor, seleccione un archivo con extensión .sql",
+      });
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     const confirm = await Swal.fire({
-      title: "¿Restaurar?",
-      text: "Se reemplazará toda la DB.",
+      title: "¿Restaurar Base de Datos?",
+      html: `
+        <div class="text-left">
+          <p><b>Archivo:</b> ${file.name}</p>
+          <p><b>Tamaño:</b> ${(file.size / 1024).toFixed(2)} KB</p>
+          <p class="text-danger mt-2">
+            <i class="fas fa-exclamation-triangle"></i> 
+            <b>ADVERTENCIA:</b> Se reemplazará TODA la base de datos actual.
+          </p>
+        </div>
+      `,
       icon: "warning",
       showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, restaurar",
+      cancelButtonText: "Cancelar",
     });
+
     if (confirm.isConfirmed) {
+      setRestoring(true); // ⬅️ Activar estado de carga
+
+      // Mostrar SweetAlert con spinner y detalles
+      Swal.fire({
+        title: "Restaurando Base de Datos...",
+        html: `
+          <div class="text-center">
+            <div class="spinner-border text-info mb-3" role="status" style="width: 3rem; height: 3rem;">
+              <span class="sr-only">Cargando...</span>
+            </div>
+            <h5 class="text-info">Proceso en curso</h5>
+            <p class="mb-1"><b>Archivo:</b> ${file.name}</p>
+            <p class="mb-3"><b>Estado:</b> Importando datos...</p>
+            <div class="progress mb-2" style="height: 8px;">
+              <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" 
+                   role="progressbar" 
+                   style="width: 100%">
+              </div>
+            </div>
+            <p class="text-muted small mt-3">
+              <i class="fas fa-info-circle"></i> 
+              Esto puede tomar varios minutos dependiendo del tamaño del backup.
+            </p>
+          </div>
+        `,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        allowEnterKey: false,
+        showConfirmButton: false,
+        backdrop: "rgba(0,0,0,0.7)",
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
       const formData = new FormData();
       formData.append("backup", file);
+
       try {
         const res = await api.post("/backup/restore", formData, {
           headers: { "Content-Type": "multipart/form-data" },
+          timeout: 300000, // 5 minutos timeout
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.lengthComputable) {
+              const percentCompleted = Math.round(
+                (progressEvent.loaded * 100) / progressEvent.total,
+              );
+              // Puedes actualizar el progreso aquí si quieres
+            }
+          },
         });
+
         if (res.data.success) {
-          localStorage.removeItem("token");
-          await Swal.fire("¡Éxito!", "Base de datos restaurada.", "success");
-          window.location.href = "/login";
+          setRestoring(false); // ⬅️ Desactivar estado de carga
+
+          // Cerrar el spinner de carga
+          Swal.close();
+
+          // Mostrar mensaje de éxito
+          await Swal.fire({
+            icon: "success",
+            title: "¡Restauración Exitosa!",
+            html: `
+              <div class="text-center">
+                <div class="mb-3">
+                  <i class="fas fa-check-circle fa-4x text-success"></i>
+                </div>
+                <p>La base de datos ha sido restaurada correctamente.</p>
+                <p class="small text-muted">Serás redirigido al login...</p>
+              </div>
+            `,
+            timer: 3000,
+            showConfirmButton: false,
+            willClose: () => {
+              localStorage.removeItem("token");
+              window.location.href = "/login";
+            },
+          });
         }
       } catch (error) {
-        Swal.fire("Error", "Archivo no válido.", "error");
+        setRestoring(false); // ⬅️ Desactivar estado de carga en caso de error
+
+        // Cerrar el spinner de carga
+        Swal.close();
+
+        // Limpiar el input file
+        if (fileInputRef.current) fileInputRef.current.value = "";
+
+        let errorMessage = "Error al restaurar la base de datos";
+
+        if (error.response) {
+          // El servidor respondió con un código de error
+          if (error.response.status === 413) {
+            errorMessage = "El archivo es demasiado grande";
+          } else if (error.response.status === 400) {
+            errorMessage =
+              error.response.data.message || "Archivo SQL inválido";
+          } else if (error.response.status === 504) {
+            errorMessage =
+              "Tiempo de espera agotado. El archivo puede ser muy grande.";
+          }
+        } else if (error.request) {
+          // La petición fue hecha pero no se recibió respuesta
+          errorMessage = "No se pudo conectar con el servidor";
+        } else if (error.code === "ECONNABORTED") {
+          errorMessage =
+            "Tiempo de espera agotado. Intente con un archivo más pequeño.";
+        }
+
+        await Swal.fire({
+          icon: "error",
+          title: "Error en la Restauración",
+          html: `
+            <div class="text-left">
+              <p><b>${errorMessage}</b></p>
+              ${
+                error.response?.data?.error
+                  ? `<p class="small text-muted mt-2">Detalle técnico: ${error.response.data.error}</p>`
+                  : ""
+              }
+              <p class="mt-3">
+                <i class="fas fa-lightbulb"></i> 
+                <b>Sugerencia:</b> Verifique que el archivo .sql sea válido y no esté corrupto.
+              </p>
+            </div>
+          `,
+          confirmButtonColor: "#d33",
+          confirmButtonText: "Entendido",
+        });
       }
+    } else {
+      // Si cancela, limpiar el input file
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -512,7 +727,18 @@ const ConfiguracionEmpresa = () => {
             {/* --- CARD 4: RESTAURAR --- */}
             <div className="card card-outline card-info mb-4 shadow-sm">
               <div className="card-header bg-info text-white">
-                <h3 className="card-title text-bold">Restaurar Copia</h3>
+                <div className="d-flex justify-content-between align-items-center">
+                  <h3 className="card-title text-bold">Restaurar Copia</h3>
+                  {restoring && (
+                    <span className="badge badge-light">
+                      <span
+                        className="spinner-border spinner-border-sm mr-1"
+                        role="status"
+                      ></span>
+                      Restaurando...
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="card-body">
                 <div className="form-group">
@@ -523,14 +749,51 @@ const ConfiguracionEmpresa = () => {
                       id="restoreBackup"
                       accept=".sql"
                       onChange={handleRestoreDatabase}
+                      disabled={restoring} // ⬅️ Deshabilitar durante la restauración
+                      ref={fileInputRef} // ⬅️ Referencia al input
                     />
                     <label
                       className="custom-file-label"
                       htmlFor="restoreBackup"
                     >
-                      Seleccionar archivo .SQL
+                      {restoring ? (
+                        <span className="text-muted">
+                          <i className="fas fa-spinner fa-spin mr-1"></i>
+                          Restauración en progreso...
+                        </span>
+                      ) : (
+                        "Seleccionar archivo .SQL"
+                      )}
                     </label>
                   </div>
+                  {restoring && (
+                    <div className="mt-3 p-3 bg-light border rounded">
+                      <div className="d-flex align-items-center">
+                        <div
+                          className="spinner-border text-info mr-3"
+                          role="status"
+                        >
+                          <span className="sr-only">Cargando...</span>
+                        </div>
+                        <div>
+                          <p className="mb-1 font-weight-bold text-info">
+                            <i className="fas fa-database mr-2"></i>
+                            Restaurando base de datos...
+                          </p>
+                          <p className="small text-muted mb-0">
+                            Por favor, no cierre esta ventana ni recargue la
+                            página.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="alert alert-info mt-3 small">
+                  <i className="fas fa-info-circle mr-2"></i>
+                  <b>Nota:</b> El proceso de restauración puede tardar varios
+                  minutos dependiendo del tamaño del archivo. Asegúrese de tener
+                  una conexión estable a internet.
                 </div>
               </div>
             </div>
@@ -551,8 +814,23 @@ const ConfiguracionEmpresa = () => {
                       type="button"
                       className="btn btn-danger shadow-sm"
                       onClick={handleResetSystem}
+                      disabled={resetting} // ⬅️ Deshabilitar botón durante el reset
                     >
-                      <i className="fas fa-trash-alt mr-1"></i> Resetear Sistema
+                      {resetting ? (
+                        <>
+                          <span
+                            className="spinner-border spinner-border-sm mr-2"
+                            role="status"
+                            aria-hidden="true"
+                          ></span>
+                          Reseteando...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fas fa-trash-alt mr-1"></i> Resetear
+                          Sistema
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
