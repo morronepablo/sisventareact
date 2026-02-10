@@ -854,3 +854,70 @@ body,
 }
 
 /* ---------------------------------------------------------------------- */
+
+/* En el bloque <style>, asegúrate de tener estos estilos: */
+
+/* Estilos para el scrollbar personalizado */
+.top-products-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.top-products-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+.top-products-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #39cccc, #0ff0fc);
+  border-radius: 10px;
+  box-shadow: 0 0 5px rgba(57, 204, 204, 0.5);
+}
+
+/* Animación de pulso para los primeros puestos (ajustada) */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 8px var(--neon-color); /* Aumentado de 6px */
+  }
+  50% {
+    box-shadow:
+      0 0 15px var(--neon-color),
+      0 0 20px var(--neon-color); /* Aumentado */
+  }
+  100% {
+    box-shadow: 0 0 8px var(--neon-color);
+  }
+}
+
+/* Aplicar colores a la animación */
+.top-products-scroll .badge:nth-child(1) {
+  --neon-color: #ff3131;
+  animation: pulse 2s infinite;
+}
+.top-products-scroll .badge:nth-child(2) {
+  --neon-color: #ff6ec7;
+  animation: pulse 2s infinite;
+}
+.top-products-scroll .badge:nth-child(3) {
+  --neon-color: #8a2be2;
+  animation: pulse 2s infinite;
+}
+
+/* Animación de brillo para el footer */
+@keyframes glow {
+  from {
+    text-shadow: 0 0 4px rgba(57, 204, 204, 0.5); /* Reducido */
+  }
+  to {
+    text-shadow:
+      0 0 8px rgba(57, 204, 204, 0.8),
+      0 0 12px rgba(57, 204, 204, 0.6); /* Reducido */
+  }
+}
+
+/* Efecto hover para el card completo */
+.top-vendidos-card:hover {
+  transform: translateY(-2px); /* Reducido de -3px */
+  box-shadow:
+    0 6px 20px rgba(0, 31, 63, 0.6),
+    inset 0 0 25px rgba(0, 255, 255, 0.15),
+    0 0 15px rgba(57, 204, 204, 0.3) !important; /* Reducido */
+  transition: all 0.3s ease;
+}
